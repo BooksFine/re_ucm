@@ -119,7 +119,18 @@ abstract class BookPageControllerBase with Store {
           mimeType: 'application/x-fictionbook+xml',
         );
 
-        await Share.shareXFiles([xfile]);
+        final text = '${data.title}'
+            '\nАвторы: ${data.authors.map((e) => e.name).join(', ')}'
+            '${data.series == null ? '' : '\nСерия: ${data.series!.name} #${data.series!.number}'}'
+            '\n'
+            '\n${data.chapters.length} глав'
+            '\nПо: "${data.chapters.last.title}"';
+
+        await Share.shareXFiles(
+          [xfile],
+          text: text,
+          subject: text,
+        );
       } finally {
         await file.delete();
       }

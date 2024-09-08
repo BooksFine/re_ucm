@@ -1,0 +1,10 @@
+include: package:flutter_lints/flutter.yaml
+
+# analyzer:
+#   enable-experiment:
+#     - macros
+
+linter:
+  rules:
+    prefer_relative_imports: true
+    directives_ordering: true

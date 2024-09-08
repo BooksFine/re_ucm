@@ -126,11 +126,7 @@ abstract class BookPageControllerBase with Store {
             '\n${data.chapters.length} глав'
             '\nПо: "${data.chapters.last.title}"';
 
-        await Share.shareXFiles(
-          [xfile],
-          text: text,
-          subject: text,
-        );
+        await Share.shareXFiles([xfile], text: text, subject: text);
       } finally {
         await file.delete();
       }

@@ -21,8 +21,8 @@ class Nav {
   static goBrowser(String code) =>
       _context.goNamed('Browser', pathParameters: {'portalCode': code});
 
-  static pushCustomBrowser(CustomBrowserParams params) =>
-      _context.pushNamed('CustomBrowser', extra: params);
+  static Future<bool?> pushCustomBrowser(CustomBrowserParams params) =>
+      _context.pushNamed<bool>('CustomBrowser', extra: params);
 
   static goChangelog() => _context.goNamed('Changelog');
 }

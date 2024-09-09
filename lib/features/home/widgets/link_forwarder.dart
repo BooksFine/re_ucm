@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/constants.dart';
 import '../../../core/navigation/router_delegate.dart';
+import '../../common/utils/uri_from_url.dart';
 import '../../common/widgets/btn.dart';
 import '../../portals/portal.dart';
 import '../../portals/portal_service.dart';
@@ -76,13 +77,5 @@ class _LinkForwarderState extends State<LinkForwarder> {
 
       Nav.book(portal.code, portal.service.getIdFromUrl(uri));
     }
-  }
-
-  Uri uriFromUrl(String url) {
-    if (!url.startsWith(RegExp(r'https?://'))) {
-      url = 'https://$url';
-    }
-    final uri = Uri.parse(url);
-    return uri;
   }
 }

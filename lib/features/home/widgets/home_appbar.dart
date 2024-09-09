@@ -18,7 +18,8 @@ class HomeAppbar extends StatelessWidget {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 15.0, sigmaY: 10.0),
         child: Container(
-          color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.9),
+          color:
+              Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.9),
           padding: const EdgeInsets.all(appPadding * 2) +
               EdgeInsets.only(top: MediaQuery.paddingOf(context).top),
           child: Row(

@@ -51,6 +51,8 @@ dev_dependencies:
   mobx_codegen: ^2.6.1
   json_serializable: ^6.8.0
   retrofit_generator: ^8.2.0
+  icons_launcher: 3.0.0-beta.4
+  flutter_native_splash: ^2.4.1
 
 dependency_overrides:
   flutter_inappwebview_platform_interface:

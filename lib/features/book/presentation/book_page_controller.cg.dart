@@ -10,7 +10,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../../core/di.dart';
 import '../../../core/logger.dart';
 import '../../../core/navigation/router_delegate.dart';
-import '../../common/widgets/snack.dart';
+import '../../common/widgets/overlay_snack.dart';
 import '../../converters/fb2/converter.dart';
 import '../../portals/portal.dart';
 import '../../portals/portal_service.dart';
@@ -145,7 +145,7 @@ abstract class BookPageControllerBase with Store {
           customMimeType: 'application/x-fictionbook+xml',
         );
         if (scaffoldKey.currentContext != null && !saveAs) {
-          snackMessage(
+          overlaySnackMessage(
             scaffoldKey.currentContext!,
             'Книга сохранена в загрузки',
           );

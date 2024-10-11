@@ -30,7 +30,7 @@ class ElevatedButton1 extends StatelessWidget {
           width: double.infinity,
           child: Center(
             child: isLoading
-                ? LoadingAnimationWidget.prograssiveDots(
+                ? LoadingAnimationWidget.progressiveDots(
                     color: Colors.white,
                     size: 60,
                   )

@@ -5,7 +5,6 @@ import 'core/navigation/router.dart';
 import 'core/ui/theme.dart';
 
 Future settingUpSystemUIOverlay() async {
-// Setting SysemUIOverlay
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       systemStatusBarContrastEnforced: false,
@@ -13,7 +12,6 @@ Future settingUpSystemUIOverlay() async {
       systemNavigationBarDividerColor: Colors.transparent,
     ),
   );
-// Setting SystmeUIMode
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 }
 

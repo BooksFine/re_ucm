@@ -32,7 +32,7 @@ class OutlinedButton1 extends StatelessWidget {
         onTap: isLoading ? null : func,
         child: Center(
           child: isLoading
-              ? LoadingAnimationWidget.prograssiveDots(
+              ? LoadingAnimationWidget.progressiveDots(
                   color: Theme.of(context).colorScheme.primary, size: 60)
               : Text(
                   text,

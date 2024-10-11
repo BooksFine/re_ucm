@@ -1,6 +1,7 @@
 name: re_ucm
 description: ""
 publish_to: "none"
+homepage: "https://reucm.pages.dev"
 version: 2.1.0+4
 
 environment:

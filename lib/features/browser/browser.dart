@@ -58,6 +58,11 @@ class _BrowserState extends State<Browser> {
                 useHybridComposition: false,
                 cacheMode: CacheMode.LOAD_CACHE_ELSE_NETWORK,
               ),
+              onPermissionRequest: (controller, request) async {
+                return PermissionResponse(
+                    resources: request.resources,
+                    action: PermissionResponseAction.GRANT);
+              },
               initialUrlRequest: URLRequest(
                 url: WebUri(widget.portal.url),
               ),
@@ -82,6 +87,14 @@ class _BrowserState extends State<Browser> {
                 } catch (e) {
                   return NavigationActionPolicy.ALLOW;
                 }
+              },
+              onUpdateVisitedHistory: (controller, url, isReload) {
+                if (isReload == true) return;
+                try {
+                  final bookId =
+                      widget.portal.service.getIdFromUrl(url!.uriValue);
+                  Nav.bookFromBrowser(widget.portal.code, bookId);
+                } finally {}
               },
             ),
           ),

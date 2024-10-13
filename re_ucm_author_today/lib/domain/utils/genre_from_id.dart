@@ -1,0 +1,94 @@
+import 'package:re_ucm_core/models/book.dart';
+
+Genre genreFromId(int id) {
+  var genre = genreMap[id];
+  if (genre != null) {
+    return Genre(
+      ru: genre['nameRU'],
+      en: genre['nameEn']!,
+    );
+  }
+  return Genre(
+    ru: 'Неизвестный жанр',
+    en: 'unknown',
+  );
+}
+
+final Map<int, Map<String, String>> genreMap = {
+  1: {'nameRU': 'Современная проза', 'nameEn': 'modern-prose'},
+  2: {'nameRU': 'Фэнтези', 'nameEn': 'fantasy'},
+  3: {'nameRU': 'Фантастика', 'nameEn': 'sci-fi'},
+  4: {'nameRU': 'Детектив', 'nameEn': 'detective'},
+  5: {'nameRU': 'Боевик', 'nameEn': 'action'},
+  6: {'nameRU': 'Любовные романы', 'nameEn': 'romance'},
+  7: {'nameRU': 'Эротика', 'nameEn': 'erotica'},
+  8: {'nameRU': 'Приключения', 'nameEn': 'adventure'},
+  9: {'nameRU': 'Фанфик', 'nameEn': 'fanfiction'},
+  10: {'nameRU': 'Мистика', 'nameEn': 'paranormal'},
+  11: {'nameRU': 'Триллер', 'nameEn': 'thriller'},
+  12: {'nameRU': 'Юмор', 'nameEn': 'humor'},
+  13: {'nameRU': 'Поэзия', 'nameEn': 'poetry'},
+  14: {'nameRU': 'Документальная проза', 'nameEn': 'non-fiction'},
+  15: {'nameRU': 'Боевая фантастика', 'nameEn': 'sf-action'},
+  16: {'nameRU': 'Подростковая проза', 'nameEn': 'teen-prose'},
+  17: {'nameRU': 'Историческая проза', 'nameEn': 'historical-fiction'},
+  18: {'nameRU': 'Ужасы', 'nameEn': 'horror'},
+  19: {'nameRU': 'Разное', 'nameEn': 'other'},
+  20: {'nameRU': 'ЛитРПГ', 'nameEn': 'litrpg'},
+  21: {'nameRU': 'Попаданцы', 'nameEn': 'popadantsy'},
+  28: {'nameRU': 'Альтернативная история', 'nameEn': 'sf-history'},
+  29: {'nameRU': 'Антиутопия', 'nameEn': 'dystopia'},
+  30: {'nameRU': 'Боевая фантастика', 'nameEn': 'sf-action'},
+  31: {'nameRU': 'Героическая фантастика', 'nameEn': 'sf-heroic'},
+  32: {'nameRU': 'Постапокалипсис', 'nameEn': 'postapocalyptic'},
+  33: {'nameRU': 'Космическая фантастика', 'nameEn': 'sf-space'},
+  34: {'nameRU': 'Киберпанк', 'nameEn': 'cyberpunk'},
+  35: {'nameRU': 'Стимпанк', 'nameEn': 'steampunk'},
+  36: {'nameRU': 'Научная фантастика', 'nameEn': 'science-fiction'},
+  37: {'nameRU': 'Юмористическая фантастика', 'nameEn': 'sf-humor'},
+  38: {'nameRU': 'Боевое фэнтези', 'nameEn': 'fantasy-action'},
+  39: {'nameRU': 'Городское фэнтези', 'nameEn': 'urban-fantasy'},
+  40: {'nameRU': 'Романтическое фэнтези', 'nameEn': 'romantic-fantasy'},
+  41: {'nameRU': 'Историческое фэнтези', 'nameEn': 'historical-fantasy'},
+  42: {'nameRU': 'Юмористическое фэнтези', 'nameEn': 'ironical-fantasy'},
+  43: {'nameRU': 'Эпическое фэнтези', 'nameEn': 'epic-fantasy'},
+  44: {'nameRU': 'Темное фэнтези', 'nameEn': 'dark-fantasy'},
+  45: {'nameRU': 'Короткий любовный роман', 'nameEn': 'short-romance'},
+  46: {'nameRU': 'Исторический любовный роман', 'nameEn': 'historical-romance'},
+  47: {'nameRU': 'Попаданцы во времени', 'nameEn': 'popadantsy-vo-vremeni'},
+  48: {
+    'nameRU': 'Попаданцы в магические миры',
+    'nameEn': 'popadantsy-v-magicheskie-miry'
+  },
+  49: {'nameRU': 'Политический роман', 'nameEn': 'political-fiction'},
+  50: {'nameRU': 'Исторический детектив', 'nameEn': 'historical-mystery'},
+  51: {'nameRU': 'Шпионский детектив', 'nameEn': 'spy-mystery'},
+  52: {
+    'nameRU': 'Фантастический детектив',
+    'nameEn': 'detective-science-fiction'
+  },
+  53: {'nameRU': 'Романтическая эротика', 'nameEn': 'romantic-erotika'},
+  54: {'nameRU': 'Эротическая фантастика', 'nameEn': 'sf-erotika'},
+  55: {'nameRU': 'Эротическое фэнтези', 'nameEn': 'fantasy-erotika'},
+  56: {'nameRU': 'Эротический фанфик', 'nameEn': 'fanfiction-erotika'},
+  57: {'nameRU': 'Слэш', 'nameEn': 'slash'},
+  58: {'nameRU': 'Детская литература', 'nameEn': 'detskaya-literatura'},
+  59: {'nameRU': 'Публицистика', 'nameEn': 'publicism'},
+  60: {'nameRU': 'Сказка', 'nameEn': 'fairy-tale'},
+  61: {'nameRU': 'Бизнес-литература', 'nameEn': 'biznes-literatura'},
+  62: {'nameRU': 'Развитие личности', 'nameEn': 'razvitie-lichnosti'},
+  63: {'nameRU': 'Социальная фантастика', 'nameEn': 'sf-social'},
+  64: {'nameRU': 'Героическое фэнтези', 'nameEn': 'heroic-fantasy'},
+  66: {'nameRU': 'Попаданцы в космос', 'nameEn': 'popadantsy-v-kosmos'},
+  67: {
+    'nameRU': 'Современный любовный роман',
+    'nameEn': 'contemporary-romance'
+  },
+  68: {'nameRU': 'Фемслэш', 'nameEn': 'femslesh'},
+  69: {'nameRU': 'РеалРПГ', 'nameEn': 'realrpg'},
+  70: {'nameRU': 'Исторические приключения', 'nameEn': 'historical-adventure'},
+  71: {'nameRU': 'Бояръ-Аниме', 'nameEn': 'boyar-anime'},
+  72: {'nameRU': 'Назад в СССР', 'nameEn': 'back-to-ussr'},
+  73: {'nameRU': 'Уся', 'nameEn': 'wuxia'},
+  74: {'nameRU': 'Магическая академия', 'nameEn': 'magic-school'},
+};

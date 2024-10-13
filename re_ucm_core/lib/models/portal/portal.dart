@@ -1,13 +1,11 @@
 part of '../portal.dart';
 
 abstract interface class Portal {
-  final String url;
-  final String name;
-  final String code;
-  final SvgAssetLoader logo;
+  String get url;
+  String get name;
+  String get code;
+  SvgAssetLoader get logo;
   PortalService get service;
-
-  const Portal(this.url, this.name, this.code, this.logo);
 
   factory Portal.fromCode(String code) {
     try {

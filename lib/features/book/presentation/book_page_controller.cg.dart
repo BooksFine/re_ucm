@@ -108,7 +108,7 @@ abstract class BookPageControllerBase with Store {
     name = name.replaceAll(':', '');
 
     var tempDir = (await getTemporaryDirectory()).path;
-    final path = '$tempDir\\$name.fb2';
+    final path = '$tempDir/$name.fb2';
     var file = File(path);
     await file.writeAsBytes(bookXmlBytes!);
 
@@ -124,9 +124,9 @@ abstract class BookPageControllerBase with Store {
             '\nАвторы: ${data.authors.map((e) => e.name).join(', ')}'
             '${data.series == null ? '' : '\nСерия: ${data.series!.name} #${data.series!.number}'}'
             '\n'
-            '\nГлав: ${data.chapters.length}';
+            '\nПо: «${data.chapters.last.title}»';
 
-        await Share.shareXFiles([xfile], text: text, subject: text);
+        await Share.shareXFiles([xfile], text: text, subject: name);
         return;
       }
       bool isGranted =

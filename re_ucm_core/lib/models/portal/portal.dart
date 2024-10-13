@@ -7,6 +7,10 @@ abstract interface class Portal {
   SvgAssetLoader get logo;
   PortalService get service;
 
+  factory Portal.fromJson(Map<String, dynamic> json) =>
+      Portal.fromCode(json['code']);
+  Map<String, dynamic> toJson() => {'code': code};
+
   factory Portal.fromCode(String code) {
     try {
       return portalsCodeMap[code]!;

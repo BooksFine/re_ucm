@@ -9,7 +9,7 @@ abstract interface class Portal {
 
   factory Portal.fromCode(String code) {
     try {
-      return _portalsCodeMap[code]!;
+      return portalsCodeMap[code]!;
     } catch (e) {
       throw ArgumentError('Invalid portal code');
     }
@@ -25,9 +25,9 @@ abstract interface class Portal {
 
   static void registerPortal(Portal portal) {
     _portalsUrlMap[portal.url] = portal;
-    _portalsCodeMap[portal.code] = portal;
+    portalsCodeMap[portal.code] = portal;
   }
 }
 
 final Map<String, Portal> _portalsUrlMap = {};
-final Map<String, Portal> _portalsCodeMap = {};
+final Map<String, Portal> portalsCodeMap = {};

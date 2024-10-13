@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:re_ucm_core/ui/constants.dart';
 
-import '../../../core/constants.dart';
 
 void snackMessage(BuildContext context, String text) {
   ScaffoldMessenger.of(context).showSnackBar(

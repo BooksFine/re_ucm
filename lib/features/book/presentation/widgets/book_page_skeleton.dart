@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants.dart';
+import 'package:re_ucm_core/ui/constants.dart';
 
 class BookPageSkeleton extends StatelessWidget {
   const BookPageSkeleton({

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:re_ucm_core/models/portal.dart';
-import '../../../core/constants.dart';
+import 'package:re_ucm_core/ui/constants.dart';
 
 class PortalCard extends StatelessWidget {
   const PortalCard({

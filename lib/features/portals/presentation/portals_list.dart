@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:re_ucm_core/models/portal.dart';
-import '../../../core/constants.dart';
+import 'package:re_ucm_core/ui/constants.dart';
 import '../domain/portal_factory.dart';
 import 'portal_card.dart';
 

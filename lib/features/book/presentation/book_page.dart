@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:re_ucm_core/models/portal.dart';
+import 'package:re_ucm_core/ui/constants.dart';
 
-import '../../../core/constants.dart';
 import '../../common/widgets/appbar.dart';
 import '../../common/widgets/shimmer.dart';
 import '../../settings/presentation/settings_dialog.dart';

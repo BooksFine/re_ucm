@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:re_ucm_core/models/portal.dart';
+import 'package:re_ucm_core/ui/constants.dart';
 import 'package:re_ucm_core/ui/settings.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import '../../../core/constants.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:re_ucm_core/ui/constants.dart';
 
-import '../../../core/constants.dart';
 import '../../../core/navigation/router_delegate.dart';
 import '../../common/utils/uri_from_url.dart';
 import '../../common/widgets/btn.dart';

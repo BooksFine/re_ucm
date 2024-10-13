@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:re_ucm_core/ui/constants.dart';
 
-import '../../../core/constants.dart';
 import '../../../core/di.dart';
 import '../application/recent_books_service.dart';
 import 'recent_book_card.dart';

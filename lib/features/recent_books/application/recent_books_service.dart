@@ -1,6 +1,6 @@
 import 'package:mobx/mobx.dart';
+import 'package:re_ucm_core/models/book.dart';
 
-import '../../book/domain/book.dart';
 import '../data/recent_books_storage.dart';
 import '../domain/recent_book.cg.dart';
 

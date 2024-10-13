@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:re_ucm_core/models/portal.dart';
+import 'package:re_ucm_core/ui/settings.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import '../../../core/constants.dart';
 import '../../../core/navigation/router_delegate.dart';
-import '../../portals/portal.dart';
-import '../../portals/portal_service.dart';
 import '../../portals/presentation/portals_list.dart';
-import 'settings_button.dart';
-import 'settings_title.dart';
 
 class Settings extends StatefulWidget {
   const Settings({super.key});

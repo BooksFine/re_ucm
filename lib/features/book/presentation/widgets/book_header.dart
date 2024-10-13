@@ -1,11 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:re_ucm_core/models/book.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../../../../core/constants.dart';
 import '../../../common/widgets/shimmer.dart';
-import '../../domain/book.dart';
 
 class BookHeader extends StatelessWidget {
   const BookHeader({

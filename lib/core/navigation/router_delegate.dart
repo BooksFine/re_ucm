@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../features/browser/custom_browser.dart';
 import 'router.dart';
 
 BuildContext get _context => rootNavigationKey.currentContext!;
@@ -20,9 +19,6 @@ class Nav {
 
   static goBrowser(String code) =>
       _context.goNamed('Browser', pathParameters: {'portalCode': code});
-
-  static Future<bool?> pushCustomBrowser(CustomBrowserParams params) =>
-      _context.pushNamed<bool>('CustomBrowser', extra: params);
 
   static goChangelog() => _context.goNamed('Changelog');
 }

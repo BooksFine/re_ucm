@@ -7,8 +7,7 @@ import '../../core/logger.dart';
 import '../../core/navigation/router_delegate.dart';
 import '../common/utils/uri_from_url.dart';
 import '../common/widgets/snack.dart';
-import '../portals/portal.dart';
-import '../portals/portal_service.dart';
+import '../portals/domain/portal_factory.dart';
 
 Future<void> shareHandler(BuildContext context) async {
   if (!Platform.isAndroid) return;
@@ -18,7 +17,7 @@ Future<void> shareHandler(BuildContext context) async {
 
   try {
     final uri = uriFromUrl(media!.content!);
-    final portal = Portal.fromUrl(uri);
+    final portal = PortalFactory.fromUrl(uri);
 
     Nav.book(portal.code, portal.service.getIdFromUrl(uri));
   } catch (e) {

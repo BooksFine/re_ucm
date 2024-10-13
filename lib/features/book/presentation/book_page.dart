@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
+import 'package:re_ucm_core/models/portal.dart';
 
 import '../../../core/constants.dart';
 import '../../common/widgets/appbar.dart';
 import '../../common/widgets/shimmer.dart';
-import '../../portals/portal.dart';
 import '../../settings/presentation/settings_dialog.dart';
 import 'book_page_controller.cg.dart';
 import 'widgets/annotation_viewer.dart';

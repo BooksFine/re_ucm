@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:re_ucm_core/models/portal.dart';
 import '../../core/navigation/router_delegate.dart';
 import '../common/widgets/appbar.dart';
-import '../portals/portal.dart';
-import '../portals/portal_service.dart';
 import '../settings/presentation/settings_dialog.dart';
 
 class Browser extends StatefulWidget {
@@ -94,7 +93,9 @@ class _BrowserState extends State<Browser> {
                   final bookId =
                       widget.portal.service.getIdFromUrl(url!.uriValue);
                   Nav.bookFromBrowser(widget.portal.code, bookId);
-                } finally {}
+                } catch (e) {
+                  {}
+                }
               },
             ),
           ),

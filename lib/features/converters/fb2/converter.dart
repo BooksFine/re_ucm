@@ -6,14 +6,13 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:html/parser.dart';
 import 'package:intl/intl.dart';
+import 'package:re_ucm_author_today/domain/constants.dart';
+import 'package:re_ucm_core/models/book.dart';
+import 'package:re_ucm_core/models/progress.dart';
 import 'package:xml/xml.dart';
 
 import '../../../core/constants.dart';
 import '../../../core/logger.dart';
-import '../../book/domain/book.dart';
-import '../../book/domain/progress.dart';
-import '../../portals/author.today/domain/constants.dart';
-import '../../portals/portal.dart';
 import 'html_to_fb2.dart.dart';
 
 Future<Uint8List> convertToFB2(
@@ -96,8 +95,7 @@ Future<void> convertToFB2Isolate(Map<String, dynamic> args) async {
               responseType: ResponseType.bytes,
               headers: {
                 //Костыль для адекватной загрузки картинок с АТ из-за рубежа
-                if (data.portal == Portal.authorToday)
-                  "user-agent": userAgentAT,
+                if (data.portal.code == codeAT) "user-agent": userAgentAT,
               },
             ),
           );

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:re_ucm_core/models/progress.dart';
 
 import '../../../../core/constants.dart';
-import '../../domain/progress.dart';
 import '../book_page_controller.cg.dart';
 
 class ProgressBar extends StatelessWidget {

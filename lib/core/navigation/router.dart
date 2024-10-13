@@ -3,10 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/book/presentation/book_page.dart';
 import '../../features/browser/browser.dart';
-import '../../features/browser/custom_browser.dart';
 import '../../features/changelog/changelog_page.dart';
 import '../../features/home/home_page.dart';
-import '../../features/portals/portal.dart';
+import '../../features/portals/domain/portal_factory.dart';
 import 'dialog_page.dart';
 
 final rootNavigationKey = GlobalKey<NavigatorState>();
@@ -24,17 +23,6 @@ final router = GoRouter(
       pageBuilder: (context, state) => const MaterialPage(child: HomePage()),
       routes: [
         GoRoute(
-          name: 'CustomBrowser',
-          path: 'browser',
-          pageBuilder: (context, state) {
-            var extra = state.extra as CustomBrowserParams;
-            return CupertinoPage(
-              key: state.pageKey,
-              child: CustomBrowser(params: extra),
-            );
-          },
-        ),
-        GoRoute(
           path: 'changelog',
           name: 'Changelog',
           pageBuilder: (context, state) {
@@ -51,7 +39,8 @@ final router = GoRouter(
             return CupertinoPage(
               key: state.pageKey,
               child: Browser(
-                portal: Portal.fromCode(state.pathParameters['portalCode']!),
+                portal:
+                    PortalFactory.fromCode(state.pathParameters['portalCode']!),
               ),
             );
           },
@@ -64,8 +53,8 @@ final router = GoRouter(
                   key: state.pageKey,
                   child: BookPage(
                     id: state.pathParameters['id']!,
-                    portal:
-                        Portal.fromCode(state.pathParameters['portalCode']!),
+                    portal: PortalFactory.fromCode(
+                        state.pathParameters['portalCode']!),
                   ),
                 );
               },
@@ -80,7 +69,8 @@ final router = GoRouter(
               key: state.pageKey,
               child: BookPage(
                 id: state.pathParameters['id']!,
-                portal: Portal.fromCode(state.pathParameters['portalCode']!),
+                portal:
+                    PortalFactory.fromCode(state.pathParameters['portalCode']!),
               ),
             );
           },

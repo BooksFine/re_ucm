@@ -1,6 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:re_ucm_core/models/portal.dart';
 
-import '../../portals/portal.dart';
+import '../../portals/domain/portal_factory.dart';
 
 part '../../../.gen/features/recent_books/domain/recent_book.cg.g.dart';
 
@@ -12,6 +13,7 @@ class RecentBook {
   final String? coverUrl;
   final String? seriesName;
   final int? seriesNumber;
+  @JsonKey(fromJson: PortalFactory.fromJson, toJson: PortalFactory.toJson)
   final Portal portal;
   final DateTime added;
 

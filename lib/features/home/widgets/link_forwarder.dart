@@ -4,8 +4,7 @@ import '../../../core/constants.dart';
 import '../../../core/navigation/router_delegate.dart';
 import '../../common/utils/uri_from_url.dart';
 import '../../common/widgets/btn.dart';
-import '../../portals/portal.dart';
-import '../../portals/portal_service.dart';
+import '../../portals/domain/portal_factory.dart';
 
 final _key = GlobalKey();
 
@@ -50,7 +49,7 @@ class _LinkForwarderState extends State<LinkForwarder> {
             validator: (url) {
               try {
                 final uri = uriFromUrl(url!);
-                Portal.fromUrl(uri).service.getIdFromUrl(uri);
+                PortalFactory.fromUrl(uri).service.getIdFromUrl(uri);
                 return null;
               } catch (e) {
                 return 'Введите корректную ссылку';
@@ -71,7 +70,7 @@ class _LinkForwarderState extends State<LinkForwarder> {
     if (formKey.currentState!.validate()) {
       var url = textController.text;
       final uri = uriFromUrl(url);
-      final portal = Portal.fromUrl(uri);
+      final portal = PortalFactory.fromUrl(uri);
 
       focus.unfocus();
 

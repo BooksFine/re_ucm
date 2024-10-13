@@ -1,13 +1,21 @@
 name: re_ucm
 description: ""
-publish_to: "none"
+publish_to: none
 homepage: "https://reucm.pages.dev"
+repository: "https://github.com/BooksFine/re_ucm"
 version: 2.1.0+4
 
 environment:
   sdk: ^3.4.0
 
 dependencies:
+  re_ucm_core:
+    git:
+      url: https://github.com/BooksFine/re_ucm_core.git
+
+  re_ucm_author_today:
+    path: ../re_ucm_author_today
+
   cached_network_image: ^3.3.1
   flutter:
     sdk: flutter

@@ -6,6 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:mobx/mobx.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:re_ucm_core/models/book.dart';
+import 'package:re_ucm_core/models/portal.dart';
+import 'package:re_ucm_core/models/progress.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../core/di.dart';
@@ -13,11 +16,7 @@ import '../../../core/logger.dart';
 import '../../../core/navigation/router_delegate.dart';
 import '../../common/widgets/overlay_snack.dart';
 import '../../converters/fb2/converter.dart';
-import '../../portals/portal.dart';
-import '../../portals/portal_service.dart';
 import '../../recent_books/application/recent_books_service.dart';
-import '../domain/book.dart';
-import '../domain/progress.dart';
 
 part '../../../.gen/features/book/presentation/book_page_controller.cg.g.dart';
 

@@ -1,5 +1,4 @@
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:re_ucm_core/models/portal/portal_service.dart';
+part of '../portal.dart';
 
 abstract interface class Portal {
   final String url;

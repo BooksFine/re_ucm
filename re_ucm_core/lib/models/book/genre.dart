@@ -1,3 +1,5 @@
+part of '../book.dart';
+
 class Genre {
   String? ru;
   String en;

@@ -1,5 +1,9 @@
-export 'book/book.dart';
-export 'book/author.dart';
-export 'book/chapter.dart';
-export 'book/genre.dart';
-export 'book/series.dart';
+library;
+
+import 'package:re_ucm_core/models/portal.dart';
+
+part 'book/book.dart';
+part 'book/author.dart';
+part 'book/chapter.dart';
+part 'book/genre.dart';
+part 'book/series.dart';

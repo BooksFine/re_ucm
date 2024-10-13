@@ -1,6 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:re_ucm_core/models/book/book.dart';
-import 'package:re_ucm_core/models/book/chapter.dart';
+part of '../portal.dart';
 
 abstract interface class PortalService {
   Widget get settings;

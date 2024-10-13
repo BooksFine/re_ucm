@@ -1,3 +1,5 @@
+part of '../book.dart';
+
 class Chapter {
   String title;
   String content;

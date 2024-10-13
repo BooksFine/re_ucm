@@ -1,3 +1,5 @@
+part of '../book.dart';
+
 class Series {
   String url;
   String name;

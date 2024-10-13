@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:re_ucm_core/ui/constants.dart';
+part of '../settings.dart';
 
 class SettingsButton extends StatelessWidget {
   const SettingsButton({

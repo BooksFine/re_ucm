@@ -1,9 +1,4 @@
-import 'package:re_ucm_core/models/portal/portal.dart';
-
-import 'author.dart';
-import 'chapter.dart';
-import 'genre.dart';
-import 'series.dart';
+part of '../book.dart';
 
 class Book {
   final String id;

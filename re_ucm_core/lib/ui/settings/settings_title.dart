@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+part of '../settings.dart';
 
 class SettingsTitle extends StatelessWidget {
   const SettingsTitle(this.title, {super.key});

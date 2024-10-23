@@ -478,7 +478,7 @@ packages:
     source: hosted
     version: "0.15.4"
   http:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: http
       sha256: b9c29a161230ee03d3ccf545097fccd9b87a5264228c5d348202e0f0c28f9010
@@ -685,6 +685,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.0"
+  ota_update_fork:
+    dependency: "direct main"
+    description:
+      name: ota_update_fork
+      sha256: "7d55f24206caec2df1c0d90ffdccdcfb0f60e4c09396478cea69dcdab4e0af06"
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.0.0"
   package_config:
     dependency: transitive
     description:
@@ -694,7 +702,7 @@ packages:
     source: hosted
     version: "2.1.0"
   path:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: path
       sha256: "087ce49c3f0dc39180befefc60fdb4acd8f8620e5682fe2476afd0b3688bb4af"
@@ -872,16 +880,20 @@ packages:
   re_ucm_author_today:
     dependency: "direct main"
     description:
-      path: "../re_ucm_author_today"
-      relative: true
-    source: path
+      path: "."
+      ref: HEAD
+      resolved-ref: "30e39591c6b05be46d6b9f1550d281fb76383f3b"
+      url: "https://github.com/BooksFine/re_ucm_author_today.git"
+    source: git
     version: "1.0.0"
   re_ucm_core:
     dependency: "direct main"
     description:
-      path: "../re_ucm_core"
-      relative: true
-    source: path
+      path: "."
+      ref: HEAD
+      resolved-ref: "6174b4689e94375fd4e3af767cc45ec20a19c961"
+      url: "https://github.com/BooksFine/re_ucm_core.git"
+    source: git
     version: "1.7.0"
   retrofit:
     dependency: "direct main"

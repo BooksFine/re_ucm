@@ -7,6 +7,9 @@ import '../../features/changelog/changelog_page.dart';
 import '../../features/home/home_page.dart';
 import '../../features/portals/domain/portal_factory.dart';
 import 'dialog_page.dart';
+import 'modal_bottom_sheet_page.dart';
+
+bool isLaunched = false;
 
 final rootNavigationKey = GlobalKey<NavigatorState>();
 final router = GoRouter(
@@ -17,6 +20,13 @@ final router = GoRouter(
       path: '/dialog',
       pageBuilder: (context, state) =>
           DialogPage(builder: state.extra as RoutePageBuilder),
+    ),
+    GoRoute(
+      path: '/bottomsheet',
+      pageBuilder: (context, state) => ModalBottomSheetPage(
+        child: state.extra as Widget,
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
+      ),
     ),
     GoRoute(
       path: '/',
@@ -54,7 +64,8 @@ final router = GoRouter(
                   child: BookPage(
                     id: state.pathParameters['id']!,
                     portal: PortalFactory.fromCode(
-                        state.pathParameters['portalCode']!),
+                      state.pathParameters['portalCode']!,
+                    ),
                   ),
                 );
               },

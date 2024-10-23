@@ -1,8 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'core/di.dart';
+import 'core/logger.dart';
 import 'core/navigation/router.dart';
 import 'core/ui/theme.dart';
+import 'features/ota/ota_service.dart';
+import 'features/share_receiver/share_receiver.dart';
 
 Future settingUpSystemUIOverlay() async {
   SystemChrome.setSystemUIOverlayStyle(
@@ -25,14 +30,30 @@ void main() async {
   MyWidgetsBinding();
   WidgetsFlutterBinding.ensureInitialized();
 
+  await loggerInit();
+
   await settingUpSystemUIOverlay();
   await appInit();
 
   runApp(const MainApp());
 }
 
-class MainApp extends StatelessWidget {
+class MainApp extends StatefulWidget {
   const MainApp({super.key});
+
+  @override
+  State<MainApp> createState() => _MainAppState();
+}
+
+class _MainAppState extends State<MainApp> {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    shareHandler(context);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      OTAService.firstLaunch();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

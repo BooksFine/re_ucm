@@ -10,6 +10,9 @@ class Nav {
   static pushDialog(RoutePageBuilder dialog) =>
       _context.push('/dialog', extra: dialog);
 
+  static pushBottomSheet(Widget child) =>
+      _context.push('/bottomsheet', extra: child);
+
   static book(String code, String id) =>
       _context.goNamed('Book', pathParameters: {'portalCode': code, 'id': id});
 

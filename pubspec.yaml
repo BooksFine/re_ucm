@@ -3,7 +3,7 @@ description: ""
 publish_to: none
 homepage: "https://reucm.pages.dev"
 repository: "https://github.com/BooksFine/re_ucm"
-version: 2.1.0+4
+version: 2.2.0+5
 
 environment:
   sdk: ^3.4.0
@@ -13,8 +13,13 @@ dependencies:
     git:
       url: https://github.com/BooksFine/re_ucm_core.git
 
+    # path: ../re_ucm_core
+
   re_ucm_author_today:
-    path: ../re_ucm_author_today
+    git:
+      url: https://github.com/BooksFine/re_ucm_author_today.git
+
+    # path: ../re_ucm_author_today
 
   cached_network_image: ^3.3.1
   flutter:
@@ -46,6 +51,9 @@ dependencies:
   share_handler: ^0.0.21
   file_picker: ^8.1.2
   permission_handler: ^11.3.1
+  http: ^1.2.2
+  ota_update_fork: ^6.0.0
+  path: ^1.9.0
 
 dev_dependencies:
   flutter_test:

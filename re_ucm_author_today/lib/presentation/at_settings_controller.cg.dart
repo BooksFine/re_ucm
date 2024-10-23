@@ -35,7 +35,7 @@ abstract class ATSettingsControllerBase with Store {
               shouldOverrideUrlLoading: (action) {
                 final url = action.request.url!;
                 if (url.origin + url.path == '$urlAT/') {
-                  Navigator.pop(context);
+                  Navigator.pop(context, true);
                 }
                 return NavigationActionPolicy.ALLOW;
               },

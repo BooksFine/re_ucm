@@ -30,7 +30,7 @@ class RecentBooksStorageSembast implements RecentBooksStorage {
     var dir = await getApplicationSupportDirectory();
 
     repo.db = await databaseFactoryIo.openDatabase(
-      '${dir.path}/recent_books.db',
+      '${dir.path}/recent_books_v2.db',
     );
     return repo;
   }

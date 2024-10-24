@@ -37,7 +37,7 @@ Book metadataParserAT(ATWorkMetadata data, Portal portal) {
     series = Series(
       url: "https://author.today/work/series/${data.seriesId}",
       name: data.seriesTitle!,
-      number: data.seriesOrder! + 1,
+      number: data.seriesWorkNumber!,
     );
   }
 

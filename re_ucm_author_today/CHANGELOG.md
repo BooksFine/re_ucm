@@ -1,3 +1,8 @@
-## 0.0.1
+## 1.0.0
 
-* TODO: Describe initial release.
+* init
+
+## 1.1.0
+
+* fix the number in the series in the book metadata
+

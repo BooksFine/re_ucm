@@ -28,7 +28,7 @@ ATWorkMetadata _$ATWorkMetadataFromJson(Map<String, dynamic> json) =>
       firstSubGenreId: (json['firstSubGenreId'] as num?)?.toInt(),
       secondSubGenreId: (json['secondSubGenreId'] as num?)?.toInt(),
       seriesId: (json['seriesId'] as num?)?.toInt(),
-      seriesOrder: (json['seriesOrder'] as num?)?.toInt(),
+      seriesWorkNumber: (json['seriesWorkNumber'] as num?)?.toInt(),
       seriesTitle: json['seriesTitle'] as String?,
       tags: (json['tags'] as List<dynamic>).map((e) => e as String).toList(),
     );
@@ -55,7 +55,7 @@ Map<String, dynamic> _$ATWorkMetadataToJson(ATWorkMetadata instance) =>
       'firstSubGenreId': instance.firstSubGenreId,
       'secondSubGenreId': instance.secondSubGenreId,
       'seriesId': instance.seriesId,
-      'seriesOrder': instance.seriesOrder,
       'seriesTitle': instance.seriesTitle,
+      'seriesWorkNumber': instance.seriesWorkNumber,
       'tags': instance.tags,
     };

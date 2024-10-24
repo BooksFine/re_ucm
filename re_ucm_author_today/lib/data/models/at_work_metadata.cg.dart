@@ -25,8 +25,8 @@ class ATWorkMetadata {
   final int? firstSubGenreId;
   final int? secondSubGenreId;
   final int? seriesId;
-  final int? seriesOrder;
   final String? seriesTitle;
+  final int? seriesWorkNumber;
   final List<String> tags;
 
   ATWorkMetadata({
@@ -50,7 +50,7 @@ class ATWorkMetadata {
     this.firstSubGenreId,
     this.secondSubGenreId,
     this.seriesId,
-    this.seriesOrder,
+    this.seriesWorkNumber,
     this.seriesTitle,
     required this.tags,
   });

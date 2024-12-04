@@ -92,8 +92,6 @@ jobs:
         run: |
           git config --global url."https://${{ secrets.GITHUB_TOKEN }}:@github.com/".insteadOf "https://github.com/"
 
-      - run: choco install yq
-
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -147,7 +145,7 @@ jobs:
         uses: actions/checkout@v3
 
       - id: read-version
-        uses: NiklasLehnfeld/flutter-version-number-action@main
+        uses: BooksFine/flutter-version-number-action@main
 
       - name: Download artifacts
         uses: actions/download-artifact@v4

@@ -1,4 +1,4 @@
-const appVersion = 'v2.2.0';
+const appVersion = 'v2.2.1';
 
 const telegramUrl = 'https://t.me/UltimateCopyManager';
 

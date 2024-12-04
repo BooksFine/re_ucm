@@ -138,7 +138,7 @@ abstract class BookPageControllerBase with Store {
         fileName: '$name.fb2',
         bytes: bookXmlBytes,
         type: FileType.custom,
-        allowedExtensions: ['.fb2'],
+        allowedExtensions: ['fb2'],
       );
 
       if (finalPath == null) {

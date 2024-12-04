@@ -54,8 +54,7 @@ class _BrowserState extends State<Browser> {
             child: InAppWebView(
               initialSettings: InAppWebViewSettings(
                 useShouldOverrideUrlLoading: true,
-                useHybridComposition: false,
-                cacheMode: CacheMode.LOAD_CACHE_ELSE_NETWORK,
+                useHybridComposition: true,
               ),
               onPermissionRequest: (controller, request) async {
                 return PermissionResponse(

@@ -50,9 +50,9 @@ jobs:
           flutter build apk --release --split-per-abi
 
           cp ./build/app/outputs/flutter-apk/app-release.apk "./app-build/ReUCM_android.apk"
-          cp ./build/app/outputs/flutter-apk/app-arm64-v8a-release.apk "./app-build/ReUCM_android_(arm64-v8a).apk"
-          cp ./build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk "./app-build/ReUCM_android_(armeabi-v7a).apk"
-          cp ./build/app/outputs/flutter-apk/app-x86_64-release.apk "./app-build/ReUCM_android_(x86_64).apk"
+          cp ./build/app/outputs/flutter-apk/app-arm64-v8a-release.apk "./app-build/ReUCM_android_arm64-v8a.apk"
+          cp ./build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk "./app-build/ReUCM_android_armeabi-v7a.apk"
+          cp ./build/app/outputs/flutter-apk/app-x86_64-release.apk "./app-build/ReUCM_android_x86_64.apk"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -63,20 +63,20 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ReUCM_android_(arm64-v8a).apk
-          path: ./app-build/ReUCM_android_(arm64-v8a).apk
+          name: ReUCM_android_arm64-v8a.apk
+          path: ./app-build/ReUCM_android_arm64-v8a.apk
           retention-days: 3
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ReUCM_android_(armeabi-v7a).apk
-          path: ./app-build/ReUCM_android_(armeabi-v7a).apk
+          name: ReUCM_android_armeabi-v7a.apk
+          path: ./app-build/ReUCM_android_armeabi-v7a.apk
           retention-days: 3
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ReUCM_android_(x86_64).apk
-          path: ./app-build/ReUCM_android_(x86_64).apk
+          name: ReUCM_android_x86_64.apk
+          path: ./app-build/ReUCM_android_x86_64.apk
           retention-days: 3
 
   build_windows:
@@ -112,7 +112,7 @@ jobs:
         shell: bash
         run: |
           echo "Creating portable 7z archive"
-          "/c/Program Files/7-Zip/7z.exe" a -t7z -m0=lzma2 -mx=9 -mfb=64 -md=32m -ms=on "./build/ReUCM_windows_(portable).7z" "./build/Windows/x64/runner/Release/"
+          "/c/Program Files/7-Zip/7z.exe" a -t7z -m0=lzma2 -mx=9 -mfb=64 -md=32m -ms=on "./build/ReUCM_windows_portable.7z" "./build/Windows/x64/runner/Release/"
 
           echo "Downloading and installing Inno installer"
           make innoinstall
@@ -129,8 +129,8 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ReUCM_windows_(portable).7z
-          path: ./build/ReUCM_windows_(portable).7z
+          name: ReUCM_windows_portable.7z
+          path: ./build/ReUCM_windows_portable.7z
           retention-days: 3
 
   publish:

@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/c28a24af-ca7f-4403-a23e-87f9d6ea6492" width="400">
+  <img src="https://github.com/user-attachments/assets/95272928-e4a2-4a32-85ca-0f0f8be88144" width="400">
 </div>
 
 # ReUCM
@@ -22,7 +22,7 @@
 ### Поддерживаемые ресурсы:
 <div style="display: flex; overflow-x: auto;">
   <a href="https://author.today" target="_blank">
-        <img src="https://github.com/user-attachments/assets/baf5e03e-c58d-4df3-99d5-a1252e25b1b5" alt="Author Today" width="100" >
+        <img src="https://github.com/user-attachments/assets/4c2232d2-a3ee-41f5-a8bb-2ac0f6f64223" alt="Author Today" width="100" >
   </a>
 </div>
 

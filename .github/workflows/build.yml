@@ -11,11 +11,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.TOKEN }}
 
       - name: Setup Git
         run: |
-          git config --global url."https://${{ secrets.GITHUB_TOKEN }}:@github.com/".insteadOf "https://github.com/"
+          git config --global url."https://${{ secrets.TOKEN }}:@github.com/".insteadOf "https://github.com/"
 
       - name: Set up Java and Flutter for Android
         uses: actions/setup-java@v3
@@ -86,11 +86,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.TOKEN }}
 
       - name: Setup Git
         run: |
-          git config --global url."https://${{ secrets.GITHUB_TOKEN }}:@github.com/".insteadOf "https://github.com/"
+          git config --global url."https://${{ secrets.TOKEN }}:@github.com/".insteadOf "https://github.com/"
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2.18.0
@@ -157,7 +157,7 @@ jobs:
         id: tag_version
         uses: mathieudutour/github-tag-action@v6.1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.TOKEN }}
           tag_prefix: ""
           custom_tag: ${{ steps.read-version.outputs.version-number }}
 

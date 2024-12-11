@@ -12,6 +12,11 @@ class Changelog {
 
 const changelog = [
   Changelog(
+    title: 'Релиз 2.2.1',
+    date: '13.12.2024',
+    content: '''•   Исправления''',
+  ),
+  Changelog(
     title: 'Релиз 2.2.0',
     date: '24.10.2024',
     content: '''•   Добавлена проверка обновлений

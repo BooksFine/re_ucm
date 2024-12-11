@@ -34,7 +34,7 @@ DisableProgramGroupPage=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 PrivilegesRequired=lowest
 OutputDir=.\build\
-OutputBaseFilename=ReUCM
+OutputBaseFilename=ReUCM_windows
 SetupIconFile=.\windows\runner\resources\app_icon.ico
 Compression=lzma
 SolidCompression=yes

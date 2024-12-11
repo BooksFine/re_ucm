@@ -43,7 +43,7 @@ class HomeAppbar extends StatelessWidget {
                       'ReUCM',
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
-                    const Text(appVersion),
+                    const Text('v$appVersion'),
                   ],
                 ),
               ),

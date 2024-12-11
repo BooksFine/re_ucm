@@ -28,7 +28,7 @@
 
 ### Требования Windows версии:
 * Windows 10 (1803) и выше
-* [VSRedis](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170)
+* [VCRedist](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170)
 * Не вырезанные Microsoft Edge и WebView2 
 
  

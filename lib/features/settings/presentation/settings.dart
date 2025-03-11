@@ -56,7 +56,6 @@ class _SettingsState extends State<Settings> {
                       title: 'История изменений',
                       leading: const Icon(Icons.history),
                       onTap: () {
-                        Nav.back();
                         Nav.goChangelog();
                       },
                     ),

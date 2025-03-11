@@ -6,15 +6,15 @@ import '../../../core/navigation/router_delegate.dart';
 import 'settings.dart';
 
 Future openSettingsDialog(BuildContext context) {
-  return Nav.pushDialog((_, __, ___) => const SettingsDialog());
+  return Nav.pushSettings();
 }
 
 final _settingsKey = GlobalKey();
 
+final testKey = GlobalKey();
+
 class SettingsDialog extends StatelessWidget {
-  const SettingsDialog({
-    super.key,
-  });
+  const SettingsDialog({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -25,23 +25,30 @@ class SettingsDialog extends StatelessWidget {
           padding: const EdgeInsets.all(appPadding * 2),
           child: Hero(
             tag: 'Settings',
-            flightShuttleBuilder: (flightContext, animation, flightDirection,
-                fromHeroContext, toHeroContext) {
+            flightShuttleBuilder: (
+              flightContext,
+              animation,
+              flightDirection,
+              fromHeroContext,
+              toHeroContext,
+            ) {
               return SettingsFlightShuttle(
                 animation: animation,
                 toHeroWidget: toHeroContext.widget,
                 fromHeroWidget: fromHeroContext.widget,
               );
             },
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 500),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(cardBorderRadius * 2),
-                color: Theme.of(context).colorScheme.surface,
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: Settings(
+            child: PredictiveBackGestureBuilder(
+              key: testKey,
+              child: Container(
                 key: _settingsKey,
+                constraints: const BoxConstraints(maxWidth: 500),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(cardBorderRadius * 2),
+                  color: Theme.of(context).colorScheme.surface,
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Settings(),
               ),
             ),
           ),
@@ -65,12 +72,23 @@ class SettingsFlightShuttle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Widget settings = animation.status == AnimationStatus.reverse
-        ? fromHeroWidget
-        : toHeroWidget;
+    Widget settings =
+        animation.status == AnimationStatus.reverse
+            ? fromHeroWidget
+            : toHeroWidget;
 
-    final double settingsWidth =
-        min(MediaQuery.sizeOf(context).width - appPadding * 4, 500);
+    if (settings is Hero) {
+      settings = settings.child;
+    }
+
+    if (settings is PredictiveBackGestureBuilder) {
+      settings = settings.child;
+    }
+
+    final double settingsWidth = min(
+      MediaQuery.sizeOf(context).width - appPadding * 4,
+      500,
+    );
 
     return AnimatedBuilder(
       animation: animation,
@@ -78,40 +96,44 @@ class SettingsFlightShuttle extends StatelessWidget {
         final double opacity =
             animation.value <= 0.5 ? 0 : (animation.value - 0.5) * 2;
 
-        return Container(
-          clipBehavior: Clip.antiAlias,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(
-              cardBorderRadius * 2 + (1 - animation.value) * cardBorderRadius,
+        return PredictiveBackGestureBuilder(
+          key: testKey,
+          child: Container(
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(
+                cardBorderRadius * 2 + (1 - animation.value) * cardBorderRadius,
+              ),
+              color: Color.lerp(
+                Theme.of(context).colorScheme.secondaryContainer,
+                Theme.of(context).colorScheme.surface,
+                animation.value,
+              ),
             ),
-            color: Color.lerp(
-              Theme.of(context).colorScheme.secondaryContainer,
-              Theme.of(context).colorScheme.surface,
-              animation.value,
-            ),
-          ),
-          child: Stack(
-            children: [
-              Opacity(
-                opacity: max(0, 1 - animation.value * 2),
-                child: Center(
+            child: Stack(
+              children: [
+                Opacity(
+                  opacity: max(0, 1 - animation.value * 2),
                   child: Center(
-                    child: Icon(
-                      Icons.settings,
-                      color: Theme.of(context).colorScheme.onSecondaryContainer,
+                    child: Center(
+                      child: Icon(
+                        Icons.settings,
+                        color:
+                            Theme.of(context).colorScheme.onSecondaryContainer,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              Opacity(
-                opacity: opacity,
-                child: OverflowBox(
-                  // alignment: Alignment.centerRight,
-                  maxWidth: settingsWidth,
-                  child: Center(child: settings),
+                Opacity(
+                  opacity: opacity,
+                  child: OverflowBox(
+                    // alignment: Alignment.centerRight,
+                    maxWidth: settingsWidth,
+                    child: Center(child: settings),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },

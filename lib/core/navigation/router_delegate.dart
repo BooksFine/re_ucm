@@ -7,6 +7,8 @@ BuildContext get _context => rootNavigationKey.currentContext!;
 class Nav {
   static back([dynamic data]) => _context.pop(data);
 
+  static pushSettings() => _context.pushNamed('Settings');
+
   static pushDialog(RoutePageBuilder dialog) =>
       _context.push('/dialog', extra: dialog);
 

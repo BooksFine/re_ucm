@@ -1,3 +1,4 @@
+import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:sembast/sembast_io.dart';
 
@@ -29,9 +30,8 @@ class RecentBooksStorageSembast implements RecentBooksStorage {
     var repo = RecentBooksStorageSembast._();
     var dir = await getApplicationSupportDirectory();
 
-    repo.db = await databaseFactoryIo.openDatabase(
-      '${dir.path}/recent_books_v2.db',
-    );
+    repo.db = await databaseFactoryIo
+        .openDatabase(path.join(dir.path, 'recent_books_v2.db'));
     return repo;
   }
 }

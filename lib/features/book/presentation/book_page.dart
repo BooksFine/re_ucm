@@ -52,10 +52,10 @@ class _BookPageState extends State<BookPage> {
   @override
   Widget build(BuildContext context) {
     return Observer.withBuiltChild(
-      builderWithChild: (context, child) {
+      builder: (context, child) {
         return PopScope(
           canPop: controller.canPop,
-          child: child!,
+          child: child,
         );
       },
       child: Scaffold(

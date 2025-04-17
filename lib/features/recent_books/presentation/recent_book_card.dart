@@ -27,14 +27,9 @@ class RecentBookCard extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(cardBorderRadius),
                   child: CachedNetworkImage(
-                    placeholder:
-                        (context, url) => ShimmerEffect(
-                          Container(
-                            width: 75,
-                            height: 100,
-                            color: Colors.white,
-                          ),
-                        ),
+                    placeholder: (context, url) => ShimmerEffect(
+                      Container(width: 75, height: 100, color: Colors.white),
+                    ),
                     imageUrl: book.coverUrl!,
                     width: 75,
                     height: 110,

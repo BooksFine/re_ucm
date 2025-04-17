@@ -16,11 +16,7 @@ import 'widgets/error_message.dart';
 import 'widgets/progress_bar.dart';
 
 class BookPage extends StatefulWidget {
-  const BookPage({
-    super.key,
-    required this.id,
-    required this.portal,
-  });
+  const BookPage({super.key, required this.id, required this.portal});
 
   final String id;
   final Portal portal;
@@ -53,10 +49,7 @@ class _BookPageState extends State<BookPage> {
   Widget build(BuildContext context) {
     return Observer.withBuiltChild(
       builder: (context, child) {
-        return PopScope(
-          canPop: controller.canPop,
-          child: child,
-        );
+        return PopScope(canPop: controller.canPop, child: child);
       },
       child: Scaffold(
         key: controller.scaffoldKey,
@@ -70,7 +63,7 @@ class _BookPageState extends State<BookPage> {
             IconButton(
               onPressed: () => openSettingsDialog(context),
               icon: const Icon(Icons.settings),
-            )
+            ),
           ],
         ),
         body: Center(
@@ -78,18 +71,19 @@ class _BookPageState extends State<BookPage> {
             constraints: const BoxConstraints(maxWidth: 800),
             child: RefreshIndicator(
               onRefresh: () async => controller.fetch(),
-              child: Observer(builder: (context) {
-                return AnimatedSwitcher(
-                  duration: Durations.medium2,
-                  child: switch (controller.book.status) {
-                    FutureStatus.pending => const ShimmerEffect(
+              child: Observer(
+                builder: (context) {
+                  return AnimatedSwitcher(
+                    duration: Durations.medium2,
+                    child: switch (controller.book.status) {
+                      FutureStatus.pending => const ShimmerEffect(
                         key: ValueKey('shimmer'),
                         BookPageSkeleton(),
                       ),
-                    FutureStatus.rejected => ErrorMessage(
+                      FutureStatus.rejected => ErrorMessage(
                         controller: controller,
                       ),
-                    FutureStatus.fulfilled => ListView(
+                      FutureStatus.fulfilled => ListView(
                         padding: const EdgeInsets.symmetric(
                           horizontal: appPadding * 2,
                         ),
@@ -109,9 +103,10 @@ class _BookPageState extends State<BookPage> {
                           ),
                         ],
                       ),
-                  },
-                );
-              }),
+                    },
+                  );
+                },
+              ),
             ),
           ),
         ),

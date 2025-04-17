@@ -4,10 +4,7 @@ import 'package:flutter/material.dart';
 import '../book_page_controller.cg.dart';
 
 class ErrorMessage extends StatelessWidget {
-  const ErrorMessage({
-    super.key,
-    required this.controller,
-  });
+  const ErrorMessage({super.key, required this.controller});
 
   final BookPageController controller;
 

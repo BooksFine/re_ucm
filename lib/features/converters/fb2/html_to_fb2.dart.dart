@@ -69,7 +69,7 @@ List<xml.XmlNode> getFb2Element(dom.Element node, List<xml.XmlNode> children) {
     case 'h2':
       var title = xml.XmlElement(xml.XmlName('title'), [], children);
       return [
-        xml.XmlElement(xml.XmlName('title-info'), [], [title])
+        xml.XmlElement(xml.XmlName('title-info'), [], [title]),
       ];
     case 'br':
       return [xml.XmlElement(xml.XmlName('empty-line'), [])];
@@ -78,10 +78,9 @@ List<xml.XmlNode> getFb2Element(dom.Element node, List<xml.XmlNode> children) {
     case 'a':
       var href = node.attributes['href'];
       return [
-        xml.XmlElement(
-            xml.XmlName('a'),
-            [xml.XmlAttribute(xml.XmlName('l:href'), href ?? 'error')],
-            children)
+        xml.XmlElement(xml.XmlName('a'), [
+          xml.XmlAttribute(xml.XmlName('l:href'), href ?? 'error'),
+        ], children),
       ];
     case 'b':
       return [xml.XmlElement(xml.XmlName('strong'), [], children)];
@@ -97,10 +96,7 @@ List<xml.XmlNode> getFb2Element(dom.Element node, List<xml.XmlNode> children) {
       var tag = getTagFromSource(src!);
       return [
         xml.XmlElement(xml.XmlName('image'), [
-          xml.XmlAttribute(
-            xml.XmlName('l:href'),
-            "#$tag",
-          )
+          xml.XmlAttribute(xml.XmlName('l:href'), "#$tag"),
         ]),
       ];
     case 'div':

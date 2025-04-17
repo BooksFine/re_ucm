@@ -3,5 +3,7 @@
     "fictionbook",
     "litnet"
   ],
-  "cmake.ignoreCMakeListsMissing": true
+  "cmake.ignoreCMakeListsMissing": true,
+    "dart.flutterSdkPath": "C:\\Users\\TheLa\\.puro\\envs\\master\\flutter",
+    "dart.sdkPath": "C:\\Users\\TheLa\\.puro\\envs\\master\\flutter\\bin\\cache\\dart-sdk"
 }

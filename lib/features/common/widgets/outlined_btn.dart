@@ -19,12 +19,13 @@ class OutlinedButton1 extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-          border: Border.all(
-            color: func != null
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).disabledColor,
-          ),
-          borderRadius: BorderRadius.circular(cardBorderRadius)),
+        border: Border.all(
+          color: func != null
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).disabledColor,
+        ),
+        borderRadius: BorderRadius.circular(cardBorderRadius),
+      ),
       height: height ?? 48,
       width: double.infinity,
       child: InkWell(
@@ -33,7 +34,9 @@ class OutlinedButton1 extends StatelessWidget {
         child: Center(
           child: isLoading
               ? LoadingAnimationWidget.progressiveDots(
-                  color: Theme.of(context).colorScheme.primary, size: 60)
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 60,
+                )
               : Text(
                   text,
                   style: TextStyle(

@@ -18,9 +18,10 @@ class Nav {
   static book(String code, String id) =>
       _context.goNamed('Book', pathParameters: {'portalCode': code, 'id': id});
 
-  static bookFromBrowser(String code, String id) =>
-      _context.goNamed('BookFromBrowser',
-          pathParameters: {'portalCode': code, 'id': id});
+  static bookFromBrowser(String code, String id) => _context.goNamed(
+    'BookFromBrowser',
+    pathParameters: {'portalCode': code, 'id': id},
+  );
 
   static goBrowser(String code) =>
       _context.goNamed('Browser', pathParameters: {'portalCode': code});

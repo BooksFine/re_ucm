@@ -9,9 +9,7 @@ import 'widgets/home_expansion_panel.dart';
 import 'widgets/link_forwarder.dart';
 
 class HomePageLandscape extends StatelessWidget {
-  const HomePageLandscape({
-    super.key,
-  });
+  const HomePageLandscape({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +52,7 @@ class HomePageLandscape extends StatelessWidget {
               ),
             ),
           ),
-        )
+        ),
       ],
     );
   }

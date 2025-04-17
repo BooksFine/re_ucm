@@ -4,10 +4,7 @@ import 'package:re_ucm_core/ui/constants.dart';
 import 'changelog.dart';
 
 class ChangelogCard extends StatelessWidget {
-  const ChangelogCard({
-    super.key,
-    required this.model,
-  });
+  const ChangelogCard({super.key, required this.model});
 
   final Changelog model;
 

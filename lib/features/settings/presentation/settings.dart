@@ -47,7 +47,8 @@ class _SettingsState extends State<Settings> {
           alignment: Alignment.topCenter,
           child: AnimatedSwitcher(
             duration: Durations.long2,
-            child: selectedPortal?.service.settings ??
+            child:
+                selectedPortal?.service.settings ??
                 Column(
                   children: [
                     const SettingsTitle('Общие'),

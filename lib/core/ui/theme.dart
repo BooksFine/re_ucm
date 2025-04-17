@@ -15,11 +15,11 @@ final darkTheme = ThemeData(
     builders: {
       for (var platform in TargetPlatform.values)
         // platform: ZoomPageTransitionsBuilder(),
-        // platform: FadeForwardsPageTransitionsBuilder(),
-        // platform: CupertinoPageTransitionsBuilder(),
-        platform: PredictiveBackPageSharedElementTransitionsBuilder(
-          parentTransitionsBuilder: CupertinoPageTransitionsBuilder(),
-        ),
+        platform: FadeForwardsPageTransitionsBuilder(),
+      // platform: CupertinoPageTransitionsBuilder(),
+      // platform: PredictiveBackPageSharedElementTransitionsBuilder(
+      //   parentTransitionsBuilder: CupertinoPageTransitionsBuilder(),
+      // ),
       // platform: PredictiveBackPageTransitionsBuilder(),
 
       // platform: PredictiveBackPageSharedElementTransitionsBuilder(

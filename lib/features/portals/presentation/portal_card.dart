@@ -31,8 +31,9 @@ class PortalCard extends StatelessWidget {
               end: isActive ? 1 : 0.5,
             ),
             builder: (_, v, child) {
-              var color =
-                  Theme.of(context).colorScheme.onSurface.withValues(alpha: v);
+              var color = Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: v);
 
               return PortalCardBase(
                 onTap: onTap,
@@ -97,8 +98,9 @@ class PortalCardBase extends StatelessWidget {
                         Align(
                           alignment: Alignment.bottomRight,
                           child: Padding(
-                            padding:
-                                const EdgeInsets.only(right: appPadding * 3),
+                            padding: const EdgeInsets.only(
+                              right: appPadding * 3,
+                            ),
                             child: Container(
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,

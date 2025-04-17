@@ -17,9 +17,7 @@ class ChangelogPage extends StatelessWidget {
         title: 'История изменений',
         leading: const IconButton(
           onPressed: Nav.back,
-          icon: Icon(
-            Icons.arrow_back_ios_new,
-          ),
+          icon: Icon(Icons.arrow_back_ios_new),
         ),
         actions: [
           IconButton(
@@ -29,7 +27,8 @@ class ChangelogPage extends StatelessWidget {
         ],
       ),
       body: ListView.separated(
-        padding: const EdgeInsets.symmetric(
+        padding:
+            const EdgeInsets.symmetric(
               horizontal: appPadding * 2,
               vertical: appPadding,
             ) +

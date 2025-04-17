@@ -82,13 +82,10 @@ abstract class BookPageControllerBase with Store {
       var chapters = await portal.service.getTextFromId(id);
       book.value!.chapters.addAll(chapters);
 
-      bookXmlBytes = await convertToFB2(
-        book.value!,
-        (progress) {
-          this.progress = progress;
-          logger.i('Progress: $progress');
-        },
-      );
+      bookXmlBytes = await convertToFB2(book.value!, (progress) {
+        this.progress = progress;
+        logger.i('Progress: $progress');
+      });
     } catch (e, trace) {
       logger.e('Book downloading error', error: e, stackTrace: trace);
       progress = Progress(stage: Stages.error, message: e.toString());
@@ -120,7 +117,8 @@ abstract class BookPageControllerBase with Store {
       );
 
       if (share) {
-        final text = '${data.title}'
+        final text =
+            '${data.title}'
             '\nАвторы: ${data.authors.map((e) => e.name).join(', ')}'
             '${data.series == null ? '' : '\nСерия: ${data.series!.name} #${data.series!.number}'}'
             '\n'
@@ -129,8 +127,9 @@ abstract class BookPageControllerBase with Store {
         await Share.shareXFiles([xfile], text: text, subject: name);
         return;
       }
-      bool isGranted =
-          await Permission.manageExternalStorage.request().isGranted;
+      bool isGranted = await Permission.manageExternalStorage
+          .request()
+          .isGranted;
       if (!isGranted) openAppSettings();
 
       final finalPath = await FilePicker.platform.saveFile(

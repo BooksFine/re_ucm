@@ -34,10 +34,7 @@ class HomeExpansionPanel extends StatelessWidget {
                   color: Theme.of(context).colorScheme.secondary,
                 ),
               ),
-              Text(
-                title,
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
+              Text(title, style: Theme.of(context).textTheme.headlineSmall),
             ],
           ),
           const SizedBox(height: appPadding),

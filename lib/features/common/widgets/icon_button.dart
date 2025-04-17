@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:re_ucm_core/ui/constants.dart';
 
-
 class MyIconButton extends StatelessWidget {
-  const MyIconButton(
-      {super.key,
-      required this.icon,
-      required this.onTap,
-      this.backgroundColor});
+  const MyIconButton({
+    super.key,
+    required this.icon,
+    required this.onTap,
+    this.backgroundColor,
+  });
 
   final Widget icon;
   final VoidCallback onTap;

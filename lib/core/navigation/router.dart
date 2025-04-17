@@ -18,18 +18,15 @@ final router = GoRouter(
   routes: [
     GoRoute(
       path: '/dialog',
-      pageBuilder:
-          (context, state) =>
-              DialogPage(builder: state.extra as RoutePageBuilder),
+      pageBuilder: (context, state) =>
+          DialogPage(builder: state.extra as RoutePageBuilder),
     ),
     GoRoute(
       path: '/bottomsheet',
-      pageBuilder:
-          (context, state) => ModalBottomSheetPage(
-            child: state.extra as Widget,
-            backgroundColor:
-                Theme.of(context).colorScheme.surfaceContainerLowest,
-          ),
+      pageBuilder: (context, state) => ModalBottomSheetPage(
+        child: state.extra as Widget,
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
+      ),
     ),
     GoRoute(
       path: '/',

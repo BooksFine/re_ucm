@@ -37,10 +37,9 @@ class DialogPage<T> extends Page<T> {
       const begin = Offset(0.0, -1.0);
       const end = Offset(0.0, 0.0);
 
-      final curve =
-          animation.status == AnimationStatus.reverse
-              ? Curves.easeOutBack
-              : Curves.ease;
+      final curve = animation.status == AnimationStatus.reverse
+          ? Curves.easeOutBack
+          : Curves.ease;
 
       var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
       var offsetAnimation = animation.drive(tween);

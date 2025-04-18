@@ -1,0 +1,60 @@
+name: Recover Signing Keys via GPG Artifact
+
+on:
+  workflow_dispatch: # Позволяет запускать вручную из вкладки Actions в GitHub
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    steps:
+      # Шаг 1: Декодируем файл keystore из секрета Base64
+      - name: Decode Keystore File
+        run: echo "${{ secrets.ANDROID_KEYSTORE_FILE_BASE64 }}" | base64 --decode > signingkey.jks
+        # Проверяем, что файл создан (опционально, но полезно для отладки)
+      - name: Verify Keystore File
+        run: |
+          if [ -s signingkey.jks ]; then
+            echo "signingkey.jks created successfully."
+          else
+            echo "Error: signingkey.jks is empty or wasn't created."
+            exit 1
+          fi
+
+      # Шаг 2: Сохраняем содержимое секрета с пропертями ключа в файл
+      - name: Create Key Properties File
+        run: echo "${{ secrets.ANDROID_KEY_PROPERTIES }}" > key.properties
+        # Проверяем, что файл создан (опционально)
+      - name: Verify Properties File
+        run: |
+          if [ -s key.properties ]; then
+            echo "key.properties created successfully."
+          else
+            echo "Error: key.properties is empty or wasn't created."
+            # Можно не прерывать выполнение, если этот файл не критичен или может быть пустым
+            # exit 1
+          fi
+
+      # Шаг 3: Импортируем твой публичный GPG-ключ
+      - name: Import GPG Public Key
+        run: echo "${{ secrets.GPG_PUBLIC_KEY }}" | gpg --import
+
+      # Шаг 4: Архивируем оба файла (keystore и properties)
+      - name: Create Tar Archive
+        run: tar cvf secrets.tar signingkey.jks key.properties
+
+      # Шаг 5: Шифруем архив с помощью твоего GPG-ключа
+      # ВАЖНО: Замени 'ТВОЙ_EMAIL_ИЛИ_KEY_ID' на твой идентификатор GPG-ключа!
+      - name: Encrypt Archive with GPG
+        run: gpg --encrypt --recipient 'InvisibleRunBot@proton.me' --output secrets.tar.gpg --trust-model always secrets.tar
+
+      # Шаг 6: Загружаем зашифрованный архив как артефакт сборки
+      - name: Upload Encrypted Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: encrypted-signing-keys # Имя артефакта для скачивания
+          path: secrets.tar.gpg # Путь к файлу, который загружаем
+
+      # Шаг 7: Очищаем временные файлы на runner'е из соображений безопасности
+      - name: Cleanup runner
+        if: always() # Выполнять очистку всегда, даже если предыдущие шаги упали
+        run: rm -f signingkey.jks key.properties secrets.tar secrets.tar.gpg

@@ -11,7 +11,7 @@ class CustomBrowser extends StatefulWidget {
 
   final String url;
   final NavigationActionPolicy Function(NavigationAction navigationAction)
-      shouldOverrideUrlLoading;
+  shouldOverrideUrlLoading;
 
   final String? userAgent;
 
@@ -55,9 +55,7 @@ class _CustomBrowserState extends State<CustomBrowser> {
                 useHybridComposition: false,
                 userAgent: widget.userAgent,
               ),
-              initialUrlRequest: URLRequest(
-                url: WebUri(widget.url),
-              ),
+              initialUrlRequest: URLRequest(url: WebUri(widget.url)),
               onLoadStart: (controller, url) {
                 isLoading = true;
                 setState(() {});

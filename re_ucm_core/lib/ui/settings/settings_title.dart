@@ -8,10 +8,7 @@ class SettingsTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.titleMedium,
-      ),
+      child: Text(title, style: Theme.of(context).textTheme.titleMedium),
     );
   }
 }

@@ -16,12 +16,7 @@ class Progress {
   int? total;
   String? message;
 
-  Progress({
-    this.stage = Stages.none,
-    this.current,
-    this.total,
-    this.message,
-  });
+  Progress({this.stage = Stages.none, this.current, this.total, this.message});
 
   @override
   String toString() {

@@ -27,8 +27,9 @@ class SettingsTextField extends StatelessWidget {
                 controller: controller,
                 decoration: InputDecoration(
                   hintText: hint,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: appPadding * 2),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: appPadding * 2,
+                  ),
                   border: InputBorder.none,
                 ),
               ),
@@ -39,9 +40,7 @@ class SettingsTextField extends StatelessWidget {
             child: isLoading
                 ? const Padding(
                     padding: EdgeInsets.all(appPadding),
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                    ),
+                    child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : Material(
                     color: Colors.transparent,

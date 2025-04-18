@@ -5,9 +5,5 @@ class Series {
   String name;
   int number;
 
-  Series({
-    required this.url,
-    required this.name,
-    required this.number,
-  });
+  Series({required this.url, required this.name, required this.number});
 }

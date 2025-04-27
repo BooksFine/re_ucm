@@ -14,17 +14,7 @@ final darkTheme = ThemeData(
   pageTransitionsTheme: PageTransitionsTheme(
     builders: {
       for (var platform in TargetPlatform.values)
-        // platform: ZoomPageTransitionsBuilder(),
         platform: FadeForwardsPageTransitionsBuilder(),
-      // platform: CupertinoPageTransitionsBuilder(),
-      // platform: PredictiveBackPageSharedElementTransitionsBuilder(
-      //   parentTransitionsBuilder: CupertinoPageTransitionsBuilder(),
-      // ),
-      // platform: PredictiveBackPageTransitionsBuilder(),
-
-      // platform: PredictiveBackPageSharedElementTransitionsBuilder(
-      //   parentPageTransitionBuilder: FadeForwardsPageTransitionsBuilder(),
-      // ),
     },
   ),
 );
@@ -38,14 +28,7 @@ final lightTheme = ThemeData(
   pageTransitionsTheme: PageTransitionsTheme(
     builders: {
       for (var platform in TargetPlatform.values)
-        // platform: ZoomPageTransitionsBuilder(),
-        // platform: FadeForwardsPageTransitionsBuilder(),
-        platform: CupertinoPageTransitionsBuilder(),
-      // platform: PredictiveBackPageSharedElementTransitionsBuilder(),
-
-      // platform: PredictiveBackPageSharedElementTransitionsBuilder(
-      //   parentPageTransitionBuilder: FadeForwardsPageTransitionsBuilder(),
-      // ),
+        platform: FadeForwardsPageTransitionsBuilder(),
     },
   ),
 );

@@ -8,7 +8,6 @@ class PredictiveBackGestureBuilder extends StatefulWidget {
     super.key,
     this.transitionBuilder,
     required this.child,
-    this.updateRouteUserGestureProgress = false,
   });
 
   final Widget Function(
@@ -16,13 +15,10 @@ class PredictiveBackGestureBuilder extends StatefulWidget {
     PredictiveBackPhase phase,
     PredictiveBackEvent? startBackEvent,
     PredictiveBackEvent? currentBackEvent,
-    Animation<double> animation,
     Widget child,
   )?
   transitionBuilder;
   final Widget child;
-
-  final bool updateRouteUserGestureProgress;
 
   @override
   State<PredictiveBackGestureBuilder> createState() =>
@@ -35,7 +31,7 @@ class PredictiveBackGestureBuilderState
   late AnimationController _controller;
   late Animation<double> animation;
 
-  late final ModalRoute<dynamic>? route = ModalRoute.of(context);
+  late final ModalRoute<Object?>? route = ModalRoute.of(context);
 
   @override
   void initState() {
@@ -61,7 +57,7 @@ class PredictiveBackGestureBuilderState
 
     return PredictiveBackGestureObserver(
       route: route!,
-      updateRouteUserGestureProgress: widget.updateRouteUserGestureProgress,
+      updateRouteUserGestureProgress: false,
       builder: (context, phase, startBackEvent, currentBackEvent) {
         if (currentBackEvent != null) {
           _controller.value = 1 - currentBackEvent.progress;
@@ -73,16 +69,11 @@ class PredictiveBackGestureBuilderState
             phase,
             startBackEvent,
             currentBackEvent,
-            animation,
             widget.child,
           );
         }
 
-        if (phase == PredictiveBackPhase.idle) {
-          return widget.child;
-        }
-
-        return PredictiveBackPageSharedElementFrame(
+        return PredictiveBackPageSharedElementTransition(
           animation: animation,
           startBackEvent: startBackEvent,
           currentBackEvent: currentBackEvent,
@@ -94,10 +85,125 @@ class PredictiveBackGestureBuilderState
   }
 }
 
+typedef PredictiveBackGestureObserverWidgetBuilder =
+    Widget Function(
+      BuildContext context,
+      PredictiveBackPhase phase,
+      PredictiveBackEvent? startBackEvent,
+      PredictiveBackEvent? currentBackEvent,
+    );
+
+class PredictiveBackGestureObserver extends StatefulWidget {
+  const PredictiveBackGestureObserver({
+    super.key,
+    required this.builder,
+    required this.route,
+    this.updateRouteUserGestureProgress = true,
+  });
+
+  final PredictiveBackGestureObserverWidgetBuilder builder;
+  final ModalRoute<dynamic> route;
+  final bool updateRouteUserGestureProgress;
+
+  @override
+  State<PredictiveBackGestureObserver> createState() =>
+      PredictiveBackGestureObserverState();
+}
+
+class PredictiveBackGestureObserverState
+    extends State<PredictiveBackGestureObserver>
+    with WidgetsBindingObserver {
+  PredictiveBackPhase get phase => _phase;
+  PredictiveBackPhase _phase = PredictiveBackPhase.idle;
+  set phase(PredictiveBackPhase phase) {
+    if (_phase != phase && mounted) {
+      setState(() => _phase = phase);
+    }
+  }
+
+  /// The back event when the gesture first started.
+  PredictiveBackEvent? get startBackEvent => _startBackEvent;
+  PredictiveBackEvent? _startBackEvent;
+  set startBackEvent(PredictiveBackEvent? startBackEvent) {
+    if (_startBackEvent != startBackEvent && mounted) {
+      setState(() => _startBackEvent = startBackEvent);
+    }
+  }
+
+  /// The most recent back event during the gesture.
+  PredictiveBackEvent? get currentBackEvent => _currentBackEvent;
+  PredictiveBackEvent? _currentBackEvent;
+  set currentBackEvent(PredictiveBackEvent? currentBackEvent) {
+    if (_currentBackEvent != currentBackEvent && mounted) {
+      setState(() => _currentBackEvent = currentBackEvent);
+    }
+  }
+
+  // Begin WidgetsBindingObserver.
+
+  @override
+  bool handleStartBackGesture(PredictiveBackEvent backEvent) {
+    final bool gestureInProgress =
+        !backEvent.isButtonEvent && widget.route.popGestureEnabled;
+    if (!gestureInProgress) return false;
+
+    phase = PredictiveBackPhase.start;
+    startBackEvent = currentBackEvent = backEvent;
+
+    if (widget.updateRouteUserGestureProgress) {
+      widget.route.handleStartBackGesture(progress: 1 - backEvent.progress);
+    }
+
+    return true;
+  }
+
+  @override
+  void handleUpdateBackGestureProgress(PredictiveBackEvent backEvent) {
+    phase = PredictiveBackPhase.update;
+    if (widget.updateRouteUserGestureProgress) {
+      widget.route.handleStartBackGesture(progress: 1 - backEvent.progress);
+    }
+
+    currentBackEvent = backEvent;
+  }
+
+  @override
+  void handleCancelBackGesture() {
+    phase = PredictiveBackPhase.cancel;
+    widget.route.handleCancelBackGesture();
+    startBackEvent = currentBackEvent = null;
+  }
+
+  @override
+  void handleCommitBackGesture() {
+    phase = PredictiveBackPhase.commit;
+    widget.route.navigator?.pop();
+    widget.route.navigator?.didStopUserGesture();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // print(phase);
+    return widget.builder(context, phase, startBackEvent, currentBackEvent);
+  }
+}
+
 /// Android's predictive back page shared element transition.
 /// https://developer.android.com/design/ui/mobile/guides/patterns/predictive-back#shared-element-transition
-class PredictiveBackPageSharedElementFrame extends StatefulWidget {
-  const PredictiveBackPageSharedElementFrame({
+class PredictiveBackPageSharedElementTransition extends StatefulWidget {
+  const PredictiveBackPageSharedElementTransition({
     super.key,
     required this.animation,
     required this.startBackEvent,
@@ -113,12 +219,12 @@ class PredictiveBackPageSharedElementFrame extends StatefulWidget {
   final Widget child;
 
   @override
-  State<PredictiveBackPageSharedElementFrame> createState() =>
-      _PredictiveBackPageSharedElementFrameState();
+  State<PredictiveBackPageSharedElementTransition> createState() =>
+      _PredictiveBackPageSharedElementTransitionState();
 }
 
-class _PredictiveBackPageSharedElementFrameState
-    extends State<PredictiveBackPageSharedElementFrame> {
+class _PredictiveBackPageSharedElementTransitionState
+    extends State<PredictiveBackPageSharedElementTransition> {
   double xShift = 0;
   double yShift = 0;
   double scale = 1;
@@ -194,155 +300,27 @@ class _PredictiveBackPageSharedElementFrameState
     ).animate(widget.animation).value;
   }
 
-  double calcBorderRadius() {
-    return TweenSequence<double>([
-      TweenSequenceItem(
-        tween: Tween<double>(begin: borderRadius, end: borderRadius * 0.8),
-        weight: 30,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: borderRadius * 0.8, end: 0),
-        weight: 70,
-      ),
-    ]).animate(widget.animation).value;
-  }
-
   Widget _animatedBuilder(BuildContext context, Widget? child) {
     final double xShift = calcXShift() * widget.suppressionFactor;
     final double yShift = calcYShift() * widget.suppressionFactor;
     double scale = 1 - (1 - calcScale()) * widget.suppressionFactor;
+
+    final Tween<double> borderRadiusTween = Tween<double>(
+      begin: borderRadius,
+      end: 0.0,
+    );
 
     return Transform.scale(
       scale: scale,
       child: Transform.translate(
         offset: Offset(xShift, yShift),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(calcBorderRadius()),
+          borderRadius: BorderRadius.circular(
+            borderRadiusTween.animate(widget.animation).value,
+          ),
           child: child,
         ),
       ),
     );
-  }
-}
-
-typedef PredictiveBackGestureObserverWidgetBuilder =
-    Widget Function(
-      BuildContext context,
-      PredictiveBackPhase phase,
-      PredictiveBackEvent? startBackEvent,
-      PredictiveBackEvent? currentBackEvent,
-    );
-
-class PredictiveBackGestureObserver extends StatefulWidget {
-  const PredictiveBackGestureObserver({
-    super.key,
-    required this.route,
-    required this.builder,
-    this.updateRouteUserGestureProgress = true,
-  });
-
-  final PredictiveBackGestureObserverWidgetBuilder builder;
-  final ModalRoute<dynamic> route;
-  final bool updateRouteUserGestureProgress;
-
-  @override
-  State<PredictiveBackGestureObserver> createState() =>
-      _PredictiveBackGestureObserverState();
-}
-
-class _PredictiveBackGestureObserverState
-    extends State<PredictiveBackGestureObserver>
-    with WidgetsBindingObserver {
-  PredictiveBackPhase get phase => _phase;
-  PredictiveBackPhase _phase = PredictiveBackPhase.idle;
-  set phase(PredictiveBackPhase phase) {
-    if (_phase != phase && mounted) {
-      setState(() => _phase = phase);
-    }
-  }
-
-  /// The back event when the gesture first started.
-  PredictiveBackEvent? get startBackEvent => _startBackEvent;
-  PredictiveBackEvent? _startBackEvent;
-  set startBackEvent(PredictiveBackEvent? startBackEvent) {
-    if (_startBackEvent != startBackEvent && mounted) {
-      setState(() => _startBackEvent = startBackEvent);
-    }
-  }
-
-  /// The most recent back event during the gesture.
-  PredictiveBackEvent? get currentBackEvent => _currentBackEvent;
-  PredictiveBackEvent? _currentBackEvent;
-  set currentBackEvent(PredictiveBackEvent? currentBackEvent) {
-    if (_currentBackEvent != currentBackEvent && mounted) {
-      setState(() => _currentBackEvent = currentBackEvent);
-    }
-  }
-
-  // Begin WidgetsBindingObserver.
-
-  @override
-  bool handleStartBackGesture(PredictiveBackEvent backEvent) {
-    if (backEvent.isButtonEvent) return false;
-
-    phase = PredictiveBackPhase.start;
-
-    if (widget.updateRouteUserGestureProgress) {
-      widget.route.handleStartBackGesture(progress: 1 - backEvent.progress);
-    }
-    startBackEvent = currentBackEvent = backEvent;
-    return true;
-  }
-
-  @override
-  void handleUpdateBackGestureProgress(PredictiveBackEvent backEvent) {
-    phase = PredictiveBackPhase.update;
-    if (widget.updateRouteUserGestureProgress) {
-      widget.route.handleUpdateBackGestureProgress(
-        progress: 1 - backEvent.progress,
-      );
-    }
-    currentBackEvent = backEvent;
-  }
-
-  @override
-  void handleCancelBackGesture() {
-    phase = PredictiveBackPhase.cancel;
-    startBackEvent = currentBackEvent = null;
-    if (widget.updateRouteUserGestureProgress) {
-      widget.route.handleCancelBackGesture();
-    }
-  }
-
-  @override
-  bool handleCommitBackGesture() {
-    phase = PredictiveBackPhase.commit;
-
-    if (widget.route.popGestureInProgress) {
-      widget.route.navigator?.didStopUserGesture();
-    } else if (!widget.route.isCurrent) {
-      phase = PredictiveBackPhase.idle;
-    }
-
-    return false;
-  }
-
-  // End WidgetsBindingObserver.
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return widget.builder(context, phase, startBackEvent, currentBackEvent);
   }
 }

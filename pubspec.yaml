@@ -3,7 +3,7 @@ description: ""
 publish_to: none
 homepage: "https://reucm.pages.dev"
 repository: "https://github.com/BooksFine/re_ucm"
-version: 2.2.1+10006
+version: 2.3.0+10007
 
 environment:
   sdk: ^3.8.0
@@ -13,12 +13,14 @@ dependencies:
   re_ucm_core:
     git:
       url: https://github.com/BooksFine/re_ucm_core.git
+      ref: 1.8.0
 
     # path: ../re_ucm_core
 
   re_ucm_author_today:
     git:
-      url: https://InvisibleRunBot@github.com/BooksFine/re_ucm_author_today.git
+      url: https://github.com/BooksFine/re_ucm_author_today.git
+      ref: 1.2.0
 
     # path: ../re_ucm_author_today
 
@@ -27,7 +29,7 @@ dependencies:
     sdk: flutter
   flutter_mobx: ^2.2.1+1
   get_it: ^8.0.0
-  go_router: ^14.1.4
+  go_router: ^15.0.0
   intl: ^0.20.2
   loading_animation_widget: ^1.2.1
   mobx: ^2.3.3+2
@@ -39,7 +41,7 @@ dependencies:
   url_launcher: ^6.3.0
 
   xml: ^6.5.0
-  flutter_inappwebview:
+  flutter_inappwebview: 6.2.0-beta.2
 
   json_annotation: ^4.9.0
   dio: ^5.6.0
@@ -49,6 +51,8 @@ dependencies:
   permission_handler: ^12.0.0+1
   ota_update_fork: ^6.0.0
   path: ^1.9.0
+  html: ^0.15.6
+  logger: ^2.5.0
 
 dev_dependencies:
   flutter_test:

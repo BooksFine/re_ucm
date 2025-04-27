@@ -12,6 +12,14 @@ class Changelog {
 
 const changelog = [
   Changelog(
+    title: 'Релиз 2.3.0',
+    date: '27.04.2025',
+    content: '''•   Исправлена расшифровка книг с АТ после изменений 26.04.2025
+•   Начальная поддержка Android 14+ Predictive Back Gesture
+•   Небольшие исправления''',
+  ),
+
+  Changelog(
     title: 'Релиз 2.2.1',
     date: '13.12.2024',
     content: '''•   Исправления''',

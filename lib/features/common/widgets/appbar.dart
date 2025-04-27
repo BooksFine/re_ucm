@@ -5,12 +5,7 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   final Size preferredSize = const Size.fromHeight(kToolbarHeight);
 
-  const MyAppBar({
-    super.key,
-    this.title,
-    this.leading,
-    this.actions,
-  });
+  const MyAppBar({super.key, this.title, this.leading, this.actions});
 
   final String? title;
   final Widget? leading;
@@ -32,11 +27,12 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
               leading != null ? leading! : const SizedBox(width: 48),
               if (title != null)
                 Flexible(
-                    child: Text(
-                  title!,
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
-                )),
+                  child: Text(
+                    title!,
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               if (actions != null) Row(children: actions!),
             ],
           ),

@@ -12,10 +12,8 @@ class AnnotationViewer extends StatelessWidget {
     return HTML.toRichText(
       context,
       annotation,
-      linksCallback: (link) => launchUrlString(
-        link,
-        mode: LaunchMode.externalApplication,
-      ),
+      linksCallback: (link) =>
+          launchUrlString(link, mode: LaunchMode.externalApplication),
       overrideStyle: {
         'a': TextStyle(
           color: Theme.of(context).colorScheme.primary,

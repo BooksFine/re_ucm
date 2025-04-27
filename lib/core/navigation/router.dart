@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/book/presentation/book_page.dart';
@@ -6,6 +5,7 @@ import '../../features/browser/browser.dart';
 import '../../features/changelog/changelog_page.dart';
 import '../../features/home/home_page.dart';
 import '../../features/portals/domain/portal_factory.dart';
+import '../../features/settings/presentation/settings_dialog.dart';
 import 'dialog_page.dart';
 import 'modal_bottom_sheet_page.dart';
 
@@ -33,10 +33,21 @@ final router = GoRouter(
       pageBuilder: (context, state) => const MaterialPage(child: HomePage()),
       routes: [
         GoRoute(
+          path: 'settings',
+          name: "Settings",
+          pageBuilder: (context, state) {
+            return DialogPage(
+              builder: (context, first, second) {
+                return SettingsDialog();
+              },
+            );
+          },
+        ),
+        GoRoute(
           path: 'changelog',
           name: 'Changelog',
           pageBuilder: (context, state) {
-            return CupertinoPage(
+            return MaterialPage(
               key: state.pageKey,
               child: const ChangelogPage(),
             );
@@ -46,11 +57,12 @@ final router = GoRouter(
           name: 'Browser',
           path: 'browser/:portalCode',
           pageBuilder: (context, state) {
-            return CupertinoPage(
+            return MaterialPage(
               key: state.pageKey,
               child: Browser(
-                portal:
-                    PortalFactory.fromCode(state.pathParameters['portalCode']!),
+                portal: PortalFactory.fromCode(
+                  state.pathParameters['portalCode']!,
+                ),
               ),
             );
           },
@@ -59,7 +71,7 @@ final router = GoRouter(
               name: 'BookFromBrowser',
               path: 'book/:id',
               pageBuilder: (context, state) {
-                return CupertinoPage(
+                return MaterialPage(
                   key: state.pageKey,
                   child: BookPage(
                     id: state.pathParameters['id']!,
@@ -76,12 +88,13 @@ final router = GoRouter(
           name: 'Book',
           path: 'book/:portalCode/:id',
           pageBuilder: (context, state) {
-            return CupertinoPage(
+            return MaterialPage(
               key: state.pageKey,
               child: BookPage(
                 id: state.pathParameters['id']!,
-                portal:
-                    PortalFactory.fromCode(state.pathParameters['portalCode']!),
+                portal: PortalFactory.fromCode(
+                  state.pathParameters['portalCode']!,
+                ),
               ),
             );
           },

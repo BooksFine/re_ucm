@@ -58,12 +58,11 @@ class _BrowserState extends State<Browser> {
               ),
               onPermissionRequest: (controller, request) async {
                 return PermissionResponse(
-                    resources: request.resources,
-                    action: PermissionResponseAction.GRANT);
+                  resources: request.resources,
+                  action: PermissionResponseAction.GRANT,
+                );
               },
-              initialUrlRequest: URLRequest(
-                url: WebUri(widget.portal.url),
-              ),
+              initialUrlRequest: URLRequest(url: WebUri(widget.portal.url)),
               onLoadStart: (controller, url) {
                 isLoading = true;
                 setState(() {});
@@ -89,8 +88,9 @@ class _BrowserState extends State<Browser> {
               onUpdateVisitedHistory: (controller, url, isReload) {
                 if (isReload == true) return;
                 try {
-                  final bookId =
-                      widget.portal.service.getIdFromUrl(url!.uriValue);
+                  final bookId = widget.portal.service.getIdFromUrl(
+                    url!.uriValue,
+                  );
                   Nav.bookFromBrowser(widget.portal.code, bookId);
                 } catch (e) {
                   {}

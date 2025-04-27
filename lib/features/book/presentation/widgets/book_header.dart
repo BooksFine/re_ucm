@@ -8,10 +8,7 @@ import 'package:url_launcher/url_launcher_string.dart';
 import '../../../common/widgets/shimmer.dart';
 
 class BookHeader extends StatelessWidget {
-  const BookHeader({
-    super.key,
-    required this.book,
-  });
+  const BookHeader({super.key, required this.book});
 
   final Book book;
 
@@ -48,9 +45,7 @@ class BookHeader extends StatelessWidget {
             child: SizedBox(
               width: 110,
               height: 160,
-              child: Center(
-                child: Icon(Icons.image),
-              ),
+              child: Center(child: Icon(Icons.image)),
             ),
           ),
         const SizedBox(width: appPadding * 2),
@@ -60,10 +55,7 @@ class BookHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: appPadding),
-              Text(
-                book.title,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
+              Text(book.title, style: Theme.of(context).textTheme.titleMedium),
               Text(book.authors.map((e) => e.name).join(', ')),
               if (book.textLength != null)
                 Padding(
@@ -72,11 +64,10 @@ class BookHeader extends StatelessWidget {
                     "${_formatNumber(book.textLength!)} зн."
                     " • ${(book.textLength! / 40000).toStringAsFixed(1)} а.л.",
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.8),
-                        ),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.8),
+                    ),
                   ),
                 ),
               const SizedBox(height: appPadding * 2),
@@ -113,7 +104,7 @@ class BookHeader extends StatelessWidget {
 
 String _formatNumber(int number) {
   return number.toString().replaceAllMapped(
-        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-        (Match match) => '${match.group(0)} ',
-      );
+    RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+    (Match match) => '${match.group(0)} ',
+  );
 }

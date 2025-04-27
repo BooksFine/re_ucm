@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:re_ucm_core/ui/constants.dart';
 
-
 void overlaySnackMessage(BuildContext context, String message) {
   final overlay = Overlay.of(context);
   final overlayEntry = OverlayEntry(
-    builder: (context) => _OverlaySnackMessage(
-      message: message,
-    ),
+    builder: (context) => _OverlaySnackMessage(message: message),
   );
 
   overlay.insert(overlayEntry);
@@ -42,10 +39,7 @@ class __OverlaySnackMessageState extends State<_OverlaySnackMessage>
       vsync: this,
     );
 
-    _animation = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    );
+    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
 
     _offsetAnimation = Tween<Offset>(
       begin: const Offset(1.0, 0.0),

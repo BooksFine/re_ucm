@@ -1,8 +1,9 @@
 {
+  "cSpell.words": [
+    "fictionbook",
+    "litnet"
+  ],
+  "cmake.ignoreCMakeListsMissing": true,
     "dart.flutterSdkPath": "C:\\Users\\TheLa\\.puro\\envs\\master\\flutter",
-    "dart.sdkPath": "C:\\Users\\TheLa\\.puro\\envs\\master\\flutter\\bin\\cache\\dart-sdk",
-    "cSpell.words": [
-        "fictionbook",
-        "litnet"
-    ]
+    "dart.sdkPath": "C:\\Users\\TheLa\\.puro\\envs\\master\\flutter\\bin\\cache\\dart-sdk"
 }

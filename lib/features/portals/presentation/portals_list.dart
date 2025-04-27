@@ -5,11 +5,7 @@ import '../domain/portal_factory.dart';
 import 'portal_card.dart';
 
 class PortalsList extends StatelessWidget {
-  const PortalsList({
-    super.key,
-    this.onTap,
-    this.authIndication,
-  });
+  const PortalsList({super.key, this.onTap, this.authIndication});
 
   final Function(Portal portal)? onTap;
   final bool? authIndication;

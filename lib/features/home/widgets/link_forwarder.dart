@@ -58,10 +58,7 @@ class _LinkForwarderState extends State<LinkForwarder> {
           ),
         ),
         const SizedBox(height: appPadding),
-        ElevatedButton1(
-          func: goButtonFunc,
-          child: const Text('Go'),
-        ),
+        ElevatedButton1(func: goButtonFunc, child: const Text('Go')),
       ],
     );
   }

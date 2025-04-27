@@ -8,9 +8,7 @@ import '../features/recent_books/application/recent_books_service.dart';
 final locator = GetIt.instance;
 
 Future<void> appInit() async {
-  PortalFactory.registerAll([
-    await AuthorToday.create(),
-  ]);
+  PortalFactory.registerAll([await AuthorToday.create()]);
 
   locator.registerSingleton(await OTAService.init());
 

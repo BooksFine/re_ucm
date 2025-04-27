@@ -17,8 +17,9 @@ class RecentBooksService {
   final recentBooks = <RecentBook>[].asObservable();
 
   Future<void> addRecentBook(Book book) async {
-    recentBooks
-        .removeWhere((e) => e.portal.code + e.id == book.portal.code + book.id);
+    recentBooks.removeWhere(
+      (e) => e.portal.code + e.id == book.portal.code + book.id,
+    );
 
     final recentBook = RecentBook(
       id: book.id,

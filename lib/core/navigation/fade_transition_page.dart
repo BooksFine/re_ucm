@@ -9,15 +9,12 @@ class FadeTransitionPage extends CustomTransitionPage {
     super.restorationId,
     super.key,
   }) : super(
-          transitionsBuilder: (
-            BuildContext context,
-            Animation<double> animation,
-            Animation<double> secondaryAnimation,
-            Widget child,
-          ) =>
-              FadeTransition(
-            opacity: animation,
-            child: child,
-          ),
-        );
+         transitionsBuilder:
+             (
+               BuildContext context,
+               Animation<double> animation,
+               Animation<double> secondaryAnimation,
+               Widget child,
+             ) => FadeTransition(opacity: animation, child: child),
+       );
 }

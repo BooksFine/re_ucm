@@ -29,10 +29,10 @@ class UpdateController {
             (e) => switch (e.status) {
               OtaStatus.DOWNLOADING => double.parse(e.value!),
               _ => () {
-                  progressStream = null;
-                  callback();
-                  return 100.0;
-                }()
+                progressStream = null;
+                callback();
+                return 100.0;
+              }(),
             },
           );
       callback();

@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:re_ucm_core/ui/constants.dart';
 
 class BookPageSkeleton extends StatelessWidget {
-  const BookPageSkeleton({
-    super.key,
-  });
+  const BookPageSkeleton({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +45,7 @@ class BookPageSkeleton extends StatelessWidget {
                         width: 100.0,
                         height: 10.0,
                         color: Colors.white,
-                      )
+                      ),
                     ],
                   ),
                 ),
@@ -59,10 +57,7 @@ class BookPageSkeleton extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 color: Colors.white,
               ),
-              child: const SizedBox(
-                height: 48,
-                width: double.infinity,
-              ),
+              child: const SizedBox(height: 48, width: double.infinity),
             ),
             const SizedBox(height: appPadding * 2),
             ...List.generate(
@@ -89,11 +84,7 @@ class BookPageSkeleton extends StatelessWidget {
                 margin: const EdgeInsets.only(bottom: 8.0),
               ),
             ),
-            Container(
-              width: 200.0,
-              height: 10.0,
-              color: Colors.white,
-            )
+            Container(width: 200.0, height: 10.0, color: Colors.white),
           ],
         ),
       ),

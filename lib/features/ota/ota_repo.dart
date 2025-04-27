@@ -24,8 +24,9 @@ class OTARepoBySembast implements OTARepo {
 
   static Future<OTARepoBySembast> init() async {
     final appDocDir = await getApplicationSupportDirectory();
-    final database =
-        await databaseFactoryIo.openDatabase('${appDocDir.path}/ota.db');
+    final database = await databaseFactoryIo.openDatabase(
+      '${appDocDir.path}/ota.db',
+    );
     return OTARepoBySembast(database);
   }
 }

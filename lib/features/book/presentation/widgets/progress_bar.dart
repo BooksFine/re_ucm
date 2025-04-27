@@ -12,11 +12,12 @@ class ProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Observer(builder: (context) {
-      return AnimatedSize(
-        duration: Durations.short4,
-        child: switch (controller.progress.stage) {
-          Stages.imageDownloading => Container(
+    return Observer(
+      builder: (context) {
+        return AnimatedSize(
+          duration: Durations.short4,
+          child: switch (controller.progress.stage) {
+            Stages.imageDownloading => Container(
               margin: const EdgeInsets.symmetric(vertical: appPadding * 2),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(cardBorderRadius),
@@ -45,7 +46,8 @@ class ProgressBar extends StatelessWidget {
                       curve: Curves.easeInOut,
                       tween: Tween<double>(
                         begin: 0,
-                        end: controller.progress.current! /
+                        end:
+                            controller.progress.current! /
                             controller.progress.total!,
                       ),
                       builder: (context, value, _) {
@@ -59,10 +61,11 @@ class ProgressBar extends StatelessWidget {
                 ),
               ),
             ),
-          Stages.error => Text(controller.progress.message!),
-          _ => const SizedBox(height: appPadding * 2),
-        },
-      );
-    });
+            Stages.error => Text(controller.progress.message!),
+            _ => const SizedBox(height: appPadding * 2),
+          },
+        );
+      },
+    );
   }
 }

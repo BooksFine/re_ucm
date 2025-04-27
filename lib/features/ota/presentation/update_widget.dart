@@ -5,9 +5,7 @@ import '../../../core/constants.dart';
 import 'update_controller.dart';
 
 class UpdateWidget extends StatefulWidget {
-  const UpdateWidget({
-    super.key,
-  });
+  const UpdateWidget({super.key});
 
   @override
   State<UpdateWidget> createState() => _UpdateWidgetState();
@@ -55,9 +53,9 @@ class _UpdateWidgetState extends State<UpdateWidget> {
                           'Установить',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onPrimaryContainer,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onPrimaryContainer,
                             fontSize: 16,
                           ),
                         )
@@ -76,10 +74,9 @@ class _UpdateWidgetState extends State<UpdateWidget> {
                                   borderRadius: BorderRadius.circular(90),
                                   value: value / 100,
                                   color: Colors.white,
-                                  backgroundColor: Theme.of(context)
-                                      .colorScheme
-                                      .surface
-                                      .withValues(alpha: 0.5),
+                                  backgroundColor: Theme.of(
+                                    context,
+                                  ).colorScheme.surface.withValues(alpha: 0.5),
                                 );
                               },
                             );

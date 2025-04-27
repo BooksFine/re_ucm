@@ -7,27 +7,34 @@ import 'genre_from_id.dart';
 Book metadataParserAT(ATWorkMetadata data, Portal portal) {
   List<Author> authors = [];
 
-  authors.add(Author(
-    url: 'https://author.today/u/${data.authorUserName}',
-    name: data.authorFIO,
-  ));
+  authors.add(
+    Author(
+      url: 'https://author.today/u/${data.authorUserName}',
+      name: data.authorFIO,
+    ),
+  );
   if (data.coAuthorId != null) {
-    authors.add(Author(
-      url: 'https://author.today/u/${data.coAuthorUserName}',
-      name: data.coAuthorFIO!,
-    ));
+    authors.add(
+      Author(
+        url: 'https://author.today/u/${data.coAuthorUserName}',
+        name: data.coAuthorFIO!,
+      ),
+    );
   }
   if (data.secondCoAuthorId != null) {
-    authors.add(Author(
-      url: 'https://author.today/u/${data.secondCoAuthorUserName}',
-      name: data.secondCoAuthorFIO!,
-    ));
+    authors.add(
+      Author(
+        url: 'https://author.today/u/${data.secondCoAuthorUserName}',
+        name: data.secondCoAuthorFIO!,
+      ),
+    );
   }
 
   var annotation = data.annotation != null ? "<p>${data.annotation}</p>" : null;
   if (data.authorNotes != null) {
     annotation ??= "";
-    annotation += "<b>Примечание автора:</b>"
+    annotation +=
+        "<b>Примечание автора:</b>"
         "<br>"
         "<p>${data.authorNotes}</p>";
   }

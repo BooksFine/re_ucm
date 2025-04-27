@@ -6,3 +6,6 @@
 
 * fix the number in the series in the book metadata
 
+## 1.2.0
+
+* fix for decrypting books after changing the encryption method on the api side

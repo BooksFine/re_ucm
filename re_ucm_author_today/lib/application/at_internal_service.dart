@@ -40,8 +40,10 @@ class ATInternalService {
 
   Future login() async {
     CookieManager cookieManager = CookieManager.instance();
-    Cookie? cookie =
-        await cookieManager.getCookie(url: WebUri(urlAT), name: "LoginCookie");
+    Cookie? cookie = await cookieManager.getCookie(
+      url: WebUri(urlAT),
+      name: "LoginCookie",
+    );
 
     logger.i('[AuthorToday] Cookies authorization attempt');
     logger.d(cookie);
@@ -87,9 +89,7 @@ class ATInternalService {
   Future<List<Chapter>> getManyTexts(String id) async {
     var res = await _api.getManyTexts(id);
     var successfulEntries = res.data.where((e) => e.isSuccessful);
-    var chapters = await Future.wait(
-      successfulEntries.map(_createChapter),
-    );
+    var chapters = await Future.wait(successfulEntries.map(_createChapter));
 
     return chapters;
   }
@@ -97,7 +97,7 @@ class ATInternalService {
   Future<Chapter> _createChapter(ATChapter chapter) async {
     return Chapter(
       title: chapter.title!,
-      content: decryptDataWrapper((chapter.text!, chapter.key!, userId)),
+      content: await decryptData(chapter.text!, chapter.key!, userId),
     );
   }
 }

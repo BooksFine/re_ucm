@@ -18,25 +18,17 @@ abstract class AuthorTodayAPI {
   }
 
   @GET('https://author.today/account/bearer-token')
-  Future<HttpResponse> login(
-    @Header('cookie') String cookies,
-  );
+  Future<HttpResponse> login(@Header('cookie') String cookies);
 
   @GET('/account/current-user')
-  Future<HttpResponse> checkUser(
-    @Header('Authorization') token,
-  );
+  Future<HttpResponse> checkUser(@Header('Authorization') token);
 
   @POST('/account/refresh-token')
   Future<HttpResponse> refreshToken();
 
   @GET('/work/{id}/details')
-  Future<HttpResponse<ATWorkMetadata>> getMeta(
-    @Path('id') String id,
-  );
+  Future<HttpResponse<ATWorkMetadata>> getMeta(@Path('id') String id);
 
   @GET('/work/{id}/chapter/many-texts')
-  Future<HttpResponse<List<ATChapter>>> getManyTexts(
-    @Path('id') String id,
-  );
+  Future<HttpResponse<List<ATChapter>>> getManyTexts(@Path('id') String id);
 }

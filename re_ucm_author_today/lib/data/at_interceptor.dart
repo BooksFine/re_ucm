@@ -14,7 +14,10 @@ class ATInterceptor extends Interceptor {
       options.headers.addAll({
         if (!options.headers.containsKey('Authorization'))
           "Authorization": "Bearer ${service.token ?? 'guest'}",
-        "user-agent": userAgentAT,
+        "User-Agent": userAgentAT,
+        "X-AT-Certificate": xATSertificateHashed,
+        "X-AT-Client": xATClient,
+        "accept-encoding": "gzip",
       });
     }
     handler.next(options);

@@ -16,62 +16,63 @@ class ATSettings extends StatefulWidget {
 }
 
 class _ATSettingsState extends State<ATSettings> {
-  late final ATSettingsController controller =
-      ATSettingsController(widget.service);
+  late final ATSettingsController controller = ATSettingsController(
+    widget.service,
+  );
 
   @override
   Widget build(BuildContext context) {
-    return Observer(builder: (context) {
-      return Column(
-        key: controller.key,
-        children: [
-          const SettingsTitle('Author.Today'),
-          const SizedBox(height: appPadding),
-          if (controller.isAuthorized)
-            SettingsButton(
-              onTap: controller.logout,
-              title: 'Выйти из аккаунта',
-              subtitle: 'Вы залогинены как id${controller.userId}',
-              trailing: const Icon(Icons.logout),
-            )
-          else
-            SettingsButton(
-              onTap: controller.webAuth,
-              title: 'Вход через web',
-              trailing: const Icon(Icons.login),
-            ),
-          if (!controller.isAuthorized)
-            Observer(
-              builder: (context) {
-                late final Widget child;
+    return Observer(
+      builder: (context) {
+        return Column(
+          key: controller.key,
+          children: [
+            const SettingsTitle('Author.Today'),
+            const SizedBox(height: appPadding),
+            if (controller.isAuthorized)
+              SettingsButton(
+                onTap: controller.logout,
+                title: 'Выйти из аккаунта',
+                subtitle: 'Вы залогинены как id${controller.userId}',
+                trailing: const Icon(Icons.logout),
+              )
+            else
+              SettingsButton(
+                onTap: controller.webAuth,
+                title: 'Вход через web',
+                trailing: const Icon(Icons.login),
+              ),
+            if (!controller.isAuthorized)
+              Observer(
+                builder: (context) {
+                  late final Widget child;
 
-                if (controller.isTokenAuthActive) {
-                  child = SettingsTextField(
-                    hint: 'Вставьте токен',
-                    onTap: controller.tokenAuth,
-                    isLoading: controller.isTokenAuthLoading,
-                    controller: controller.tokenTextController,
-                  );
-                } else {
-                  child = SettingsButton(
-                    onTap: controller.startTokenAuth,
-                    title: 'Вход с помощью токена',
-                    trailing: const Icon(Icons.login),
-                  );
-                }
+                  if (controller.isTokenAuthActive) {
+                    child = SettingsTextField(
+                      hint: 'Вставьте токен',
+                      onTap: controller.tokenAuth,
+                      isLoading: controller.isTokenAuthLoading,
+                      controller: controller.tokenTextController,
+                    );
+                  } else {
+                    child = SettingsButton(
+                      onTap: controller.startTokenAuth,
+                      title: 'Вход с помощью токена',
+                      trailing: const Icon(Icons.login),
+                    );
+                  }
 
-                return AnimatedSwitcher(
-                  duration: Durations.medium2,
-                  transitionBuilder: (child, animation) => FadeTransition(
-                    opacity: animation,
+                  return AnimatedSwitcher(
+                    duration: Durations.medium2,
+                    transitionBuilder: (child, animation) =>
+                        FadeTransition(opacity: animation, child: child),
                     child: child,
-                  ),
-                  child: child,
-                );
-              },
-            ),
-        ],
-      );
-    });
+                  );
+                },
+              ),
+          ],
+        );
+      },
+    );
   }
 }

@@ -63,9 +63,9 @@ Future<void> convertToFB2Isolate(Map<String, dynamic> args) async {
 
   progressCallback(Progress(stage: Stages.analyzing));
 
-  var chapters = <String, List<XmlElement>>{};
+  var chapters = <(String, List<XmlElement>)>[];
   for (var element in data.chapters) {
-    chapters[element.title] = htmlToFB2(element.content);
+    chapters.add((element.title, htmlToFB2(element.content)));
   }
 
   var images = <String, String>{};
@@ -257,17 +257,17 @@ Future<void> convertToFB2Isolate(Map<String, dynamic> args) async {
               book.element('p', nest: data.title);
             },
           );
-          for (var element in chapters.entries) {
+          for (var element in chapters) {
             book.element(
               'section',
               nest: () {
                 book.element(
                   'title',
                   nest: () {
-                    book.element('p', nest: element.key);
+                    book.element('p', nest: element.$1);
                   },
                 );
-                for (var element in element.value) {
+                for (var element in element.$2) {
                   book.element(element.name.toString(), nest: element.nodes);
                 }
               },

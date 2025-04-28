@@ -19,6 +19,16 @@ class _LinkForwarderState extends State<LinkForwarder> {
   final textController = TextEditingController();
   final focus = FocusNode();
 
+  bool isEmpty = true;
+
+  void onChanged(String value) {
+    final newIsEmpty = value.isEmpty;
+    if (isEmpty != newIsEmpty) {
+      isEmpty = newIsEmpty;
+      setState(() {});
+    }
+  }
+
   @override
   void dispose() {
     super.dispose();
@@ -45,6 +55,19 @@ class _LinkForwarderState extends State<LinkForwarder> {
                 gapPadding: 0,
                 borderRadius: BorderRadius.circular(cardBorderRadius),
               ),
+              suffixIcon: isEmpty
+                  ? null
+                  : IconButton(
+                      icon: Icon(
+                        Icons.clear,
+                        color: ColorScheme.of(context).secondary,
+                      ),
+                      onPressed: () {
+                        textController.clear();
+                        isEmpty = true;
+                        setState(() {});
+                      },
+                    ),
             ),
             validator: (url) {
               try {
@@ -55,6 +78,7 @@ class _LinkForwarderState extends State<LinkForwarder> {
                 return 'Введите корректную ссылку';
               }
             },
+            onChanged: onChanged,
           ),
         ),
         const SizedBox(height: appPadding),

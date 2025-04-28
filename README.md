@@ -2,7 +2,7 @@
   <img src="https://github.com/user-attachments/assets/95272928-e4a2-4a32-85ca-0f0f8be88144" width="400">
 </div>
 
-# ReUCM
+# ReUltimateCopyManager
 
 Кроссплатформенный загрузчик книг с различных ресурсов.
 
@@ -38,3 +38,5 @@
  Для модуля сервиса необходимо:
  * имплементировать [интерфейс Portal](https://github.com/BooksFine/re_ucm_core/blob/main/lib/models/portal/portal.dart)
  * зарегистрировать портал в [di.dart](https://github.com/BooksFine/re_ucm/blob/main/lib/core/di.dart)
+
+Модуль Author.Today: [re_ucm_author.today](https://github.com/BooksFine/re_ucm_author_today)

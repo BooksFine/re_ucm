@@ -14,7 +14,7 @@ final darkTheme = ThemeData(
   pageTransitionsTheme: PageTransitionsTheme(
     builders: {
       for (var platform in TargetPlatform.values)
-        platform: FadeForwardsPageTransitionsBuilder(),
+        platform: CupertinoPageTransitionsBuilder(),
     },
   ),
 );
@@ -28,7 +28,7 @@ final lightTheme = ThemeData(
   pageTransitionsTheme: PageTransitionsTheme(
     builders: {
       for (var platform in TargetPlatform.values)
-        platform: FadeForwardsPageTransitionsBuilder(),
+        platform: CupertinoPageTransitionsBuilder(),
     },
   ),
 );

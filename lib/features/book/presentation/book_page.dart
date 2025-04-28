@@ -14,6 +14,7 @@ import 'widgets/book_header.dart';
 import 'widgets/book_page_skeleton.dart';
 import 'widgets/error_message.dart';
 import 'widgets/progress_bar.dart';
+import 'widgets/unauthorized_alert.dart';
 
 class BookPage extends StatefulWidget {
   const BookPage({super.key, required this.id, required this.portal});
@@ -90,7 +91,10 @@ class _BookPageState extends State<BookPage> {
                         children: [
                           const SizedBox(height: appPadding),
                           BookHeader(book: controller.book.value!),
-                          const SizedBox(height: appPadding * 2),
+                          const SizedBox(height: appPadding),
+                          if (!controller.isAuthorized)
+                            UnauthorizedAlert(portal: controller.portal.name),
+                          const SizedBox(height: appPadding),
                           BookActionsBar(controller: controller),
                           ProgressBar(controller: controller),
                           if (controller.book.value!.annotation != null)

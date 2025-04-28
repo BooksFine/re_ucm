@@ -37,6 +37,8 @@ abstract class BookPageControllerBase with Store {
   @action
   void fetch() => book = ObservableFuture(_fetch());
 
+  bool get isAuthorized => portal.service.isAuthorized;
+
   @action
   Future<Book> _fetch() async {
     try {

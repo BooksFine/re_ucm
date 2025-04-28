@@ -36,6 +36,13 @@ class RecentBooksService {
     _repo.setRecentBook(recentBook);
   }
 
+  Future<void> removeRecentBook(RecentBook book) async {
+    recentBooks.removeWhere(
+      (e) => e.portal.code + e.id == book.portal.code + book.id,
+    );
+    _repo.removeRecentBook(book);
+  }
+
   Future fetchRecentBooks() async {
     final recent = await _repo.getRecentBooks();
     recent.sort((a, b) => a.added.compareTo(b.added));

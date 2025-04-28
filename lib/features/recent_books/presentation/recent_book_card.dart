@@ -7,9 +7,10 @@ import '../../common/widgets/shimmer.dart';
 import '../domain/recent_book.cg.dart';
 
 class RecentBookCard extends StatelessWidget {
-  const RecentBookCard({super.key, required this.book});
+  const RecentBookCard({super.key, required this.book, this.onDelete});
 
   final RecentBook book;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -76,14 +77,26 @@ class RecentBookCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: appPadding),
-            Container(
-              margin: const EdgeInsets.all(4),
-              padding: const EdgeInsets.all(appPadding),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                shape: BoxShape.circle,
+            Padding(
+              padding: EdgeInsets.all(4),
+              child: Material(
+                color: Theme.of(context).colorScheme.surfaceContainer,
+                shape: CircleBorder(),
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: () {
+                    onDelete?.call();
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(appPadding),
+                    child: Icon(
+                      Icons.delete_outline,
+                      size: 20,
+                      color: ColorScheme.of(context).onSurface,
+                    ),
+                  ),
+                ),
               ),
-              child: const Icon(Icons.arrow_forward_ios),
             ),
           ],
         ),

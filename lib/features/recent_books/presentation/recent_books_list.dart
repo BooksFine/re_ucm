@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:re_ucm_core/ui/constants.dart';
 
 import '../../../core/di.dart';
 import '../application/recent_books_service.dart';
-import 'recent_book_card.dart';
-
-final _key = GlobalKey();
+import 'animated_recent_book_card.dart';
 
 class RecentBooksList extends StatefulWidget {
-  RecentBooksList() : super(key: _key);
+  const RecentBooksList({super.key});
 
   @override
   State<RecentBooksList> createState() => _RecentBooksListState();
@@ -26,29 +23,32 @@ class _RecentBooksListState extends State<RecentBooksList> {
 
   @override
   Widget build(BuildContext context) {
-    return Observer(
-      builder: (_) {
-        if (service.recentBooks.isEmpty) {
-          return const SizedBox(
-            height: 100,
-            child: Center(child: Text('Тут ничего нет :/')),
-          );
-        }
+    return ConstrainedBox(
+      constraints: BoxConstraints(minHeight: 118),
+      child: Observer(
+        builder: (_) {
+          return AnimatedSwitcher(
+            duration: Durations.medium2,
+            child: () {
+              if (service.recentBooks.isEmpty) {
+                return Center(child: Text('Тут ничего нет :/'));
+              }
 
-        return ListView.separated(
-          padding: EdgeInsets.zero,
-          reverse: true,
-          physics: const NeverScrollableScrollPhysics(),
-          shrinkWrap: true,
-          itemCount: service.recentBooks.length,
-          itemBuilder: (context, index) => RecentBookCard(
-            book: service.recentBooks[index],
-            key: ValueKey(service.recentBooks[index]),
-          ),
-          separatorBuilder: (context, index) =>
-              const SizedBox(height: appPadding),
-        );
-      },
+              return Column(
+                children: List.generate(service.recentBooks.length, (index) {
+                  final i = service.recentBooks.length - index - 1;
+                  return AnimatedRecentBookCard(
+                    key: ValueKey(service.recentBooks[i]),
+                    book: service.recentBooks[i],
+                    onDelete: service.removeRecentBook,
+                    isFirst: index == 0,
+                  );
+                }),
+              );
+            }(),
+          );
+        },
+      ),
     );
   }
 }

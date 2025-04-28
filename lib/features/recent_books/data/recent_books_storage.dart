@@ -6,6 +6,7 @@ import '../domain/recent_book.cg.dart';
 
 abstract interface class RecentBooksStorage {
   Future<void> setRecentBook(RecentBook book);
+  Future<void> removeRecentBook(RecentBook book);
   Future<List<RecentBook>> getRecentBooks();
 }
 
@@ -16,6 +17,11 @@ class RecentBooksStorageSembast implements RecentBooksStorage {
   @override
   Future<void> setRecentBook(RecentBook book) async {
     await _store.record(book.portal.code + book.id).put(db, book.toJson());
+  }
+
+  @override
+  Future<void> removeRecentBook(RecentBook book) async {
+    await _store.record(book.portal.code + book.id).delete(db);
   }
 
   @override

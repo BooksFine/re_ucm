@@ -52,7 +52,7 @@ class _AnimatedRecentBookCardState extends State<AnimatedRecentBookCard>
         behavior: SnackBarBehavior.floating,
         dismissDirection: DismissDirection.horizontal,
         duration: Duration(seconds: 3),
-        content: TextBalancer('Удалено ${widget.book.title}'),
+        content: TextBalancer('Удалено «${widget.book.title}»'),
         action: SnackBarAction(
           label: 'Отменить',
           onPressed: () => isConfirmed = false,

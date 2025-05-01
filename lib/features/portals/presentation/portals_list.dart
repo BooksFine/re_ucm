@@ -15,7 +15,11 @@ class PortalsList extends StatelessWidget {
     return SizedBox(
       height: 130,
       child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: appPadding / 2),
+        padding: const EdgeInsets.only(
+          right: appPadding * 1.5,
+          left: appPadding * 1.5,
+          bottom: 4,
+        ),
         scrollDirection: Axis.horizontal,
         shrinkWrap: true,
         itemCount: PortalFactory.portals.length,

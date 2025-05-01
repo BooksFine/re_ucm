@@ -21,25 +21,28 @@ class HomeExpansionPanel extends StatelessWidget {
         color: Theme.of(context).colorScheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(cardBorderRadius),
       ),
-      padding: const EdgeInsets.all(appPadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(appPadding),
-                child: Icon(
-                  icon,
-                  color: Theme.of(context).colorScheme.secondary,
+          SizedBox(height: appPadding),
+          Padding(
+            padding: const EdgeInsets.only(left: appPadding),
+            child: Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(appPadding),
+                  child: Icon(
+                    icon,
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
                 ),
-              ),
-              Text(title, style: Theme.of(context).textTheme.headlineSmall),
-            ],
+                Text(title, style: Theme.of(context).textTheme.headlineSmall),
+              ],
+            ),
           ),
           const SizedBox(height: appPadding),
           child,
-          const SizedBox(height: appPadding),
+          const SizedBox(height: appPadding * 1.5),
         ],
       ),
     );

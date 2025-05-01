@@ -1,5 +1,8 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:re_ucm_core/ui/constants.dart';
+import 'package:text_balancer/text_balancer.dart';
 import '../domain/recent_book.cg.dart';
 import 'recent_book_card.dart';
 
@@ -40,22 +43,63 @@ class _AnimatedRecentBookCardState extends State<AnimatedRecentBookCard>
     super.dispose();
   }
 
-  void deleteBook() async {
+  Future<bool> isDeleteConfirmed() async {
+    bool isConfirmed = true;
+
+    final snack = ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        width: min(500, MediaQuery.sizeOf(context).width - 32),
+        behavior: SnackBarBehavior.floating,
+        dismissDirection: DismissDirection.horizontal,
+        duration: Duration(seconds: 3),
+        content: TextBalancer('Удалено ${widget.book.title}'),
+        action: SnackBarAction(
+          label: 'Отменить',
+          onPressed: () => isConfirmed = false,
+        ),
+      ),
+    );
+
+    await snack.closed;
+
+    return isConfirmed;
+  }
+
+  bool isDismissed = false;
+  onDismissed() async {
+    isDismissed = true;
+    setState(() {});
+
+    if (await isDeleteConfirmed()) {
+      return widget.onDelete(widget.book);
+    }
+
+    _controller.forward(from: 0);
+    isDismissed = false;
+    setState(() {});
+  }
+
+  deleteBook() async {
     await _controller.reverse();
-    widget.onDelete(widget.book);
+
+    if (await isDeleteConfirmed()) {
+      return widget.onDelete(widget.book);
+    }
+
+    _controller.forward();
   }
 
   @override
   Widget build(BuildContext context) {
-    return SizeTransition(
-      sizeFactor: _sizeAnimation,
-      axis: Axis.vertical,
-      axisAlignment: 0.0,
-      child: Dismissible(
-        key: ValueKey(widget.book),
-        onDismissed: (direction) {
-          widget.onDelete(widget.book);
-        },
+    if (isDismissed) return SizedBox.shrink();
+
+    return Dismissible(
+      key: ValueKey(widget.book),
+      onDismissed: (_) => onDismissed(),
+      child: SizeTransition(
+        sizeFactor: _sizeAnimation,
+        axis: Axis.vertical,
+        axisAlignment: 0.0,
         child: Padding(
           padding: EdgeInsets.only(top: widget.isFirst ? 0 : appPadding),
           child: RecentBookCard(onDelete: deleteBook, book: widget.book),

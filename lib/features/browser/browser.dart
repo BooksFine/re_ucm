@@ -66,86 +66,83 @@ class _BrowserState extends State<Browser> {
           ],
         ),
       ),
-      body: Column(
+      body: Stack(
         children: [
-          AnimatedSize(
-            alignment: Alignment.topCenter,
-            duration: Durations.short4,
-            child: isLoading
-                ? TweenAnimationBuilder(
-                    tween: Tween<double>(begin: 0, end: progress),
-                    duration: Durations.short4,
-                    builder: (_, v, __) => LinearProgressIndicator(
-                      value: v == 0 ? null : v,
-                      minHeight: 3,
-                    ),
-                  )
-                : const SizedBox.shrink(),
-          ),
-          Expanded(
-            child: InAppWebView(
-              initialSettings: InAppWebViewSettings(
-                useShouldOverrideUrlLoading: true,
-                useHybridComposition: true,
-                userAgent:
-                    'Mozilla/5.0 (Linux; Android 13; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
-              ),
-              onWebViewCreated: (controller) => _webViewController = controller,
-              onPermissionRequest: (controller, request) async {
-                return PermissionResponse(
-                  resources: request.resources,
-                  action: PermissionResponseAction.GRANT,
-                );
-              },
-              initialUrlRequest: URLRequest(url: WebUri(widget.portal.url)),
-              onLoadStart: (controller, url) {
-                isLoading = true;
-                setState(() {});
-              },
-              onLoadStop: (controller, url) async {
-                isLoading = false;
-                setState(() {});
-              },
-              onProgressChanged: (controller, progress) {
-                this.progress = progress / 100;
-                setState(() {});
-              },
-              shouldOverrideUrlLoading: (controller, navigationAction) async {
-                var uri = navigationAction.request.url!;
-                if (uri.scheme != 'http' && uri.scheme != 'https') {
-                  try {
-                    await launchUrl(uri, mode: LaunchMode.externalApplication);
-                  } catch (e) {
-                    if (!context.mounted) return NavigationActionPolicy.CANCEL;
-                    String errorMessage = e.toString();
-                    if (e is PlatformException &&
-                        e.code == 'ACTIVITY_NOT_FOUND') {
-                      errorMessage = 'Приложение не установлено';
-                    }
-                    overlaySnackMessage(context, errorMessage);
+          InAppWebView(
+            initialSettings: InAppWebViewSettings(
+              useShouldOverrideUrlLoading: true,
+              useHybridComposition: true,
+              userAgent:
+                  'Mozilla/5.0 (Linux; Android 13; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
+            ),
+            onWebViewCreated: (controller) => _webViewController = controller,
+            onPermissionRequest: (controller, request) async {
+              return PermissionResponse(
+                resources: request.resources,
+                action: PermissionResponseAction.GRANT,
+              );
+            },
+            initialUrlRequest: URLRequest(url: WebUri(widget.portal.url)),
+            onLoadStart: (controller, url) {
+              isLoading = true;
+              setState(() {});
+            },
+            onLoadStop: (controller, url) async {
+              isLoading = false;
+              setState(() {});
+            },
+            onProgressChanged: (controller, progress) {
+              this.progress = progress / 100;
+              setState(() {});
+            },
+            shouldOverrideUrlLoading: (controller, navigationAction) async {
+              var uri = navigationAction.request.url!;
+              if (uri.scheme != 'http' && uri.scheme != 'https') {
+                try {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                } catch (e) {
+                  if (!context.mounted) return NavigationActionPolicy.CANCEL;
+                  String errorMessage = e.toString();
+                  if (e is PlatformException &&
+                      e.code == 'ACTIVITY_NOT_FOUND') {
+                    errorMessage = 'Приложение не установлено';
                   }
-                  return NavigationActionPolicy.CANCEL;
+                  overlaySnackMessage(context, errorMessage);
                 }
-                try {
-                  final bookId = widget.portal.service.getIdFromUrl(uri);
-                  Nav.bookFromBrowser(widget.portal.code, bookId);
-                  return NavigationActionPolicy.CANCEL;
-                } catch (e) {
-                  return NavigationActionPolicy.ALLOW;
-                }
-              },
-              onUpdateVisitedHistory: (controller, url, isReload) {
-                _updateNavButtons();
-                if (isReload == true) return;
-                try {
-                  final bookId = widget.portal.service.getIdFromUrl(
-                    url!.uriValue,
-                  );
-                  Nav.bookFromBrowser(widget.portal.code, bookId);
-                } catch (e) {
-                  {}
-                }
-              },
+                return NavigationActionPolicy.CANCEL;
+              }
+              try {
+                final bookId = widget.portal.service.getIdFromUrl(uri);
+                Nav.bookFromBrowser(widget.portal.code, bookId);
+                return NavigationActionPolicy.CANCEL;
+              } catch (e) {
+                return NavigationActionPolicy.ALLOW;
+              }
+            },
+            onUpdateVisitedHistory: (controller, url, isReload) {
+              _updateNavButtons();
+              if (isReload == true) return;
+              try {
+                final bookId = widget.portal.service.getIdFromUrl(
+                  url!.uriValue,
+                );
+                Nav.bookFromBrowser(widget.portal.code, bookId);
+              } catch (e) {
+                {}
+              }
+            },
+          ),
+
+          AnimatedOpacity(
+            duration: Durations.medium2,
+            opacity: isLoading ? 1 : 0,
+            child: TweenAnimationBuilder(
+              tween: Tween<double>(begin: 0, end: progress),
+              duration: Durations.short4,
+              builder: (_, v, __) => LinearProgressIndicator(
+                value: v == 0 ? null : v,
+                minHeight: 3,
+              ),
             ),
           ),
         ],

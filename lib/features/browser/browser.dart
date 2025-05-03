@@ -68,6 +68,14 @@ class _BrowserState extends State<Browser> {
       ),
       body: Stack(
         children: [
+          PopScope(
+            canPop: !canGoBack,
+            onPopInvokedWithResult: (_, _) {
+              _webViewController?.goBack();
+            },
+            child: SizedBox.shrink(),
+          ),
+
           InAppWebView(
             initialSettings: InAppWebViewSettings(
               useShouldOverrideUrlLoading: true,

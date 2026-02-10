@@ -17,6 +17,7 @@
       "version": "2.3.1+13108",
       "dependencies": [
         "cached_network_image",
+        "cupertino_icons",
         "dio",
         "file_picker",
         "flutter",
@@ -587,6 +588,11 @@
         "flutter_cache_manager",
         "octo_image"
       ]
+    },
+    {
+      "name": "cupertino_icons",
+      "version": "1.0.8",
+      "dependencies": []
     },
     {
       "name": "web",

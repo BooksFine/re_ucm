@@ -6,7 +6,6 @@ on:
 jobs:
   build_android:
     runs-on: ubuntu-latest
-    # Указываем, что все команды run выполняются внутри папки проекта
     defaults:
       run:
         working-directory: re_ucm_app
@@ -57,7 +56,6 @@ jobs:
           cp ./build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk "./app-build/ReUCM_android_armeabi-v7a.apk"
           cp ./build/app/outputs/flutter-apk/app-x86_64-release.apk "./app-build/ReUCM_android_x86_64.apk"
 
-      # В upload-artifact пути всегда указываются от корня репозитория!
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -150,9 +148,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Grep надежнее для подпапок, чем внешний экшен
       - id: read-version
-        run: echo "version=$(grep '^version:' re_ucm_app/pubspec.yaml | awk '{print $2}')" >> $GITHUB_OUTPUT
+        uses: BooksFine/flutter-version-number-action@main
+        with:
+          path: re_ucm_app/pubspec.yaml
 
       - name: Download artifacts
         uses: actions/download-artifact@v4

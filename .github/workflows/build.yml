@@ -6,6 +6,7 @@ on:
 jobs:
   build_android:
     runs-on: ubuntu-latest
+    # Указываем, что все команды run выполняются внутри папки проекта
     defaults:
       run:
         working-directory: re_ucm_app
@@ -56,6 +57,7 @@ jobs:
           cp ./build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk "./app-build/ReUCM_android_armeabi-v7a.apk"
           cp ./build/app/outputs/flutter-apk/app-x86_64-release.apk "./app-build/ReUCM_android_x86_64.apk"
 
+      # В upload-artifact пути всегда указываются от корня репозитория!
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -111,20 +113,6 @@ jobs:
 
       - name: Build Windows release
         run: flutter build windows --release
-        
-      - name: Cache Inno Setup
-        uses: actions/cache@v3
-        id: inno-cache
-        with:
-          path: re_ucm_app/build/inno-installer.exe
-          key: inno-setup-6.7.0-${{ runner.os }}
-
-      - name: Download Inno Setup if not cached
-        if: steps.inno-cache.outputs.cache-hit != 'true'
-        run: |
-          New-Item -ItemType Directory -Force -Path "build"
-          powershell -Command "Invoke-WebRequest -Uri 'https://github.com/jrsoftware/issrc/releases/download/is-6_7_0/innosetup-6.7.0.exe' -OutFile 'build/inno-installer.exe'"
-        working-directory: re_ucm_app
 
       - name: Build installer and portable .7z archive
         shell: bash
@@ -162,6 +150,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # Grep надежнее для подпапок, чем внешний экшен
       - id: read-version
         run: echo "version=$(grep '^version:' re_ucm_app/pubspec.yaml | awk '{print $2}')" >> $GITHUB_OUTPUT
 

@@ -18,6 +18,10 @@ import '../../../core/logger.dart';
 import '../../../core/navigation/router_delegate.dart';
 import '../../converters/fb2/converter.dart';
 import '../../recent_books/application/recent_books_service.dart';
+import '../../settings/application/settings_service.cg.dart';
+import '../../settings/domain/path_placeholders.dart';
+import '../../settings/domain/path_template.cg.dart';
+import '../../settings/presentation/widgets/tag_editing_controller.dart';
 
 part '../../../.gen/features/book/presentation/book_page_controller.cg.g.dart';
 
@@ -137,10 +141,12 @@ abstract class BookPageControllerBase with Store {
           .isGranted;
       if (!isGranted) openAppSettings();
 
+      final settings = locator<SettingsService>();
+      final templateFileName = _buildTemplateFileName(data, settings);
+
       final finalPath = await FilePicker.platform.saveFile(
         dialogTitle: 'Сохранение книги',
-        fileName: '$name.fb2',
-        bytes: bookXmlBytes,
+        fileName: templateFileName,
         type: FileType.custom,
         allowedExtensions: ['fb2'],
       );
@@ -152,6 +158,9 @@ abstract class BookPageControllerBase with Store {
         );
       }
 
+      final resolvedPath = _ensureFb2Extension(finalPath);
+      await File(resolvedPath).writeAsBytes(bookXmlBytes!);
+
       overlaySnackMessage(scaffoldKey.currentContext!, 'Успешно сохранено');
     } catch (e, trace) {
       overlaySnackMessage(scaffoldKey.currentContext!, 'Произошла ошибка');
@@ -159,5 +168,33 @@ abstract class BookPageControllerBase with Store {
     } finally {
       if (!Platform.isWindows) await file.delete();
     }
+  }
+
+  String _buildTemplateFileName(Book data, SettingsService settings) {
+    var template = settings.downloadPathTemplate.path.trim();
+
+    if (template.isEmpty) template = PathTemplate.initialPathPlaceholder;
+    final rendered = _renderTemplate(template, data, settings).trim();
+
+    return rendered;
+  }
+
+  String _renderTemplate(String template, Book data, SettingsService settings) {
+    final separator = settings.authorsPathSeparator;
+    final authorsSeparator = separator.isEmpty ? ', ' : separator;
+
+    return template.replaceAllMapped(TagEditingController.tagRegExp, (match) {
+      final label = match.group(1) ?? '';
+      final placeholder = PathPlaceholders.fromLabel(label);
+      if (placeholder == null) return '';
+      return placeholder.resolve(data, authorsSeparator);
+    });
+  }
+
+  String _ensureFb2Extension(String name) {
+    if (name.isEmpty) return name;
+    final extension = path.extension(name).toLowerCase();
+    if (extension == '.fb2') return name;
+    return '$name.fb2';
   }
 }

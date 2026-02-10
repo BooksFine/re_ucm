@@ -1,24 +1,16 @@
 import 'package:json_annotation/json_annotation.dart';
 
-import '../presentation/widgets/tag_editing_controller.dart';
-import 'path_placeholders.dart';
-
 part '../../../.gen/features/settings/domain/path_template.cg.g.dart';
 
 @JsonSerializable()
 class PathTemplate {
   final String path;
-  final Map<int, PathPlaceholders> placeholders;
 
-  PathTemplate({required this.path, required this.placeholders});
+  static String initialPathPlaceholder = '%Серия%-%Номер в серии%';
 
-  PathTemplate.initial()
-    : path =
-          '${TagEditingController.tagSymbol}-${TagEditingController.tagSymbol}',
-      placeholders = {
-        0: PathPlaceholders.series,
-        2: PathPlaceholders.seriesNumber,
-      };
+  PathTemplate({required this.path});
+
+  PathTemplate.initial() : path = initialPathPlaceholder;
 
   factory PathTemplate.fromJson(Map<String, dynamic> json) =>
       _$PathTemplateFromJson(json);

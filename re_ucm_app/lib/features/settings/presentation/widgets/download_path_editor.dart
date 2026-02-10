@@ -3,7 +3,6 @@ import 'package:re_ucm_core/ui/constants.dart';
 import '../../application/settings_service.cg.dart';
 import '../../domain/path_placeholders.dart';
 import '../../domain/path_template.cg.dart';
-import 'tag_editing_controller copy.dart';
 import 'tag_editing_controller.dart';
 
 class DownloadPathEditor extends StatefulWidget {
@@ -16,7 +15,7 @@ class DownloadPathEditor extends StatefulWidget {
 }
 
 class _DownloadPathEditorState extends State<DownloadPathEditor> {
-  late TagEditingController2 pathController;
+  late TagEditingController pathController;
   final FocusNode focus = FocusNode();
 
   late bool isPathEmpty;
@@ -29,19 +28,9 @@ class _DownloadPathEditorState extends State<DownloadPathEditor> {
       setState(() {});
     }
 
-    // final newTemplate = newIsEmpty
-    //     ? PathTemplate.initial()
-    //     : PathTemplate(
-    //         path: value,
-    //         placeholders: {
-    //           for (final tag in pathController.tags)
-    //             tag.index: PathPlaceholders.values.firstWhere(
-    //               (e) => e.label == tag.label,
-    //             ),
-    //         },
-    //       );
+    final newTemplate = PathTemplate(path: value);
 
-    // widget.service.updateDownloadPathTemplate(newTemplate);
+    widget.service.updateDownloadPathTemplate(newTemplate);
   }
 
   final authorsSeparatorController = TextEditingController();
@@ -52,13 +41,7 @@ class _DownloadPathEditorState extends State<DownloadPathEditor> {
   void initState() {
     super.initState();
     final savedtemplate = widget.service.downloadPathTemplate;
-    pathController = TagEditingController2(
-      // text: savedtemplate.path,
-      // tags: [
-      //   for (final tag in savedtemplate.placeholders.entries)
-      //     Tag(label: tag.value.label, index: tag.key),
-      // ],
-    );
+    pathController = TagEditingController(text: savedtemplate.path);
     isPathEmpty = pathController.text.isEmpty;
     authorsSeparatorController.text = widget.service.authorsPathSeparator;
   }
@@ -72,12 +55,8 @@ class _DownloadPathEditorState extends State<DownloadPathEditor> {
   }
 
   void _insertTemplateTag(String tag) {
-    // pathController.insertTag(tag);
     focus.requestFocus();
-    final newOffset = pathController.selection.baseOffset;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      pathController.selection = TextSelection.collapsed(offset: newOffset);
-    });
+    pathController.insertTag(tag);
     onPathChanged(pathController.text);
   }
 
@@ -88,6 +67,7 @@ class _DownloadPathEditorState extends State<DownloadPathEditor> {
         SizedBox(
           height: 48,
           child: TextField(
+            selectAllOnFocus: false,
             scrollPadding: EdgeInsets.all(0),
             controller: pathController,
             focusNode: focus,
@@ -118,8 +98,7 @@ class _DownloadPathEditorState extends State<DownloadPathEditor> {
                       ),
                       onPressed: () {
                         pathController.clear();
-                        isPathEmpty = true;
-                        setState(() {});
+                        onPathChanged('');
                       },
                     ),
             ),

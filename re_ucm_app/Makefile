@@ -1,8 +1,8 @@
-INNO_VERSION=6.3.3
+INNO_VERSION=6.7.0
 
 innoinstall:
-	powershell curl -o build\inno-installer.exe http://files.jrsoftware.org/is/6/innosetup-${INNO_VERSION}.exe
-	.\build\inno-installer.exe /verysilent /allusers /dir=build\iscc
+	powershell -Command "Invoke-WebRequest -Uri 'https://github.com/jrsoftware/issrc/releases/download/is-6_7_0/innosetup-6.7.0.exe' -OutFile 'build\inno-installer.exe'"
+	.uild\inno-installer.exe /verysilent /allusers /dir=build\iscc
 
 inno:
 	powershell .\build\iscc\iscc.exe .\windows-setup-script.iss

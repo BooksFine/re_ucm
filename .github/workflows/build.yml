@@ -111,6 +111,20 @@ jobs:
 
       - name: Build Windows release
         run: flutter build windows --release
+        
+      - name: Cache Inno Setup
+        uses: actions/cache@v3
+        id: inno-cache
+        with:
+          path: re_ucm_app/build/inno-installer.exe
+          key: inno-setup-6.7.0-${{ runner.os }}
+
+      - name: Download Inno Setup if not cached
+        if: steps.inno-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p build
+          powershell -Command "Invoke-WebRequest -Uri 'https://github.com/jrsoftware/issrc/releases/download/is-6_7_0/innosetup-6.7.0.exe' -OutFile 'build/inno-installer.exe'"
+        working-directory: re_ucm_app
 
       - name: Build installer and portable .7z archive
         shell: bash

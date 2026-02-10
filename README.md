@@ -38,16 +38,15 @@
 
 ## Структура монорепозитория
 
-- [re_ucm_app/](../re_ucm_app/) - основное приложение.
-- [re_ucm_core/](../re_ucm_core/) - общие модели, интерфейсы и UI-компоненты.
-- [re_ucm_author_today/](../re_ucm_author_today/) - модуль поддержки Author.Today. С ростом числа модулей, они будут вынесены в отдельный каталог
-
+- [re_ucm_app/](re_ucm_app/) - основное приложение.
+- [re_ucm_core/](re_ucm_core/) - общие модели, интерфейсы и UI-компоненты.
+- [re_ucm_author_today/](re_ucm_author_today/) - модуль поддержки Author.Today. С ростом числа модулей, они будут вынесены в отдельный каталог
 
 ### Добавление нового ресурса
 
-Проект имеет модульную структуру, все основные модели и интерфейсы вынесены в библиотеку [re_ucm_core/](../re_ucm_core/).
+Проект имеет модульную структуру, все основные модели и интерфейсы вынесены в библиотеку [re_ucm_core/](re_ucm_core/).
 
 Для модуля сервиса необходимо:
 
-- Имплементировать интерфейс `Portal` из [re_ucm_core/lib/models/portal/portal.dart](../re_ucm_core/lib/models/portal/portal.dart).
-- Зарегистрировать портал в [re_ucm_app/lib/core/di.dart](lib/core/di.dart).
+- Имплементировать интерфейс `Portal` из [re_ucm_core/lib/models/portal/portal.dart](re_ucm_core/lib/models/portal/portal.dart).
+- Зарегистрировать портал в [re_ucm_app/lib/core/di.dart](re_ucm_app/lib/core/di.dart).

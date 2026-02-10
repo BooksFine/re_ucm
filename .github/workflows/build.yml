@@ -122,7 +122,7 @@ jobs:
       - name: Download Inno Setup if not cached
         if: steps.inno-cache.outputs.cache-hit != 'true'
         run: |
-          mkdir -p build
+          New-Item -ItemType Directory -Force -Path "build"
           powershell -Command "Invoke-WebRequest -Uri 'https://github.com/jrsoftware/issrc/releases/download/is-6_7_0/innosetup-6.7.0.exe' -OutFile 'build/inno-installer.exe'"
         working-directory: re_ucm_app
 

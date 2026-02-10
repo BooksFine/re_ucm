@@ -29,7 +29,7 @@ class UnauthorizedAlert extends StatelessWidget {
             children: [
               const TextSpan(
                 text:
-                    'Будут скачаны только бесплатные главы. Для скачивания закрытых частей необходимо войти в аккаунт ',
+                    'Будут загружены только бесплатные главы. Чтобы скачать закрытые части, войдите в аккаунт ',
               ),
               TextSpan(
                 text: portal,

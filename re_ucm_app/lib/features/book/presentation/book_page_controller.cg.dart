@@ -146,7 +146,8 @@ abstract class BookPageControllerBase with Store {
 
       final finalPath = await FilePicker.platform.saveFile(
         dialogTitle: 'Сохранение книги',
-        fileName: templateFileName,
+        bytes: bookXmlBytes,
+        fileName: '$templateFileName.fb2',
         type: FileType.custom,
         allowedExtensions: ['fb2'],
       );
@@ -157,9 +158,6 @@ abstract class BookPageControllerBase with Store {
           'Сохранение отменено',
         );
       }
-
-      final resolvedPath = _ensureFb2Extension(finalPath);
-      await File(resolvedPath).writeAsBytes(bookXmlBytes!);
 
       overlaySnackMessage(scaffoldKey.currentContext!, 'Успешно сохранено');
     } catch (e, trace) {
@@ -189,12 +187,5 @@ abstract class BookPageControllerBase with Store {
       if (placeholder == null) return '';
       return placeholder.resolve(data, authorsSeparator);
     });
-  }
-
-  String _ensureFb2Extension(String name) {
-    if (name.isEmpty) return name;
-    final extension = path.extension(name).toLowerCase();
-    if (extension == '.fb2') return name;
-    return '$name.fb2';
   }
 }

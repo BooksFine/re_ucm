@@ -22,15 +22,13 @@ class SettingsButton extends StatelessWidget {
       data: IconThemeData(
         color: Theme.of(context).colorScheme.onSurfaceVariant,
       ),
-      child: Card(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: appPadding),
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(cardBorderRadius),
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: appPadding,
-              vertical: appPadding * 2,
-            ),
+            padding: const EdgeInsets.symmetric(vertical: appPadding * 2),
             child: Row(
               children: [
                 if (leading != null)
@@ -61,16 +59,6 @@ class SettingsButton extends StatelessWidget {
             ),
           ),
         ),
-        // child: ListTile(
-        //   shape: RoundedRectangleBorder(
-        //     borderRadius: BorderRadius.circular(cardBorderRadius),
-        //   ),
-        //   title: Text(title),
-        //   subtitle: subtitle != null ? Text(subtitle!) : null,
-        //   leading: leading,
-        //   trailing: trailing ?? Icon(Icons.arrow_forward_ios),
-        //   onTap: onTap,
-        // ),
       ),
     );
   }

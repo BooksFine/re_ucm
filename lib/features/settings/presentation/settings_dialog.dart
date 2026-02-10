@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:re_ucm_core/ui/constants.dart';
 import '../../../core/navigation/predictive_back_builder.dart';
 import '../../../core/navigation/router_delegate.dart';
+import '../application/settings_service.cg.dart';
 import 'settings.dart';
 
 Future openSettingsDialog(BuildContext context) {
@@ -15,7 +16,9 @@ final _settingsKey = GlobalKey();
 final testKey = GlobalKey();
 
 class SettingsDialog extends StatelessWidget {
-  const SettingsDialog({super.key});
+  const SettingsDialog({super.key, required this.service});
+
+  final SettingsService service;
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +53,7 @@ class SettingsDialog extends StatelessWidget {
                   color: Theme.of(context).colorScheme.surface,
                 ),
                 clipBehavior: Clip.antiAlias,
-                child: Settings(),
+                child: Settings(service: service),
               ),
             ),
           ),
@@ -87,7 +90,7 @@ class SettingsFlightShuttle extends StatelessWidget {
     }
 
     final double settingsWidth = min(
-      MediaQuery.sizeOf(context).width - appPadding * 4,
+      MediaQuery.widthOf(context) - appPadding * 4,
       500,
     );
 

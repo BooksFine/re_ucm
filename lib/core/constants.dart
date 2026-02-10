@@ -1,6 +1,7 @@
 const appVersion = '2.3.1';
 
 const telegramUrl = 'https://t.me/UltimateCopyManager';
+const githubUrl = 'https://github.com/BooksFine/re_ucm';
 
 const otaVersionUrl =
     "https://api.github.com/repos/BooksFine/re_ucm/releases/latest";

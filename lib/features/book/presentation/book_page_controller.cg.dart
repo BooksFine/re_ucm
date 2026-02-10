@@ -126,9 +126,12 @@ abstract class BookPageControllerBase with Store {
             '\n'
             '\nПо: «${data.chapters.last.title}»';
 
-        await Share.shareXFiles([xfile], text: text, subject: name);
+        await SharePlus.instance.share(
+          ShareParams(files: [xfile], text: text, subject: name),
+        );
         return;
       }
+
       bool isGranted = await Permission.manageExternalStorage
           .request()
           .isGranted;
@@ -149,7 +152,6 @@ abstract class BookPageControllerBase with Store {
         );
       }
 
-      await xfile.saveTo(finalPath);
       overlaySnackMessage(scaffoldKey.currentContext!, 'Успешно сохранено');
     } catch (e, trace) {
       overlaySnackMessage(scaffoldKey.currentContext!, 'Произошла ошибка');

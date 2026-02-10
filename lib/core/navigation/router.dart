@@ -6,6 +6,7 @@ import '../../features/changelog/changelog_page.dart';
 import '../../features/home/home_page.dart';
 import '../../features/portals/domain/portal_factory.dart';
 import '../../features/settings/presentation/settings_dialog.dart';
+import '../di.dart';
 import 'dialog_page.dart';
 import 'modal_bottom_sheet_page.dart';
 
@@ -38,7 +39,7 @@ final router = GoRouter(
           pageBuilder: (context, state) {
             return DialogPage(
               builder: (context, first, second) {
-                return SettingsDialog();
+                return SettingsDialog(service: locator());
               },
             );
           },

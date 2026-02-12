@@ -195,6 +195,11 @@ Future<void> convertToFB2Isolate(Map<String, dynamic> args) async {
                     'number': data.series!.number.toString(),
                   },
                 );
+                book.element(
+                  'custom-info',
+                  attributes: {'info-type': 'sequence-url'},
+                  nest: data.series!.url,
+                );
               }
               if (data.coverUrl != null) {
                 book.element(

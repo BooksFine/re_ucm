@@ -149,7 +149,8 @@ jobs:
         uses: actions/checkout@v3
 
       - id: read-version
-        run: echo "version=$(grep '^version:' re_ucm_app/pubspec.yaml | awk '{print $2}')" >> $GITHUB_OUTPUT
+        shell: bash
+        run: echo "version=$(grep '^version:' re_ucm_app/pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)" >> $GITHUB_OUTPUT
 
       - name: Download artifacts
         uses: actions/download-artifact@v4

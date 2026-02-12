@@ -6,7 +6,9 @@ environment:
   sdk: ^3.11.0
 
 workspace:
-  - re_ucm_*
+  - re_ucm_app
+  - re_ucm_author_today
+  - re_ucm_core
 
 dependency_overrides:
   flutter_inappwebview:

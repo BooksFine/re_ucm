@@ -15,40 +15,21 @@
 			"detail": ""
 		},
 		{
-			"label": "[Build Runner] re_ucm_app (force-aot)",
+			"label": "[Build Runner] (force-aot)",
 			"type": "shell",
 			"command": "dart",
 			"args": [
-				"pub",
-				"-C",
-				"re_ucm_app",
 				"run",
 				"build_runner",
 				"build",
-				"--delete-conflicting-outputs",
+				"-d",
+				"--workspace",
 				"--force-aot"
 			],
 			"isBackground": false,
 			"problemMatcher": [],
 			"group": "build"
 		},
-		{
-			"label": "[Build Runner] re_ucm_author_today (force-aot)",
-			"type": "shell",
-			"command": "dart",
-			"args": [
-				"pub",
-				"-C",
-				"re_ucm_author_today",
-				"run",
-				"build_runner",
-				"build",
-				"--delete-conflicting-outputs",
-				"--force-aot"
-			],
-			"isBackground": false,
-			"problemMatcher": [],
-			"group": "build"
-		}
+
 	]
 }

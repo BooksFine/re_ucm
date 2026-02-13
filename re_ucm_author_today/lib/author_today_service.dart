@@ -21,19 +21,19 @@ class AuthorTodayService implements PortalService<ATSettings> {
       json == null ? ATSettings() : ATSettings.fromJson(json);
 
   @override
-  List<PortalSettingItem<ATSettings>> buildSettingsSchema(ATSettings settings) {
+  List<PortalSettingItem> buildSettingsSchema(ATSettings settings) {
     final isAuth = isAuthorized(settings);
 
     return [
-      const PortalSettingSectionTitle<ATSettings>('Author.Today'),
+      const PortalSettingSectionTitle('Author.Today'),
       if (isAuth)
-        PortalSettingActionButton<ATSettings>(
+        PortalSettingActionButton(
           actionId: logoutAction,
           title: 'Выйти из аккаунта',
           subtitle: settings.userId == null
               ? null
               : 'Вы залогинены как id${settings.userId}',
-          onTap: _logout,
+          onTap: (s) => _logout(s as ATSettings),
         )
       else ...[
         // PortalSettingWebAuthButton(
@@ -47,17 +47,17 @@ class AuthorTodayService implements PortalService<ATSettings> {
         //       'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36 EdgA/127.0.0.0 $userAgentAT',
         // ),
         if (settings.tokenAuthActive)
-          PortalSettingTextField<ATSettings>(
+          PortalSettingTextField(
             actionId: loginByTokenAction,
             title: 'Вход с помощью токена',
             hint: 'Вставьте токен',
-            onSubmit: _loginByToken,
+            onSubmit: (s, v) => _loginByToken(s as ATSettings, v),
           )
         else
-          PortalSettingActionButton<ATSettings>(
+          PortalSettingActionButton(
             actionId: startTokenAuthAction,
             title: 'Вход с помощью токена',
-            onTap: _startTokenAuth,
+            onTap: (s) => _startTokenAuth(s as ATSettings),
           ),
       ],
     ];

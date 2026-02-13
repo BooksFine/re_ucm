@@ -1,18 +1,16 @@
 part of '../portal.dart';
 
-sealed class PortalSettingItem<T extends PortalSettings> {
+sealed class PortalSettingItem {
   const PortalSettingItem();
 }
 
-final class PortalSettingSectionTitle<T extends PortalSettings>
-    extends PortalSettingItem<T> {
+final class PortalSettingSectionTitle extends PortalSettingItem {
   const PortalSettingSectionTitle(this.title);
 
   final String title;
 }
 
-final class PortalSettingActionButton<T extends PortalSettings>
-    extends PortalSettingItem<T> {
+final class PortalSettingActionButton extends PortalSettingItem {
   const PortalSettingActionButton({
     required this.actionId,
     required this.title,
@@ -22,15 +20,14 @@ final class PortalSettingActionButton<T extends PortalSettings>
 
   final String actionId;
   final String title;
-  final PortalSettingsActionHandler<T> onTap;
+  final PortalSettingsActionHandler onTap;
   final String? subtitle;
 }
 
-typedef PortalSettingsActionHandler<T extends PortalSettings> =
-    Future<T> Function(T settings);
+typedef PortalSettingsActionHandler =
+    Future<PortalSettings> Function(PortalSettings settings);
 
-final class PortalSettingTextField<T extends PortalSettings>
-    extends PortalSettingItem<T> {
+final class PortalSettingTextField extends PortalSettingItem {
   const PortalSettingTextField({
     required this.actionId,
     required this.title,
@@ -42,9 +39,9 @@ final class PortalSettingTextField<T extends PortalSettings>
   final String actionId;
   final String title;
   final String? hint;
-  final PortalSettingsTextFieldHandler<T>? onChanged;
-  final PortalSettingsTextFieldHandler<T>? onSubmit;
+  final PortalSettingsTextFieldHandler? onChanged;
+  final PortalSettingsTextFieldHandler? onSubmit;
 }
 
-typedef PortalSettingsTextFieldHandler<T extends PortalSettings> =
-    Future<T> Function(T settings, String value);
+typedef PortalSettingsTextFieldHandler =
+    Future<PortalSettings> Function(PortalSettings settings, String value);

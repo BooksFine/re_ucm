@@ -3,7 +3,7 @@ part of '../portal.dart';
 abstract interface class PortalService<T extends PortalSettings> {
   T settingsFromJson(Map<String, dynamic>? json);
 
-  List<PortalSettingItem<T>> buildSettingsSchema(T settings);
+  List<PortalSettingItem> buildSettingsSchema(T settings);
 
   bool isAuthorized(T settings);
 

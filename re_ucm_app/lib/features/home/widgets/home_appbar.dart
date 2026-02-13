@@ -1,8 +1,9 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:re_ucm_core/ui/constants.dart';
+
 import '../../../core/constants.dart';
+import '../../../core/ui/constants.dart';
 import '../../common/widgets/icon_button.dart';
 import '../../settings/presentation/settings_dialog.dart';
 

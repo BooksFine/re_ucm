@@ -1,8 +1,9 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:re_ucm_core/ui/constants.dart';
 import 'package:text_balancer/text_balancer.dart';
+
+import '../../../core/ui/constants.dart';
 import '../domain/recent_book.cg.dart';
 import 'recent_book_card.dart';
 
@@ -66,7 +67,7 @@ class _AnimatedRecentBookCardState extends State<AnimatedRecentBookCard>
   }
 
   bool isDismissed = false;
-  onDismissed() async {
+  Future<dynamic> onDismissed() async {
     isDismissed = true;
     setState(() {});
 
@@ -79,7 +80,7 @@ class _AnimatedRecentBookCardState extends State<AnimatedRecentBookCard>
     setState(() {});
   }
 
-  deleteBook() async {
+  Future<dynamic> deleteBook() async {
     await _controller.reverse();
 
     if (await isDeleteConfirmed()) {
@@ -98,10 +99,10 @@ class _AnimatedRecentBookCardState extends State<AnimatedRecentBookCard>
       onDismissed: (_) => onDismissed(),
       child: SizeTransition(
         sizeFactor: _sizeAnimation,
-        axis: Axis.vertical,
-        axisAlignment: 0.0,
+        axis: .vertical,
+        alignment: .center,
         child: Padding(
-          padding: EdgeInsets.only(top: widget.isFirst ? 0 : appPadding),
+          padding: .only(top: widget.isFirst ? 0 : appPadding),
           child: RecentBookCard(onDelete: deleteBook, book: widget.book),
         ),
       ),

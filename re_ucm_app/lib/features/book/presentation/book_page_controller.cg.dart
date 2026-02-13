@@ -9,13 +9,13 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:re_ucm_core/models/book.dart';
 import 'package:re_ucm_core/models/portal.dart';
+import 'package:re_ucm_core/models/portal/portal_settings.dart';
 import 'package:re_ucm_core/models/progress.dart';
-import 'package:re_ucm_core/ui/common/overlay_snack.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../../../core/di.dart';
 import '../../../core/logger.dart';
 import '../../../core/navigation/router_delegate.dart';
+import '../../../core/ui/common/overlay_snack.dart';
 import '../../converters/fb2/converter.dart';
 import '../../recent_books/application/recent_books_service.dart';
 import '../../settings/application/settings_service.cg.dart';
@@ -29,8 +29,16 @@ class BookPageController = BookPageControllerBase with _$BookPageController;
 
 abstract class BookPageControllerBase with Store {
   final scaffoldKey = GlobalKey();
+  final SettingsService settings;
+  late final PortalSettings portalSettings = settings.getPortalSettings(portal);
+  final RecentBooksService recentBooksService;
 
-  BookPageControllerBase({required this.id, required this.portal});
+  BookPageControllerBase({
+    required this.id,
+    required this.portal,
+    required this.settings,
+    required this.recentBooksService,
+  });
 
   final String id;
   final Portal portal;
@@ -41,14 +49,17 @@ abstract class BookPageControllerBase with Store {
   @action
   void fetch() => book = ObservableFuture(_fetch());
 
-  bool get isAuthorized => portal.service.isAuthorized;
+  bool get isAuthorized => portal.service.isAuthorized(portalSettings);
 
   @action
   Future<Book> _fetch() async {
     try {
       logger.i('Fetching book metadata [${portal.code}-$id]');
-      final book = await portal.service.getBookFromId(id);
-      locator<RecentBooksService>().addRecentBook(book);
+      final book = await portal.service.getBookFromId(
+        id,
+        settings: portalSettings,
+      );
+      recentBooksService.addRecentBook(book);
       return book;
     } catch (e, trace) {
       logger.e(
@@ -85,7 +96,10 @@ abstract class BookPageControllerBase with Store {
     logger.i('Downloading book');
     isDownloading = true;
     try {
-      var chapters = await portal.service.getTextFromId(id);
+      var chapters = await portal.service.getTextFromId(
+        id,
+        settings: portalSettings,
+      );
       book.value!.chapters.addAll(chapters);
 
       bookXmlBytes = await convertToFB2(book.value!, (progress) {
@@ -102,7 +116,7 @@ abstract class BookPageControllerBase with Store {
   void share() => _export(share: true);
   void save() => _export(share: false);
 
-  void _export({share = false}) async {
+  void _export({bool share = false}) async {
     var data = book.value!;
     var name = data.series != null
         ? '${data.series?.name}–${data.series?.number}'
@@ -141,7 +155,6 @@ abstract class BookPageControllerBase with Store {
           .isGranted;
       if (!isGranted) openAppSettings();
 
-      final settings = locator<SettingsService>();
       final templateFileName = _buildTemplateFileName(data, settings);
 
       final finalPath = await FilePicker.platform.saveFile(

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:re_ucm_core/models/portal.dart';
-import 'package:re_ucm_core/ui/constants.dart';
+import '../../../core/ui/constants.dart';
 
 class PortalCard extends StatelessWidget {
   const PortalCard({
@@ -10,39 +9,36 @@ class PortalCard extends StatelessWidget {
     required this.portal,
     this.onTap,
     this.authIndication = false,
+    required this.isAuthorized,
   });
 
   final Portal portal;
   final VoidCallback? onTap;
   final bool? authIndication;
+  final bool isAuthorized;
 
   @override
   Widget build(BuildContext context) {
     if (authIndication == true) {
-      return Observer(
-        builder: (context) {
-          final isActive =
-              authIndication != true || portal.service.isAuthorized;
+      final isActive = authIndication != true || isAuthorized;
 
-          return TweenAnimationBuilder(
-            duration: Durations.medium2,
-            tween: Tween<double>(
-              begin: isActive ? 0.5 : 1,
-              end: isActive ? 1 : 0.5,
-            ),
-            builder: (_, v, child) {
-              var color = Theme.of(
-                context,
-              ).colorScheme.onSurface.withValues(alpha: v);
+      return TweenAnimationBuilder(
+        duration: Durations.medium2,
+        tween: Tween<double>(
+          begin: isActive ? 0.5 : 1,
+          end: isActive ? 1 : 0.5,
+        ),
+        builder: (_, v, child) {
+          var color = Theme.of(
+            context,
+          ).colorScheme.onSurface.withValues(alpha: v);
 
-              return PortalCardBase(
-                onTap: onTap,
-                portal: portal,
-                color: color,
-                authIndication: authIndication,
-                isActive: isActive,
-              );
-            },
+          return PortalCardBase(
+            onTap: onTap,
+            portal: portal,
+            color: color,
+            authIndication: authIndication,
+            isActive: isActive,
           );
         },
       );
@@ -91,7 +87,10 @@ class PortalCardBase extends StatelessWidget {
                   child: Stack(
                     children: [
                       SvgPicture(
-                        portal.logo,
+                        SvgAssetLoader(
+                          portal.logo.assetPath,
+                          packageName: portal.logo.packageName,
+                        ),
                         colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
                       ),
                       if (authIndication == true)

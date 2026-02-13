@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:re_ucm_core/ui/constants.dart';
+import '../../../core/ui/constants.dart';
 
 class ElevatedButton1 extends StatelessWidget {
   const ElevatedButton1({

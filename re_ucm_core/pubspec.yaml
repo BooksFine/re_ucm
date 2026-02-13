@@ -7,18 +7,11 @@ repository: https://github.com/BooksFine/re_ucm_core
 
 environment:
   sdk: ^3.11.0
-  flutter: ^3.29.0
 
 resolution: workspace
 
 dependencies:
-  flutter:
-    sdk: flutter
-  flutter_inappwebview: any
-  flutter_svg: ^2.0.17
   logger: ^2.5.0
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
-  flutter_lints: ^6.0.0
+  lints: ^6.0.0

@@ -1,21 +1,21 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
-import '../application/at_internal_service.dart';
 import '../domain/constants.dart';
 
 class ATInterceptor extends Interceptor {
-  final ATInternalService service;
+  const ATInterceptor({this.token, required this.onRelogin});
 
-  ATInterceptor(this.service);
+  final String? token;
+  final Future<String?> Function() onRelogin;
 
   @override
   onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     if (options.path != '/account/bearer-token') {
       options.headers.addAll({
         if (!options.headers.containsKey('Authorization'))
-          "Authorization": "Bearer ${service.token ?? 'guest'}",
+          "Authorization": "Bearer ${token ?? 'guest'}",
         "User-Agent": userAgentAT,
-        "X-AT-Certificate": xATSertificateHashed,
+        "X-AT-Certificate": xATCertificateHashed,
         "X-AT-Client": xATClient,
         "accept-encoding": "gzip",
       });
@@ -30,8 +30,7 @@ class ATInterceptor extends Interceptor {
   ) async {
     if (err.response?.data is Map) {
       if (err.response?.data['code'] == 'ExpiredToken') {
-        await service.relogin();
-        final String? newToken = service.token;
+        final String? newToken = await onRelogin();
 
         if (newToken != null) {
           final RequestOptions options = err.requestOptions;
@@ -40,7 +39,6 @@ class ATInterceptor extends Interceptor {
           return handler.resolve(response);
         }
       }
-
       final Map error = err.response!.data as Map;
       err = err.copyWith(message: error['message'] ?? error);
     }

@@ -51,7 +51,7 @@ class OTAService {
   static void firstLaunch() async {
     var service = GetIt.I<OTAService>();
     if (await service.getIsFirstLaunch()) {
-      await Nav.pushDialog((_, __, ___) => const ChangelogDialog());
+      await Nav.pushDialog((_, _, _) => const ChangelogDialog());
       service.setLatestLaunchVersion();
     }
   }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:re_ucm_core/ui/constants.dart';
 
 import '../../../core/constants.dart';
+import '../../../core/ui/constants.dart';
 import 'update_controller.dart';
 
 class UpdateWidget extends StatefulWidget {

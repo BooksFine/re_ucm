@@ -65,7 +65,7 @@ Future<String> decryptData(String text, String key, String? userId) async {
   String finalKey = generateUserKey(
     inputString: key,
     userId: userId,
-    certHash: xATSertificate,
+    certHash: xATCertificate,
   );
 
   return decryptChapter(text, finalKey);

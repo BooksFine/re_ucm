@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:re_ucm_core/ui/constants.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+
 import '../../../../core/constants.dart';
+import '../../../../core/ui/constants.dart';
 
 class SocialRow extends StatelessWidget {
   const SocialRow({super.key});

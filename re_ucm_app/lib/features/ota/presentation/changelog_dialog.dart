@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:re_ucm_core/ui/constants.dart';
 
 import '../../../core/navigation/router_delegate.dart';
+import '../../../core/ui/constants.dart';
 import '../../changelog/changelog.dart';
 import '../../common/widgets/outlined_btn.dart';
 

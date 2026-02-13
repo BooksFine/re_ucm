@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:re_ucm_core/models/portal.dart';
-import 'package:re_ucm_core/ui/common/overlay_snack.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../../core/navigation/router_delegate.dart';
+import '../../core/ui/common/overlay_snack.dart';
 import '../common/widgets/appbar.dart';
 import '../settings/presentation/settings_dialog.dart';
 
@@ -147,7 +148,7 @@ class _BrowserState extends State<Browser> {
             child: TweenAnimationBuilder(
               tween: Tween<double>(begin: 0, end: progress),
               duration: Durations.short4,
-              builder: (_, v, __) => LinearProgressIndicator(
+              builder: (_, v, _) => LinearProgressIndicator(
                 value: v == 0 ? null : v,
                 minHeight: 3,
               ),

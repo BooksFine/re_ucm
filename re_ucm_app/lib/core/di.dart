@@ -9,7 +9,7 @@ import '../features/settings/application/settings_service.cg.dart';
 final locator = GetIt.instance;
 
 Future<void> appInit() async {
-  PortalFactory.registerAll([await AuthorToday.create()]);
+  PortalFactory.registerAll([AuthorToday()]);
 
   locator.registerSingleton(await OTAService.init());
 

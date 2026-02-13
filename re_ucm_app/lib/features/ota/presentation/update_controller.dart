@@ -19,7 +19,7 @@ class UpdateController {
 
   Stream<double>? progressStream;
 
-  updateApp(VoidCallback callback) {
+  Future<bool> updateApp(VoidCallback callback) async {
     try {
       if (kIsWeb || !Platform.isAndroid) return launchUrlString(releasesUrl);
 
@@ -35,9 +35,12 @@ class UpdateController {
               }(),
             },
           );
+
       callback();
+      return true;
     } catch (e, trace) {
       logger.e('OTA Error', error: e, stackTrace: trace);
+      return false;
     }
   }
 }

@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:re_ucm_core/models/portal.dart';
-import 'package:re_ucm_core/ui/constants.dart';
+import 'package:re_ucm_core/models/portal/portal_settings.dart';
+import '../../../core/ui/constants.dart';
 import '../domain/portal_factory.dart';
 import 'portal_card.dart';
 
 class PortalsList extends StatelessWidget {
-  const PortalsList({super.key, this.onTap, this.authIndication});
+  const PortalsList({
+    super.key,
+    this.onTap,
+    this.authIndication,
+    this.settingsResolver,
+  });
 
   final Function(Portal portal)? onTap;
   final bool? authIndication;
+  final PortalSettings Function(Portal portal)? settingsResolver;
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +36,9 @@ class PortalsList extends StatelessWidget {
           return PortalCard(
             portal: portal,
             authIndication: authIndication,
+            isAuthorized: settingsResolver != null
+                ? portal.service.isAuthorized(settingsResolver!(portal))
+                : false,
             onTap: onTap != null ? () => onTap!(portal) : null,
           );
         },

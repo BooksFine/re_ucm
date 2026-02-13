@@ -79,6 +79,8 @@ final router = GoRouter(
                     portal: PortalFactory.fromCode(
                       state.pathParameters['portalCode']!,
                     ),
+                    settings: locator(),
+                    recentBooksService: locator(),
                   ),
                 );
               },
@@ -96,6 +98,8 @@ final router = GoRouter(
                 portal: PortalFactory.fromCode(
                   state.pathParameters['portalCode']!,
                 ),
+                settings: locator(),
+                recentBooksService: locator(),
               ),
             );
           },

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:re_ucm_core/ui/constants.dart';
+import '../../../../core/ui/constants.dart';
 import '../../application/settings_service.cg.dart';
 import '../../domain/path_placeholders.dart';
 import '../../domain/path_template.cg.dart';
@@ -40,8 +40,8 @@ class _DownloadPathEditorState extends State<DownloadPathEditor> {
   @override
   void initState() {
     super.initState();
-    final savedtemplate = widget.service.downloadPathTemplate;
-    pathController = TagEditingController(text: savedtemplate.path);
+    final savedTemplate = widget.service.downloadPathTemplate;
+    pathController = TagEditingController(text: savedTemplate.path);
     isPathEmpty = pathController.text.isEmpty;
     authorsSeparatorController.text = widget.service.authorsPathSeparator;
   }

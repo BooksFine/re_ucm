@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:re_ucm_core/re_ucm_core.dart';
 
 import '../../../../core/navigation/router_delegate.dart';
+import '../../../../core/ui/constants.dart';
 
 class UnauthorizedAlert extends StatelessWidget {
   const UnauthorizedAlert({super.key, required this.portal});

@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:re_ucm_core/models/portal.dart';
-import 'package:re_ucm_core/ui/constants.dart';
 
+import '../../../core/ui/constants.dart';
 import '../../common/widgets/appbar.dart';
 import '../../common/widgets/shimmer.dart';
+import '../../recent_books/application/recent_books_service.dart';
+import '../../settings/application/settings_service.cg.dart';
 import '../../settings/presentation/settings_dialog.dart';
 import 'book_page_controller.cg.dart';
 import 'widgets/annotation_viewer.dart';
@@ -17,10 +19,18 @@ import 'widgets/progress_bar.dart';
 import 'widgets/unauthorized_alert.dart';
 
 class BookPage extends StatefulWidget {
-  const BookPage({super.key, required this.id, required this.portal});
+  const BookPage({
+    super.key,
+    required this.id,
+    required this.portal,
+    required this.settings,
+    required this.recentBooksService,
+  });
 
   final String id;
   final Portal portal;
+  final SettingsService settings;
+  final RecentBooksService recentBooksService;
 
   @override
   State<BookPage> createState() => _BookPageState();
@@ -29,8 +39,12 @@ class BookPage extends StatefulWidget {
 class _BookPageState extends State<BookPage> {
   late BookPageController controller;
 
-  void updateController() =>
-      controller = BookPageController(id: widget.id, portal: widget.portal);
+  void updateController() => controller = BookPageController(
+    id: widget.id,
+    portal: widget.portal,
+    settings: widget.settings,
+    recentBooksService: widget.recentBooksService,
+  );
 
   @override
   void initState() {

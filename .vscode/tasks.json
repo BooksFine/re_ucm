@@ -9,6 +9,9 @@
 				"apk",
 				"--split-per-abi"
 			],
+			"options": {
+				"cwd": "${workspaceFolder}/re_ucm_app"
+			},
 			"group": "build",
 			"problemMatcher": [],
 			"label": "[Build] Split APK",
@@ -29,7 +32,6 @@
 			"isBackground": false,
 			"problemMatcher": [],
 			"group": "build"
-		},
-
+		}
 	]
 }

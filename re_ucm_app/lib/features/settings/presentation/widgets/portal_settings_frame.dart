@@ -4,6 +4,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:re_ucm_core/models/portal.dart';
 
 import '../../../../core/navigation/router_delegate.dart';
+import '../../../../core/ui/common/overlay_snack.dart';
 import '../../../../core/ui/constants.dart';
 import '../../../../core/ui/settings.dart';
 import '../../../portals/application/portal_session.cg.dart';
@@ -65,12 +66,9 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
   void onWebAuthButtonTap(PortalSettingWebAuthButton field) async {
     final result = await Nav.pushWebAuth(field);
     if (!mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
     final cookie = result as String?;
     if (cookie == null || cookie.isEmpty) {
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Авторизация отменена')),
-      );
+      overlaySnackMessage(context, 'Авторизация отменена');
       return;
     }
     try {
@@ -78,12 +76,10 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
         await field.onCookieObtained(widget.session.settings, cookie),
       );
       if (!mounted) return;
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Вы успешно авторизовались')),
-      );
+      overlaySnackMessage(context, ('Вы успешно авторизовались'));
     } catch (e) {
       if (!mounted) return;
-      messenger.showSnackBar(SnackBar(content: Text('Ошибка: $e')));
+      overlaySnackMessage(context, 'Ошибка: $e');
     }
   }
 

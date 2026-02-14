@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:get_it/get_it.dart';
 import 'package:ota_update_fork/ota_update_fork.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -10,10 +9,8 @@ import '../../../core/logger.dart';
 import '../ota_service.dart';
 
 class UpdateController {
-  late final OTAService service;
-  UpdateController() {
-    service = GetIt.I<OTAService>();
-  }
+  final OTAService service;
+  UpdateController(this.service);
 
   String? get actualVersion => service.actualVersion;
 

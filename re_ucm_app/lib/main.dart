@@ -33,9 +33,9 @@ void main() async {
   await loggerInit();
 
   await settingUpSystemUIOverlay();
-  await appInit();
+  final app = await AppDependencies.init(child: const MainApp());
 
-  runApp(const MainApp());
+  runApp(app);
 }
 
 class MainApp extends StatefulWidget {
@@ -46,12 +46,14 @@ class MainApp extends StatefulWidget {
 }
 
 class _MainAppState extends State<MainApp> {
+  late final router = createRouter(AppDependencies.of(context));
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     shareHandler(context);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      OTAService.firstLaunch();
+      OTAService.firstLaunch(AppDependencies.of(context).otaService);
     });
   }
 

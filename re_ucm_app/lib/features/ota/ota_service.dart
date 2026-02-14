@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:get_it/get_it.dart';
 
 import '../../core/constants.dart';
 import '../../core/logger.dart';
@@ -48,8 +47,7 @@ class OTAService {
     }
   }
 
-  static void firstLaunch() async {
-    var service = GetIt.I<OTAService>();
+  static void firstLaunch(OTAService service) async {
     if (await service.getIsFirstLaunch()) {
       await Nav.pushDialog((_, _, _) => const ChangelogDialog());
       service.setLatestLaunchVersion();

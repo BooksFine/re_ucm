@@ -6,7 +6,6 @@ import '../../features/browser/browser.dart';
 import '../../features/changelog/changelog_page.dart';
 import '../../features/home/home_page.dart';
 import '../../features/portals/domain/portal_factory.dart';
-import '../../features/settings/application/settings_service.cg.dart';
 import '../../features/settings/presentation/settings_dialog.dart';
 import '../../features/settings/presentation/web_auth_page.dart';
 import '../di.dart';
@@ -16,7 +15,8 @@ import 'modal_bottom_sheet_page.dart';
 bool isLaunched = false;
 
 final rootNavigationKey = GlobalKey<NavigatorState>();
-final router = GoRouter(
+
+GoRouter createRouter(AppDependencies deps) => GoRouter(
   navigatorKey: rootNavigationKey,
   initialLocation: '/',
   routes: [
@@ -49,7 +49,7 @@ final router = GoRouter(
           pageBuilder: (context, state) {
             return DialogPage(
               builder: (context, first, second) {
-                return SettingsDialog(service: locator());
+                return SettingsDialog(service: deps.settingsService);
               },
             );
           },
@@ -86,11 +86,11 @@ final router = GoRouter(
                   key: state.pageKey,
                   child: BookPage(
                     id: state.pathParameters['id']!,
-                    session: locator<SettingsService>().sessionByCode(
+                    session: deps.settingsService.sessionByCode(
                       state.pathParameters['portalCode']!,
                     ),
-                    settings: locator(),
-                    recentBooksService: locator(),
+                    settings: deps.settingsService,
+                    recentBooksService: deps.recentBooksService,
                   ),
                 );
               },
@@ -105,11 +105,11 @@ final router = GoRouter(
               key: state.pageKey,
               child: BookPage(
                 id: state.pathParameters['id']!,
-                session: locator<SettingsService>().sessionByCode(
+                session: deps.settingsService.sessionByCode(
                   state.pathParameters['portalCode']!,
                 ),
-                settings: locator(),
-                recentBooksService: locator(),
+                settings: deps.settingsService,
+                recentBooksService: deps.recentBooksService,
               ),
             );
           },

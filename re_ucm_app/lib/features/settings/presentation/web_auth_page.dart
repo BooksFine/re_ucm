@@ -29,20 +29,6 @@ class _WebAuthPageState extends State<WebAuthPage> {
       ),
       body: Stack(
         children: [
-          AnimatedSize(
-            alignment: Alignment.topCenter,
-            duration: Durations.short4,
-            child: isLoading
-                ? TweenAnimationBuilder(
-                    tween: Tween<double>(begin: 0, end: progress),
-                    duration: Durations.short4,
-                    builder: (_, v, _) => LinearProgressIndicator(
-                      value: v == 0 ? null : v,
-                      minHeight: 3,
-                    ),
-                  )
-                : const SizedBox.shrink(),
-          ),
           InAppWebView(
             initialSettings: InAppWebViewSettings(
               userAgent: widget.field.userAgent,
@@ -78,6 +64,19 @@ class _WebAuthPageState extends State<WebAuthPage> {
               this.progress = progress / 100;
               setState(() {});
             },
+          ),
+
+          AnimatedOpacity(
+            duration: Durations.medium2,
+            opacity: isLoading ? 1 : 0,
+            child: TweenAnimationBuilder(
+              tween: Tween<double>(begin: 0, end: progress),
+              duration: Durations.short4,
+              builder: (_, v, _) => LinearProgressIndicator(
+                value: v == 0 ? null : v,
+                minHeight: 3,
+              ),
+            ),
           ),
         ],
       ),

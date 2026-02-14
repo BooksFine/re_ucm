@@ -11,15 +11,15 @@ part '../.gen/data/author_today_api.cg.g.dart';
 abstract class AuthorTodayAPI {
   factory AuthorTodayAPI(Dio dio, {String baseUrl}) = _AuthorTodayAPI;
 
-  //TODO
-  static AuthorTodayAPI create({String? token}) {
+  static AuthorTodayAPI create({
+    String? token,
+    Future<String?> Function()? onRelogin,
+  }) {
     final dio = Dio()
       ..interceptors.add(
         ATInterceptor(
           token: token,
-          onRelogin: () {
-            throw Exception('Token expired');
-          },
+          onRelogin: onRelogin ?? () async => throw Exception('Token expired'),
         ),
       );
     return AuthorTodayAPI(dio);

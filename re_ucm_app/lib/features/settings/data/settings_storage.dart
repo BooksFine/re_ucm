@@ -64,13 +64,10 @@ class SettingsStorageSembast implements SettingsStorage {
 
   @override
   Future<Map<String, Map<String, Object?>>> getPortalsSettings() async {
-    final raw = await _portalsStore.record('portalSettingsByCode').get(db);
-    if (raw is! Map) return {};
-
+    final records = await _portalsStore.find(db);
     final map = <String, Map<String, Object?>>{};
-    for (final entry in raw!.entries) {
-      if (entry.value is! Map<String, Object?>) continue;
-      map[entry.key] = entry.value as Map<String, Object?>;
+    for (final record in records) {
+      map[record.key] = record.value;
     }
     return map;
   }

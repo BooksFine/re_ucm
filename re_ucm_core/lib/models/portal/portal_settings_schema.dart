@@ -4,6 +4,16 @@ sealed class PortalSettingItem {
   const PortalSettingItem();
 }
 
+final class PortalSettingStateSwitcher<T> extends PortalSettingItem {
+  const PortalSettingStateSwitcher({
+    required this.currentState,
+    required this.states,
+  });
+
+  final T currentState;
+  final Map<T, PortalSettingItem> states;
+}
+
 final class PortalSettingSectionTitle extends PortalSettingItem {
   const PortalSettingSectionTitle(this.title);
 
@@ -45,3 +55,26 @@ final class PortalSettingTextField extends PortalSettingItem {
 
 typedef PortalSettingsTextFieldHandler =
     Future<PortalSettings> Function(PortalSettings settings, String value);
+
+final class PortalSettingWebAuthButton extends PortalSettingItem {
+  const PortalSettingWebAuthButton({
+    required this.actionId,
+    required this.title,
+    required this.startUrl,
+    required this.successUrl,
+    required this.cookieName,
+    required this.onCookieObtained,
+    this.userAgent,
+  });
+
+  final String actionId;
+  final String title;
+  final String startUrl;
+  final String successUrl;
+  final String cookieName;
+  final String? userAgent;
+  final PortalSettingsWebAuthHandler onCookieObtained;
+}
+
+typedef PortalSettingsWebAuthHandler =
+    Future<PortalSettings> Function(PortalSettings settings, String cookie);

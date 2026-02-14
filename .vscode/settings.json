@@ -5,7 +5,9 @@
         "inno",
         "innoinstall",
         "iscc",
+        "KHTML",
         "Relogin",
-        "reucm"
+        "reucm",
+        "webauth"
     ]
 }

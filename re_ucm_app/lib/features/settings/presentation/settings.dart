@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:re_ucm_core/models/portal.dart';
-import 'package:re_ucm_core/models/portal/portal_settings.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 
 import '../../../core/navigation/router_delegate.dart';
 import '../../../core/ui/constants.dart';
 import '../../../core/ui/settings.dart';
 import '../../portals/presentation/portals_list.dart';
 import '../application/settings_service.cg.dart';
+import 'settings_controller.cg.dart';
 import 'widgets/download_path_editor.dart';
 import 'widgets/portal_settings_frame.dart';
 import 'widgets/social_row.dart';
@@ -21,16 +21,7 @@ class Settings extends StatefulWidget {
 }
 
 class _SettingsState extends State<Settings> {
-  Portal<PortalSettings>? selectedPortal;
-
-  void setSelectedPortal(Portal<PortalSettings> portal) {
-    if (selectedPortal == portal) {
-      selectedPortal = null;
-    } else {
-      selectedPortal = portal;
-    }
-    setState(() {});
-  }
+  late final controller = SettingsController(service: widget.service);
 
   @override
   Widget build(BuildContext context) {
@@ -38,69 +29,75 @@ class _SettingsState extends State<Settings> {
       type: MaterialType.transparency,
       child: Stack(
         children: [
-          ListView(
-            padding: EdgeInsets.zero,
-            shrinkWrap: true,
-            primary: false,
-            children: [
-              const SizedBox(height: appPadding * 2),
+          Observer(
+            builder: (_) => ListView(
+              padding: EdgeInsets.zero,
+              shrinkWrap: true,
+              primary: false,
+              children: [
+                const SizedBox(height: appPadding * 2),
 
-              const SettingsTitle('Настройки'),
+                const SettingsTitle('Настройки'),
 
-              const SizedBox(height: appPadding * 2),
-              PortalsList(
-                authIndication: true,
-                onTap: setSelectedPortal,
-                settingsResolver: widget.service.getPortalSettings,
-              ),
-              const SizedBox(height: appPadding / 2),
+                const SizedBox(height: appPadding * 2),
+                PortalsList(
+                  authIndication: true,
+                  onTap: (portal) => controller.setSelectedSession(
+                    widget.service.sessionByCode(portal.code),
+                  ),
+                  isAuthorizedResolver: (portal) =>
+                      widget.service.sessionByCode(portal.code).isAuthorized,
+                ),
+                const SizedBox(height: appPadding / 2),
 
-              AnimatedSize(
-                duration: Durations.medium2,
-                alignment: .topCenter,
-                child: AnimatedSwitcher(
+                AnimatedSize(
                   duration: Durations.medium2,
-                  layoutBuilder: (child, previousChildren) => Stack(
-                    alignment: .topCenter,
-                    children: [
-                      ?child,
-                      ...previousChildren.map(
-                        (child) => Positioned.fill(
-                          child: OverflowBox(
-                            alignment: .topCenter,
-                            maxHeight: double.infinity,
-                            child: child,
+                  alignment: .topCenter,
+                  child: AnimatedSwitcher(
+                    duration: Durations.medium2,
+                    layoutBuilder: (child, previousChildren) => Stack(
+                      alignment: .topCenter,
+                      children: [
+                        ?child,
+                        ...previousChildren.map(
+                          (child) => Positioned.fill(
+                            child: OverflowBox(
+                              alignment: .topCenter,
+                              maxHeight: double.infinity,
+                              child: child,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  child: selectedPortal != null
-                      ? PortalSettingsFrame(
-                          key: ValueKey('settings_${selectedPortal!.code}'),
-                          portal: selectedPortal!,
-                          service: widget.service,
-                        )
-                      : Column(
-                          key: const ValueKey('global_settings'),
-                          children: [
-                            SizedBox(height: appPadding * 2),
-                            DownloadPathEditor(service: widget.service),
-                            SizedBox(height: appPadding),
-                            SettingsButton(
-                              title: 'История изменений',
-                              leading: const Icon(Icons.history),
-                              onTap: Nav.goChangelog,
+                      ],
+                    ),
+                    child: controller.selectedSession != null
+                        ? PortalSettingsFrame(
+                            key: ValueKey(
+                              'settings_${controller.selectedSession!.code}',
                             ),
+                            session: controller.selectedSession!,
+                          )
+                        : Column(
+                            key: const ValueKey('global_settings'),
+                            children: [
+                              SizedBox(height: appPadding * 2),
+                              DownloadPathEditor(service: widget.service),
+                              SizedBox(height: appPadding),
+                              SettingsButton(
+                                title: 'История изменений',
+                                leading: const Icon(Icons.history),
+                                onTap: Nav.goChangelog,
+                              ),
 
-                            const SizedBox(height: appPadding),
-                            SocialRow(),
-                          ],
-                        ),
+                              const SizedBox(height: appPadding),
+                              SocialRow(),
+                            ],
+                          ),
+                  ),
                 ),
-              ),
-              const SizedBox(height: appPadding * 2),
-            ],
+                const SizedBox(height: appPadding * 2),
+              ],
+            ),
           ),
           Align(
             heightFactor: 1,

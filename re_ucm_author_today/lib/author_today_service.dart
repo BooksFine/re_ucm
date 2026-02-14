@@ -4,6 +4,7 @@ import 'package:re_ucm_core/models/portal.dart';
 
 import 'data/author_today_api.cg.dart';
 import 'data/models/at_chapter.cg.dart';
+import 'domain/constants.dart';
 import 'domain/utils/metadata_parser.dart';
 import 'domain/utils/decrypt.dart';
 
@@ -15,6 +16,9 @@ class AuthorTodayService implements PortalService<ATSettings> {
 
   AuthorTodayService(this.portal);
   final Portal portal;
+
+  @override
+  void Function(ATSettings updatedSettings)? onSettingsChanged;
 
   @override
   ATSettings settingsFromJson(Map<String, dynamic>? json) =>
@@ -36,16 +40,17 @@ class AuthorTodayService implements PortalService<ATSettings> {
           onTap: (s) => _logout(s as ATSettings),
         )
       else ...[
-        // PortalSettingWebAuthButton(
-        //   actionId: loginByWebAction,
-        //   title: 'Вход через web',
-        //   onAuthorized: (v, s) async => v,
-        //   startUrl: '$urlAT/account/login',
-        //   successUrl: '$urlAT/',
-        //   cookieName: 'LoginCookie',
-        //   userAgent:
-        //       'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36 EdgA/127.0.0.0 $userAgentAT',
-        // ),
+        PortalSettingWebAuthButton(
+          actionId: loginByWebAction,
+          title: 'Вход через web',
+          startUrl: '$urlAT/account/login',
+          successUrl: '$urlAT/',
+          cookieName: 'LoginCookie',
+          userAgent:
+              'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36 EdgA/127.0.0.0 $userAgentAT',
+          onCookieObtained: (s, cookie) =>
+              _loginByCookie(s as ATSettings, cookie),
+        ),
         if (settings.tokenAuthActive)
           PortalSettingTextField(
             actionId: loginByTokenAction,
@@ -64,15 +69,11 @@ class AuthorTodayService implements PortalService<ATSettings> {
   }
 
   Future<ATSettings> _logout(ATSettings settings) async {
-    settings.token = null;
-    settings.userId = null;
-    settings.tokenAuthActive = false;
-    return settings;
+    return settings.copyWith(token: null, userId: null, tokenAuthActive: false);
   }
 
   Future<ATSettings> _startTokenAuth(ATSettings settings) async {
-    settings.tokenAuthActive = true;
-    return settings;
+    return settings.copyWith(tokenAuthActive: true);
   }
 
   Future<ATSettings> _loginByToken(ATSettings settings, String token) async {
@@ -85,11 +86,55 @@ class AuthorTodayService implements PortalService<ATSettings> {
     final res = await api.checkUser('Bearer $normalizedToken');
     final userId = res.data['id']?.toString();
 
-    settings.token = normalizedToken;
-    settings.tokenAuthActive = false;
-    if (userId != null) settings.userId = userId;
+    return settings.copyWith(
+      token: normalizedToken,
+      tokenAuthActive: false,
+      userId: userId,
+    );
+  }
 
-    return settings;
+  Future<ATSettings> _loginByCookie(ATSettings settings, String cookie) async {
+    final api = AuthorTodayAPI.create();
+    final res = await api.login('LoginCookie=$cookie');
+
+    final String? token;
+    if (res.data is String) {
+      token = (res.data as String?)?.trim();
+    } else if (res.data is Map) {
+      token = (res.data as Map)['token']?.toString();
+    } else {
+      throw Exception('Неожиданный формат ответа');
+    }
+
+    if (token == null || token.isEmpty) {
+      throw Exception('Не удалось получить токен');
+    }
+
+    final userApi = AuthorTodayAPI.create(token: token);
+    final userRes = await userApi.checkUser('Bearer $token');
+    final userId = userRes.data['id']?.toString();
+
+    return settings.copyWith(
+      token: token,
+      tokenAuthActive: false,
+      userId: userId,
+    );
+  }
+
+  Future<String?> _relogin(ATSettings settings) async {
+    final token = settings.token;
+    if (token == null) return null;
+
+    try {
+      final api = AuthorTodayAPI.create(token: token);
+      final res = await api.refreshToken();
+      final newToken = res.data['token']?.toString();
+      if (newToken != null && newToken.isNotEmpty) {
+        onSettingsChanged?.call(settings.copyWith(token: newToken));
+        return newToken;
+      }
+    } catch (_) {}
+    return null;
   }
 
   @override
@@ -109,7 +154,10 @@ class AuthorTodayService implements PortalService<ATSettings> {
 
   @override
   Future<Book> getBookFromId(String id, {required ATSettings settings}) async {
-    final api = AuthorTodayAPI.create(token: settings.token);
+    final api = AuthorTodayAPI.create(
+      token: settings.token,
+      onRelogin: () => _relogin(settings),
+    );
     final res = await api.getMeta(id);
     return metadataParserAT(res.data, portal);
   }
@@ -121,7 +169,10 @@ class AuthorTodayService implements PortalService<ATSettings> {
   }) async {
     final token = settings.token;
     final userId = settings.userId;
-    final api = AuthorTodayAPI.create(token: token);
+    final api = AuthorTodayAPI.create(
+      token: token,
+      onRelogin: () => _relogin(settings),
+    );
     final res = await api.getManyTexts(id);
     final successfulEntries = res.data.where((entry) => entry.isSuccessful);
     return Future.wait(

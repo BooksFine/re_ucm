@@ -9,6 +9,8 @@ abstract interface class PortalService<T extends PortalSettings> {
 
   String getIdFromUrl(Uri url);
 
+  void Function(T updatedSettings)? onSettingsChanged;
+
   Future<Book> getBookFromId(String id, {required T settings});
 
   Future<List<Chapter>> getTextFromId(String id, {required T settings});

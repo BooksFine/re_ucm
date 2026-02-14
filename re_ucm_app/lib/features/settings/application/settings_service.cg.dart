@@ -1,15 +1,13 @@
-import 'package:re_ucm_core/models/portal.dart';
-import 'package:re_ucm_core/models/portal/portal_settings.dart';
-
 import '../../portals/domain/portal_factory.dart';
+import '../../portals/application/portal_session.cg.dart';
 import '../data/settings_storage.dart';
 import '../domain/path_template.cg.dart';
 
 class SettingsService {
   SettingsService._();
 
-  final List<Portal<PortalSettings>> portals = PortalFactory.portals;
   late final SettingsStorage storage;
+  late final List<PortalSession> _sessions;
 
   static Future<SettingsService> init() async {
     final service = SettingsService._();
@@ -22,12 +20,34 @@ class SettingsService {
   PathTemplate get downloadPathTemplate => _downloadPathTemplate;
   late String _authorsPathSeparator;
   String get authorsPathSeparator => _authorsPathSeparator;
-  late Map<String, Map<String, Object?>> _portalSettingsByCode;
+
+  List<PortalSession> get sessions => _sessions;
+
+  PortalSession sessionByCode(String code) =>
+      _sessions.firstWhere((s) => s.code == code);
 
   Future<void> loadSettings() async {
     _downloadPathTemplate = await storage.getDownloadPathTemplate();
     _authorsPathSeparator = await storage.getAuthorsPathSeparator();
-    _portalSettingsByCode = await storage.getPortalsSettings();
+
+    final portalSettingsByCode = await storage.getPortalsSettings();
+    _sessions = PortalFactory.portals.map((portal) {
+      final settings = portal.service.settingsFromJson(
+        portalSettingsByCode[portal.code],
+      );
+      return PortalSession(
+        portal: portal,
+        initialSettings: settings,
+        persistCallback: _persistPortalSettings,
+      );
+    }).toList();
+  }
+
+  Future<void> _persistPortalSettings(
+    String code,
+    Map<String, dynamic> json,
+  ) async {
+    await storage.setPortalSettings(code, json);
   }
 
   void updateDownloadPathTemplate(PathTemplate template) {
@@ -38,23 +58,5 @@ class SettingsService {
   void updateAuthorsPathSeparator(String separator) {
     _authorsPathSeparator = separator;
     storage.setAuthorsPathSeparator(separator);
-  }
-
-  T getPortalSettings<T extends PortalSettings>(Portal<T> portal) {
-    final settings = portal.service.settingsFromJson(
-      _portalSettingsByCode[portal.code],
-    );
-    return settings;
-  }
-
-  Future<void> replacePortalSettings<T extends PortalSettings>(
-    Portal<T> portal,
-    T settings,
-  ) async {
-    _portalSettingsByCode[portal.code] = settings.toJson();
-    await storage.setPortalSettings(
-      portal.code,
-      _portalSettingsByCode[portal.code]!,
-    );
   }
 }

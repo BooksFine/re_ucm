@@ -25,7 +25,7 @@ Future<Uint8List> convertToFB2(
   // Создаем новый изолят
   Isolate.spawn(convertToFB2Isolate, {
     'sendPort': receivePort.sendPort,
-    'data': book,
+    'data': _BookMinimal.fromBook(book),
   });
 
   // Устанавливаем обработчик для получения сообщений
@@ -38,6 +38,59 @@ Future<Uint8List> convertToFB2(
   }
 
   throw Exception('Did not receive book data from isolate');
+}
+
+class _BookMinimal {
+  final String id;
+  final String url;
+  final String title;
+  final List<Author> authors;
+  final String? annotation;
+  final DateTime lastUpdateTime;
+  final String? coverUrl;
+  final List<Genre> genres;
+  final Series? series;
+  final List<String>? tags;
+  final List<Chapter> chapters;
+  final _PortalMinimal portal;
+
+  _BookMinimal({
+    required this.id,
+    required this.url,
+    required this.title,
+    required this.authors,
+    this.annotation,
+    required this.lastUpdateTime,
+    this.coverUrl,
+    required this.genres,
+    this.series,
+    this.tags,
+    required this.chapters,
+    required this.portal,
+  });
+
+  factory _BookMinimal.fromBook(Book book) {
+    return _BookMinimal(
+      id: book.id,
+      url: book.url,
+      title: book.title,
+      authors: List.from(book.authors),
+      annotation: book.annotation,
+      lastUpdateTime: book.lastUpdateTime,
+      coverUrl: book.coverUrl,
+      genres: List.from(book.genres),
+      series: book.series,
+      tags: book.tags != null ? List.from(book.tags!) : null,
+      chapters: List.from(book.chapters),
+      portal: _PortalMinimal(url: book.portal.url, code: book.portal.code),
+    );
+  }
+}
+
+class _PortalMinimal {
+  final String url;
+  final String code;
+  _PortalMinimal({required this.url, required this.code});
 }
 
 List<String> findImages(List<String> htmls) {
@@ -56,7 +109,7 @@ List<String> findImages(List<String> htmls) {
 
 Future<void> convertToFB2Isolate(Map<String, dynamic> args) async {
   SendPort sendPort = args['sendPort'];
-  Book data = args['data'];
+  _BookMinimal data = args['data'];
   progressCallback(progress) {
     sendPort.send(progress);
   }

@@ -26,45 +26,50 @@ class AuthorTodayService implements PortalService<ATSettings> {
 
   @override
   List<PortalSettingItem> buildSettingsSchema(ATSettings settings) {
-    final isAuth = isAuthorized(settings);
-
     return [
       const PortalSettingSectionTitle('Author.Today'),
-      if (isAuth)
-        PortalSettingActionButton(
-          actionId: logoutAction,
-          title: 'Выйти из аккаунта',
-          subtitle: settings.userId == null
-              ? null
-              : 'Вы залогинены как id${settings.userId}',
-          onTap: (s) => _logout(s as ATSettings),
-        )
-      else ...[
-        PortalSettingWebAuthButton(
-          actionId: loginByWebAction,
-          title: 'Вход через web',
-          startUrl: '$urlAT/account/login',
-          successUrl: '$urlAT/',
-          cookieName: 'LoginCookie',
-          userAgent:
-              'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36 EdgA/127.0.0.0 $userAgentAT',
-          onCookieObtained: (s, cookie) =>
-              _loginByCookie(s as ATSettings, cookie),
-        ),
-        if (settings.tokenAuthActive)
-          PortalSettingTextField(
-            actionId: loginByTokenAction,
-            title: 'Вход с помощью токена',
-            hint: 'Вставьте токен',
-            onSubmit: (s, v) => _loginByToken(s as ATSettings, v),
-          )
-        else
-          PortalSettingActionButton(
-            actionId: startTokenAuthAction,
-            title: 'Вход с помощью токена',
-            onTap: (s) => _startTokenAuth(s as ATSettings),
+      PortalSettingStateSwitcher<bool>(
+        currentState: isAuthorized(settings),
+        states: {
+          true: PortalSettingActionButton(
+            actionId: logoutAction,
+            title: 'Выйти из аккаунта',
+            subtitle: settings.userId == null
+                ? null
+                : 'Вы залогинены как id${settings.userId}',
+            onTap: (s) => _logout(s as ATSettings),
           ),
-      ],
+          false: PortalSettingGroup([
+            PortalSettingWebAuthButton(
+              actionId: loginByWebAction,
+              title: 'Вход через web',
+              startUrl: '$urlAT/account/login',
+              successUrl: '$urlAT/',
+              cookieName: 'LoginCookie',
+              userAgent:
+                  'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36 EdgA/127.0.0.0 $userAgentAT',
+              onCookieObtained: (s, cookie) =>
+                  _loginByCookie(s as ATSettings, cookie),
+            ),
+            PortalSettingStateSwitcher<bool>(
+              currentState: settings.tokenAuthActive,
+              states: {
+                true: PortalSettingTextField(
+                  actionId: loginByTokenAction,
+                  title: 'Вход с помощью токена',
+                  hint: 'Вставьте токен',
+                  onSubmit: (s, v) => _loginByToken(s as ATSettings, v),
+                ),
+                false: PortalSettingActionButton(
+                  actionId: startTokenAuthAction,
+                  title: 'Вход с помощью токена',
+                  onTap: (s) => _startTokenAuth(s as ATSettings),
+                ),
+              },
+            ),
+          ]),
+        },
+      ),
     ];
   }
 

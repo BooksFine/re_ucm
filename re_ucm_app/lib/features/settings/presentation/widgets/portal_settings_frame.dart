@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:re_ucm_core/models/portal.dart';
 
 import '../../../../core/navigation/router_delegate.dart';
@@ -17,49 +18,47 @@ class PortalSettingsFrame extends StatefulWidget {
 }
 
 class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
-  late List<PortalSettingItem> scheme;
-
   final Map<String, ({TextEditingController controller, bool isLoading})>
   _textFieldsData = {};
 
   @override
-  void initState() {
-    scheme = widget.session.service.buildSettingsSchema(
-      widget.session.settings,
-    );
-
-    for (final item in scheme) {
-      if (item is PortalSettingTextField) {
-        updateFieldData(item);
-      }
+  void dispose() {
+    for (final data in _textFieldsData.values) {
+      data.controller.dispose();
     }
-
-    super.initState();
+    super.dispose();
   }
 
   void onTextFieldSubmit(PortalSettingTextField field, String value) async {
     updateFieldData(field, isLoading: true);
 
-    updateSettings(await field.onSubmit!(widget.session.settings, value));
+    await updateSettings(await field.onSubmit!(widget.session.settings, value));
 
     updateFieldData(field, isLoading: false);
   }
 
   void updateFieldData(PortalSettingTextField field, {bool? isLoading}) {
-    final data =
-        _textFieldsData[field.actionId] ??
-        (controller: TextEditingController(), isLoading: false);
+    final data = _getOrInitFieldData(field);
 
     _textFieldsData[field.actionId] = (
       controller: data.controller,
       isLoading: isLoading ?? data.isLoading,
     );
 
-    setState(() {});
+    if (mounted) setState(() {});
+  }
+
+  ({TextEditingController controller, bool isLoading}) _getOrInitFieldData(
+    PortalSettingTextField field,
+  ) {
+    return _textFieldsData[field.actionId] ??= (
+      controller: TextEditingController(),
+      isLoading: false,
+    );
   }
 
   void onActionButtonTap(PortalSettingActionButton field) async {
-    updateSettings(await field.onTap(widget.session.settings));
+    await updateSettings(await field.onTap(widget.session.settings));
   }
 
   void onWebAuthButtonTap(PortalSettingWebAuthButton field) async {
@@ -74,7 +73,7 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
       return;
     }
     try {
-      updateSettings(
+      await updateSettings(
         await field.onCookieObtained(widget.session.settings, cookie),
       );
       if (!mounted) return;
@@ -87,41 +86,33 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
     }
   }
 
-  void updateSettings(PortalSettings newSettings) async {
+  Future<void> updateSettings(PortalSettings newSettings) async {
     final wasAuthorized = widget.session.isAuthorized;
 
     await widget.session.updateSettings(newSettings);
 
-    scheme = widget.session.service.buildSettingsSchema(
-      widget.session.settings,
-    );
-
-    // Init text field data for any new fields in the updated scheme
-    for (final item in scheme) {
-      if (item is PortalSettingTextField &&
-          !_textFieldsData.containsKey(item.actionId)) {
-        _textFieldsData[item.actionId] = (
-          controller: TextEditingController(),
-          isLoading: false,
-        );
-      }
-    }
-
     if (wasAuthorized && !widget.session.isAuthorized) {
       final cookieManager = CookieManager.instance();
-      await cookieManager.deleteCookies(url: WebUri(widget.session.url));
+      cookieManager.deleteCookies(url: WebUri(widget.session.url));
     }
-
-    if (mounted) setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [for (final field in scheme) renderField(field)]);
+    return Observer(
+      builder: (_) => Column(
+        children: [
+          for (final field in widget.session.schema) renderField(field),
+        ],
+      ),
+    );
   }
 
   Widget renderField(PortalSettingItem field) {
     return switch (field) {
+      PortalSettingGroup() => Column(
+        children: [for (final child in field.children) renderField(child)],
+      ),
       PortalSettingStateSwitcher() => AnimatedSwitcher(
         duration: const Duration(milliseconds: 200),
         child: field.states.containsKey(field.currentState)
@@ -137,8 +128,8 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
       ),
       PortalSettingTextField() => SettingsTextField(
         hint: field.hint ?? 'Введите значение',
-        controller: _textFieldsData[field.actionId]!.controller,
-        isLoading: _textFieldsData[field.actionId]!.isLoading,
+        controller: _getOrInitFieldData(field).controller,
+        isLoading: _getOrInitFieldData(field).isLoading,
         onSubmit: (v) => onTextFieldSubmit(field, v),
       ),
       PortalSettingActionButton() => SettingsButton(

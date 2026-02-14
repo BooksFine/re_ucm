@@ -14,6 +14,12 @@ final class PortalSettingStateSwitcher<T> extends PortalSettingItem {
   final Map<T, PortalSettingItem> states;
 }
 
+final class PortalSettingGroup extends PortalSettingItem {
+  const PortalSettingGroup(this.children);
+
+  final List<PortalSettingItem> children;
+}
+
 final class PortalSettingSectionTitle extends PortalSettingItem {
   const PortalSettingSectionTitle(this.title);
 

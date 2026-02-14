@@ -29,7 +29,8 @@ abstract class PortalSessionBase<T extends PortalSettings> with Store {
   bool get isAuthorized => portal.service.isAuthorized(settings);
 
   @computed
-  List<PortalSettingItem> get schema => portal.service.buildSettingsSchema(settings);
+  List<PortalSettingItem> get schema =>
+      portal.service.buildSettingsSchema(settings);
 
   String get url => portal.url;
   String get name => portal.name;

@@ -1,5 +1,5 @@
-import '../../portals/domain/portal_factory.dart';
 import '../../portals/application/portal_session.cg.dart';
+import '../../portals/domain/portal_factory.dart';
 import '../data/settings_storage.dart';
 import '../domain/path_template.cg.dart';
 

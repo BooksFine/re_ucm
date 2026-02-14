@@ -3,6 +3,7 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:re_ucm_core/models/portal.dart';
 
 import '../../../core/navigation/router_delegate.dart';
+import '../../common/utils/external_launcher.dart';
 import '../../common/widgets/appbar.dart';
 
 class WebAuthPage extends StatefulWidget {
@@ -45,10 +46,12 @@ class _WebAuthPageState extends State<WebAuthPage> {
               setState(() {});
             },
             shouldOverrideUrlLoading: (controller, navigationAction) async {
-              final url = navigationAction.request.url?.toString() ?? '';
+              final uri = navigationAction.request.url!;
+              final url = uri.toString();
+
               if (url.startsWith(widget.field.successUrl)) {
                 final cookies = await CookieManager.instance().getCookies(
-                  url: navigationAction.request.url!,
+                  url: uri,
                 );
                 final target = cookies
                     .where((c) => c.name == widget.field.cookieName)
@@ -58,6 +61,12 @@ class _WebAuthPageState extends State<WebAuthPage> {
                   return NavigationActionPolicy.CANCEL;
                 }
               }
+
+              if (uri.scheme != 'http' && uri.scheme != 'https') {
+                await launchExternalUrl(context, uri);
+                return NavigationActionPolicy.CANCEL;
+              }
+
               return NavigationActionPolicy.ALLOW;
             },
             onProgressChanged: (controller, progress) {

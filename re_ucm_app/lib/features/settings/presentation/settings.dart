@@ -9,6 +9,7 @@ import '../application/settings_service.cg.dart';
 import 'settings_controller.cg.dart';
 import 'widgets/download_path_editor.dart';
 import 'widgets/portal_settings_frame.dart';
+import 'widgets/settings_animated_switcher.dart';
 import 'widgets/social_row.dart';
 
 class Settings extends StatefulWidget {
@@ -53,23 +54,7 @@ class _SettingsState extends State<Settings> {
                 AnimatedSize(
                   duration: Durations.medium2,
                   alignment: .topCenter,
-                  child: AnimatedSwitcher(
-                    duration: Durations.medium2,
-                    layoutBuilder: (child, previousChildren) => Stack(
-                      alignment: .topCenter,
-                      children: [
-                        ?child,
-                        ...previousChildren.map(
-                          (child) => Positioned.fill(
-                            child: OverflowBox(
-                              alignment: .topCenter,
-                              maxHeight: double.infinity,
-                              child: child,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                  child: SettingsAnimatedSwitcher(
                     child: controller.selectedSession != null
                         ? PortalSettingsFrame(
                             key: ValueKey(

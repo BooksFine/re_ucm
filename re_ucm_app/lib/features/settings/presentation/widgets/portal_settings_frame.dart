@@ -7,6 +7,7 @@ import '../../../../core/navigation/router_delegate.dart';
 import '../../../../core/ui/constants.dart';
 import '../../../../core/ui/settings.dart';
 import '../../../portals/application/portal_session.cg.dart';
+import 'settings_animated_switcher.dart';
 
 class PortalSettingsFrame extends StatefulWidget {
   const PortalSettingsFrame({super.key, required this.session});
@@ -113,8 +114,7 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
       PortalSettingGroup() => Column(
         children: [for (final child in field.children) renderField(child)],
       ),
-      PortalSettingStateSwitcher() => AnimatedSwitcher(
-        duration: const Duration(milliseconds: 200),
+      PortalSettingStateSwitcher() => SettingsAnimatedSwitcher(
         child: field.states.containsKey(field.currentState)
             ? KeyedSubtree(
                 key: ValueKey(field.currentState),

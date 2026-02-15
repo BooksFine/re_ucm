@@ -1,11 +1,6 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'package:text_balancer/text_balancer.dart';
 
-import '../../../core/di.dart';
 import '../../../core/ui/constants.dart';
-import '../application/recent_books_service.dart';
 import '../domain/recent_book.cg.dart';
 import 'recent_book_card.dart';
 
@@ -28,7 +23,6 @@ class _AnimatedRecentBookCardState extends State<AnimatedRecentBookCard>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _sizeAnimation;
-  late RecentBooksService _service;
 
   @override
   void initState() {
@@ -42,32 +36,9 @@ class _AnimatedRecentBookCardState extends State<AnimatedRecentBookCard>
   }
 
   @override
-  void didChangeDependencies() {
-    _service = AppDependencies.of(context).recentBooksService;
-    super.didChangeDependencies();
-  }
-
-  @override
   void dispose() {
     _controller.dispose();
     super.dispose();
-  }
-
-  void showUndoSnackBar(ScaffoldMessengerState messenger) {
-    messenger.clearSnackBars();
-    messenger.showSnackBar(
-      SnackBar(
-        width: min(500, MediaQuery.sizeOf(context).width - 32),
-        behavior: SnackBarBehavior.floating,
-        dismissDirection: DismissDirection.horizontal,
-        duration: const Duration(seconds: 3),
-        content: TextBalancer('Удалено «${widget.book.title}»'),
-        action: SnackBarAction(
-          label: 'Отменить',
-          onPressed: () => _service.restoreRecentBook(widget.book),
-        ),
-      ),
-    );
   }
 
   Future<void> deleteBook() async {
@@ -76,9 +47,7 @@ class _AnimatedRecentBookCardState extends State<AnimatedRecentBookCard>
   }
 
   Future<void> onDismissed() async {
-    final messenger = ScaffoldMessenger.of(context);
     widget.onDelete(widget.book);
-    showUndoSnackBar(messenger);
   }
 
   @override

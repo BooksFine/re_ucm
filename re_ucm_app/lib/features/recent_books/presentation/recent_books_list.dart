@@ -16,10 +16,9 @@ class _RecentBooksListState extends State<RecentBooksList> {
   late final RecentBooksService service;
 
   @override
-  void initState() {
+  void didChangeDependencies() {
     service = AppDependencies.of(context).recentBooksService;
-    service.fetchRecentBooks();
-    super.initState();
+    super.didChangeDependencies();
   }
 
   @override

@@ -1,4 +1,4 @@
-import 'package:get_it/get_it.dart';
+import 'package:flutter/widgets.dart';
 import 'package:re_ucm_author_today/re_ucm_author_today.dart';
 
 import '../features/ota/ota_service.dart';
@@ -6,14 +6,41 @@ import '../features/portals/domain/portal_factory.dart';
 import '../features/recent_books/application/recent_books_service.dart';
 import '../features/settings/application/settings_service.cg.dart';
 
-final locator = GetIt.instance;
+class AppDependencies extends InheritedWidget {
+  final OTAService otaService;
+  final RecentBooksService recentBooksService;
+  final SettingsService settingsService;
 
-Future<void> appInit() async {
-  PortalFactory.registerAll([await AuthorToday.create()]);
+  const AppDependencies({
+    super.key,
+    required super.child,
+    required this.otaService,
+    required this.recentBooksService,
+    required this.settingsService,
+  });
 
-  locator.registerSingleton(await OTAService.init());
+  static AppDependencies of(BuildContext context) {
+    final result = context
+        .dependOnInheritedWidgetOfExactType<AppDependencies>();
+    assert(result != null, 'No AppDependencies found in context');
+    return result!;
+  }
 
-  locator.registerSingleton(await RecentBooksService.init());
+  @override
+  bool updateShouldNotify(AppDependencies oldWidget) => false;
 
-  locator.registerSingleton(await SettingsService.init());
+  static Future<AppDependencies> init({required Widget child}) async {
+    PortalFactory.registerAll([AuthorToday()]);
+
+    final otaService = await OTAService.init();
+    final recentBooksService = await RecentBooksService.init();
+    final settingsService = await SettingsService.init();
+
+    return AppDependencies(
+      otaService: otaService,
+      recentBooksService: recentBooksService,
+      settingsService: settingsService,
+      child: child,
+    );
+  }
 }

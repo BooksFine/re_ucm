@@ -11,6 +11,7 @@ class RecentBooksService {
   static Future<RecentBooksService> init() async {
     var service = RecentBooksService._();
     service._repo = await RecentBooksStorageSembast.init();
+    service._fetchRecentBooks();
     return service;
   }
 
@@ -43,7 +44,13 @@ class RecentBooksService {
     _repo.removeRecentBook(book);
   }
 
-  Future fetchRecentBooks() async {
+  Future<void> restoreRecentBook(RecentBook book) async {
+    recentBooks.add(book);
+    recentBooks.sort((a, b) => a.added.compareTo(b.added));
+    _repo.setRecentBook(book);
+  }
+
+  Future _fetchRecentBooks() async {
     final recent = await _repo.getRecentBooks();
     recent.sort((a, b) => a.added.compareTo(b.added));
     recentBooks.clear();

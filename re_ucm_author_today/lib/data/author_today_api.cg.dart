@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
-import '../application/at_internal_service.dart';
 import 'at_interceptor.dart';
 import 'models/at_chapter.cg.dart';
 import 'models/at_work_metadata.cg.dart';
@@ -12,8 +11,17 @@ part '../.gen/data/author_today_api.cg.g.dart';
 abstract class AuthorTodayAPI {
   factory AuthorTodayAPI(Dio dio, {String baseUrl}) = _AuthorTodayAPI;
 
-  static AuthorTodayAPI create({required ATInternalService service}) {
-    final dio = Dio()..interceptors.add(ATInterceptor(service));
+  static AuthorTodayAPI create({
+    String? token,
+    Future<String?> Function()? onRelogin,
+  }) {
+    final dio = Dio()
+      ..interceptors.add(
+        ATInterceptor(
+          token: token,
+          onRelogin: onRelogin ?? () async => throw Exception('Token expired'),
+        ),
+      );
     return AuthorTodayAPI(dio);
   }
 
@@ -21,7 +29,7 @@ abstract class AuthorTodayAPI {
   Future<HttpResponse> login(@Header('cookie') String cookies);
 
   @GET('/account/current-user')
-  Future<HttpResponse> checkUser(@Header('Authorization') token);
+  Future<HttpResponse> checkUser(@Header('Authorization') String token);
 
   @POST('/account/refresh-token')
   Future<HttpResponse> refreshToken();

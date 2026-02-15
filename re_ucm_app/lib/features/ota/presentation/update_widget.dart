@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:re_ucm_core/ui/constants.dart';
 
 import '../../../core/constants.dart';
+import '../../../core/di.dart';
+import '../../../core/ui/constants.dart';
 import 'update_controller.dart';
 
 class UpdateWidget extends StatefulWidget {
@@ -12,7 +13,13 @@ class UpdateWidget extends StatefulWidget {
 }
 
 class _UpdateWidgetState extends State<UpdateWidget> {
-  final UpdateController controller = UpdateController();
+  late final UpdateController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = UpdateController(AppDependencies.of(context).otaService);
+  }
 
   @override
   Widget build(BuildContext context) {

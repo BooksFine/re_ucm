@@ -13,12 +13,12 @@ class RecentBooksList extends StatefulWidget {
 }
 
 class _RecentBooksListState extends State<RecentBooksList> {
-  final RecentBooksService service = locator();
+  late RecentBooksService service;
 
   @override
-  void initState() {
-    service.fetchRecentBooks();
-    super.initState();
+  void didChangeDependencies() {
+    service = AppDependencies.of(context).recentBooksService;
+    super.didChangeDependencies();
   }
 
   @override

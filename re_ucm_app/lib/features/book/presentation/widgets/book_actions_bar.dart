@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:re_ucm_core/ui/constants.dart';
 
+import '../../../../core/ui/constants.dart';
 import '../../../common/widgets/btn.dart';
 import '../../../common/widgets/outlined_btn.dart';
 import '../book_page_controller.cg.dart';

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:re_ucm_core/models/portal.dart';
-import 'package:re_ucm_core/ui/common/overlay_snack.dart';
-import 'package:url_launcher/url_launcher.dart';
+
 import '../../core/navigation/router_delegate.dart';
+import '../common/utils/external_launcher.dart';
 import '../common/widgets/appbar.dart';
 import '../settings/presentation/settings_dialog.dart';
 
@@ -106,17 +105,7 @@ class _BrowserState extends State<Browser> {
             shouldOverrideUrlLoading: (controller, navigationAction) async {
               var uri = navigationAction.request.url!;
               if (uri.scheme != 'http' && uri.scheme != 'https') {
-                try {
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
-                } catch (e) {
-                  if (!context.mounted) return NavigationActionPolicy.CANCEL;
-                  String errorMessage = e.toString();
-                  if (e is PlatformException &&
-                      e.code == 'ACTIVITY_NOT_FOUND') {
-                    errorMessage = 'Приложение не установлено';
-                  }
-                  overlaySnackMessage(context, errorMessage);
-                }
+                await launchExternalUrl(context, uri);
                 return NavigationActionPolicy.CANCEL;
               }
               try {
@@ -147,7 +136,7 @@ class _BrowserState extends State<Browser> {
             child: TweenAnimationBuilder(
               tween: Tween<double>(begin: 0, end: progress),
               duration: Durations.short4,
-              builder: (_, v, __) => LinearProgressIndicator(
+              builder: (_, v, _) => LinearProgressIndicator(
                 value: v == 0 ? null : v,
                 minHeight: 3,
               ),

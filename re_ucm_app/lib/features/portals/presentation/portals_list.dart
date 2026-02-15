@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:re_ucm_core/models/portal.dart';
-import 'package:re_ucm_core/ui/constants.dart';
+import '../../../core/ui/constants.dart';
 import '../domain/portal_factory.dart';
 import 'portal_card.dart';
 
 class PortalsList extends StatelessWidget {
-  const PortalsList({super.key, this.onTap, this.authIndication});
+  const PortalsList({
+    super.key,
+    this.onTap,
+    this.authIndication,
+    this.isAuthorizedResolver,
+  });
 
   final Function(Portal portal)? onTap;
   final bool? authIndication;
+  final bool Function(Portal portal)? isAuthorizedResolver;
 
   @override
   Widget build(BuildContext context) {
@@ -26,11 +33,19 @@ class PortalsList extends StatelessWidget {
         separatorBuilder: (context, index) => const SizedBox(width: appPadding),
         itemBuilder: (context, index) {
           var portal = PortalFactory.portals[index];
-          return PortalCard(
+
+          Widget buildCard() => PortalCard(
             portal: portal,
             authIndication: authIndication,
+            isAuthorized: isAuthorizedResolver != null
+                ? isAuthorizedResolver!(portal)
+                : false,
             onTap: onTap != null ? () => onTap!(portal) : null,
           );
+
+          if (isAuthorizedResolver == null) return buildCard();
+
+          return Observer(builder: (context) => buildCard());
         },
       ),
     );

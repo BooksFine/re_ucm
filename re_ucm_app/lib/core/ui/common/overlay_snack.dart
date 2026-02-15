@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:re_ucm_core/ui/constants.dart';
+
+import '../constants.dart';
 
 void overlaySnackMessage(BuildContext context, String message) {
   final overlay = Overlay.of(context);
@@ -21,7 +22,7 @@ class _OverlaySnackMessage extends StatefulWidget {
   const _OverlaySnackMessage({required this.message});
 
   @override
-  __OverlaySnackMessageState createState() => __OverlaySnackMessageState();
+  State<_OverlaySnackMessage> createState() => __OverlaySnackMessageState();
 }
 
 class __OverlaySnackMessageState extends State<_OverlaySnackMessage>

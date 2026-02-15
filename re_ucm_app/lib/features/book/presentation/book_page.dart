@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
-import 'package:re_ucm_core/models/portal.dart';
-import 'package:re_ucm_core/ui/constants.dart';
 
+import '../../../core/ui/constants.dart';
 import '../../common/widgets/appbar.dart';
 import '../../common/widgets/shimmer.dart';
+import '../../portals/application/portal_session.cg.dart';
+import '../../recent_books/application/recent_books_service.dart';
+import '../../settings/application/settings_service.cg.dart';
 import '../../settings/presentation/settings_dialog.dart';
 import 'book_page_controller.cg.dart';
 import 'widgets/annotation_viewer.dart';
@@ -17,10 +19,18 @@ import 'widgets/progress_bar.dart';
 import 'widgets/unauthorized_alert.dart';
 
 class BookPage extends StatefulWidget {
-  const BookPage({super.key, required this.id, required this.portal});
+  const BookPage({
+    super.key,
+    required this.id,
+    required this.session,
+    required this.settings,
+    required this.recentBooksService,
+  });
 
   final String id;
-  final Portal portal;
+  final PortalSession session;
+  final SettingsService settings;
+  final RecentBooksService recentBooksService;
 
   @override
   State<BookPage> createState() => _BookPageState();
@@ -29,8 +39,12 @@ class BookPage extends StatefulWidget {
 class _BookPageState extends State<BookPage> {
   late BookPageController controller;
 
-  void updateController() =>
-      controller = BookPageController(id: widget.id, portal: widget.portal);
+  void updateController() => controller = BookPageController(
+    id: widget.id,
+    session: widget.session,
+    settings: widget.settings,
+    recentBooksService: widget.recentBooksService,
+  );
 
   @override
   void initState() {
@@ -41,7 +55,7 @@ class _BookPageState extends State<BookPage> {
   @override
   void didUpdateWidget(covariant BookPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.id != widget.id || widget.portal != oldWidget.portal) {
+    if (oldWidget.id != widget.id || widget.session != oldWidget.session) {
       updateController();
     }
   }
@@ -93,7 +107,7 @@ class _BookPageState extends State<BookPage> {
                           BookHeader(book: controller.book.value!),
                           const SizedBox(height: appPadding),
                           if (!controller.isAuthorized)
-                            UnauthorizedAlert(portal: controller.portal.name),
+                            UnauthorizedAlert(portal: controller.session.name),
                           const SizedBox(height: appPadding),
                           BookActionsBar(controller: controller),
                           ProgressBar(controller: controller),

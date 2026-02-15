@@ -9,11 +9,17 @@ abstract interface class SettingsStorage {
   Future<PathTemplate> getDownloadPathTemplate();
   Future<void> setAuthorsPathSeparator(String separator);
   Future<String> getAuthorsPathSeparator();
+  Future<void> setPortalSettings(String code, Map<String, Object?> settings);
+  Future<Map<String, Map<String, Object?>>> getPortalsSettings();
 }
 
 class SettingsStorageSembast implements SettingsStorage {
   late final Database db;
   final _store = StoreRef<String, dynamic>('Settings');
+  final _portalsStore = StoreRef<String, Map<String, Object?>>(
+    'PortalSettings',
+  );
+
   SettingsStorageSembast._();
 
   static Future<SettingsStorageSembast> init() async {
@@ -29,7 +35,7 @@ class SettingsStorageSembast implements SettingsStorage {
 
   @override
   Future<void> setDownloadPathTemplate(PathTemplate template) async {
-    await _store.record('downloadPathTemplate').put(db, template.toJson());
+    await _store.record('downloadPathTemplate').put(db, template.toMap());
   }
 
   @override
@@ -38,7 +44,7 @@ class SettingsStorageSembast implements SettingsStorage {
         .record('downloadPathTemplate')
         .get(db);
     return templateJson != null
-        ? PathTemplate.fromJson(templateJson)
+        ? PathTemplateMapper.fromMap(templateJson)
         : PathTemplate.initial();
   }
 
@@ -50,5 +56,19 @@ class SettingsStorageSembast implements SettingsStorage {
   @override
   Future<String> getAuthorsPathSeparator() async {
     return await _store.record('authorsPathSeparator').get(db) ?? '';
+  }
+
+  @override
+  Future<void> setPortalSettings(String code, Map<String, Object?> settings) =>
+      _portalsStore.record(code).put(db, settings);
+
+  @override
+  Future<Map<String, Map<String, Object?>>> getPortalsSettings() async {
+    final records = await _portalsStore.find(db);
+    final map = <String, Map<String, Object?>>{};
+    for (final record in records) {
+      map[record.key] = record.value;
+    }
+    return map;
   }
 }

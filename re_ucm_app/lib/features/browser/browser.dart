@@ -34,6 +34,18 @@ class _BrowserState extends State<Browser> {
     });
   }
 
+  bool isPageOpened = false;
+
+  @override
+  initState() {
+    Future.delayed(Durations.short4, () {
+      isPageOpened = true;
+      setState(() {});
+    });
+
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -75,60 +87,61 @@ class _BrowserState extends State<Browser> {
             child: SizedBox.shrink(),
           ),
 
-          InAppWebView(
-            initialSettings: InAppWebViewSettings(
-              useShouldOverrideUrlLoading: true,
-              useHybridComposition: true,
-              userAgent:
-                  'Mozilla/5.0 (Linux; Android 13; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
-            ),
-            onWebViewCreated: (controller) => _webViewController = controller,
-            onPermissionRequest: (controller, request) async {
-              return PermissionResponse(
-                resources: request.resources,
-                action: PermissionResponseAction.GRANT,
-              );
-            },
-            initialUrlRequest: URLRequest(url: WebUri(widget.portal.url)),
-            onLoadStart: (controller, url) {
-              isLoading = true;
-              setState(() {});
-            },
-            onLoadStop: (controller, url) async {
-              isLoading = false;
-              setState(() {});
-            },
-            onProgressChanged: (controller, progress) {
-              this.progress = progress / 100;
-              setState(() {});
-            },
-            shouldOverrideUrlLoading: (controller, navigationAction) async {
-              var uri = navigationAction.request.url!;
-              if (uri.scheme != 'http' && uri.scheme != 'https') {
-                await launchExternalUrl(context, uri);
-                return NavigationActionPolicy.CANCEL;
-              }
-              try {
-                final bookId = widget.portal.service.getIdFromUrl(uri);
-                Nav.bookFromBrowser(widget.portal.code, bookId);
-                return NavigationActionPolicy.CANCEL;
-              } catch (e) {
-                return NavigationActionPolicy.ALLOW;
-              }
-            },
-            onUpdateVisitedHistory: (controller, url, isReload) {
-              _updateNavButtons();
-              if (isReload == true) return;
-              try {
-                final bookId = widget.portal.service.getIdFromUrl(
-                  url!.uriValue,
+          if (isPageOpened)
+            InAppWebView(
+              initialSettings: InAppWebViewSettings(
+                useShouldOverrideUrlLoading: true,
+                useHybridComposition: true,
+                userAgent:
+                    'Mozilla/5.0 (Linux; Android 13; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
+              ),
+              onWebViewCreated: (controller) => _webViewController = controller,
+              onPermissionRequest: (controller, request) async {
+                return PermissionResponse(
+                  resources: request.resources,
+                  action: PermissionResponseAction.GRANT,
                 );
-                Nav.bookFromBrowser(widget.portal.code, bookId);
-              } catch (e) {
-                {}
-              }
-            },
-          ),
+              },
+              initialUrlRequest: URLRequest(url: WebUri(widget.portal.url)),
+              onLoadStart: (controller, url) {
+                isLoading = true;
+                setState(() {});
+              },
+              onLoadStop: (controller, url) async {
+                isLoading = false;
+                setState(() {});
+              },
+              onProgressChanged: (controller, progress) {
+                this.progress = progress / 100;
+                setState(() {});
+              },
+              shouldOverrideUrlLoading: (controller, navigationAction) async {
+                var uri = navigationAction.request.url!;
+                if (uri.scheme != 'http' && uri.scheme != 'https') {
+                  await launchExternalUrl(context, uri);
+                  return NavigationActionPolicy.CANCEL;
+                }
+                try {
+                  final bookId = widget.portal.service.getIdFromUrl(uri);
+                  Nav.bookFromBrowser(widget.portal.code, bookId);
+                  return NavigationActionPolicy.CANCEL;
+                } catch (e) {
+                  return NavigationActionPolicy.ALLOW;
+                }
+              },
+              onUpdateVisitedHistory: (controller, url, isReload) {
+                _updateNavButtons();
+                if (isReload == true) return;
+                try {
+                  final bookId = widget.portal.service.getIdFromUrl(
+                    url!.uriValue,
+                  );
+                  Nav.bookFromBrowser(widget.portal.code, bookId);
+                } catch (e) {
+                  {}
+                }
+              },
+            ),
 
           AnimatedOpacity(
             duration: Durations.medium2,

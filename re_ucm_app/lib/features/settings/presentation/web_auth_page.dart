@@ -19,6 +19,18 @@ class _WebAuthPageState extends State<WebAuthPage> {
   bool isLoading = true;
   double progress = 0;
 
+  bool isPageOpened = false;
+
+  @override
+  initState() {
+    Future.delayed(Durations.short4, () {
+      isPageOpened = true;
+      setState(() {});
+    });
+
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,51 +42,52 @@ class _WebAuthPageState extends State<WebAuthPage> {
       ),
       body: Stack(
         children: [
-          InAppWebView(
-            initialSettings: InAppWebViewSettings(
-              userAgent: widget.field.userAgent,
-              useHybridComposition: false,
-              useShouldOverrideUrlLoading: true,
-            ),
-            initialUrlRequest: URLRequest(url: WebUri(widget.field.startUrl)),
-            onLoadStart: (controller, url) {
-              isLoading = true;
-              setState(() {});
-            },
-            onLoadStop: (controller, url) async {
-              isLoading = false;
-              setState(() {});
-            },
-            shouldOverrideUrlLoading: (controller, navigationAction) async {
-              final uri = navigationAction.request.url!;
-              final url = uri.toString();
+          if (isPageOpened)
+            InAppWebView(
+              initialSettings: InAppWebViewSettings(
+                userAgent: widget.field.userAgent,
+                useHybridComposition: false,
+                useShouldOverrideUrlLoading: true,
+              ),
+              initialUrlRequest: URLRequest(url: WebUri(widget.field.startUrl)),
+              onLoadStart: (controller, url) {
+                isLoading = true;
+                setState(() {});
+              },
+              onLoadStop: (controller, url) async {
+                isLoading = false;
+                setState(() {});
+              },
+              shouldOverrideUrlLoading: (controller, navigationAction) async {
+                final uri = navigationAction.request.url!;
+                final url = uri.toString();
 
-              if (url.startsWith(widget.field.successUrl)) {
-                final cookies = await CookieManager.instance().getCookies(
-                  url: uri,
-                );
-                final target = cookies
-                    .where((c) => c.name == widget.field.cookieName)
-                    .firstOrNull;
-                if (target != null && mounted) {
-                  Nav.back(target.value.toString());
+                if (url.startsWith(widget.field.successUrl)) {
+                  final cookies = await CookieManager.instance().getCookies(
+                    url: uri,
+                  );
+                  final target = cookies
+                      .where((c) => c.name == widget.field.cookieName)
+                      .firstOrNull;
+                  if (target != null && mounted) {
+                    Nav.back(target.value.toString());
+                    return NavigationActionPolicy.CANCEL;
+                  }
+                }
+
+                if (uri.scheme != 'http' && uri.scheme != 'https') {
+                  // ignore: use_build_context_synchronously
+                  await launchExternalUrl(context, uri);
                   return NavigationActionPolicy.CANCEL;
                 }
-              }
 
-              if (uri.scheme != 'http' && uri.scheme != 'https') {
-                // ignore: use_build_context_synchronously
-                await launchExternalUrl(context, uri);
-                return NavigationActionPolicy.CANCEL;
-              }
-
-              return NavigationActionPolicy.ALLOW;
-            },
-            onProgressChanged: (controller, progress) {
-              this.progress = progress / 100;
-              setState(() {});
-            },
-          ),
+                return NavigationActionPolicy.ALLOW;
+              },
+              onProgressChanged: (controller, progress) {
+                this.progress = progress / 100;
+                setState(() {});
+              },
+            ),
 
           AnimatedOpacity(
             duration: Durations.medium2,

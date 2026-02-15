@@ -35,7 +35,7 @@ class SettingsStorageSembast implements SettingsStorage {
 
   @override
   Future<void> setDownloadPathTemplate(PathTemplate template) async {
-    await _store.record('downloadPathTemplate').put(db, template.toJson());
+    await _store.record('downloadPathTemplate').put(db, template.toMap());
   }
 
   @override
@@ -44,7 +44,7 @@ class SettingsStorageSembast implements SettingsStorage {
         .record('downloadPathTemplate')
         .get(db);
     return templateJson != null
-        ? PathTemplate.fromJson(templateJson)
+        ? PathTemplateMapper.fromMap(templateJson)
         : PathTemplate.initial();
   }
 

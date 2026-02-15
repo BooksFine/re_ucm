@@ -1,35 +1,24 @@
-import 'package:json_annotation/json_annotation.dart';
+import 'package:dart_mappable/dart_mappable.dart';
 import 'package:re_ucm_core/models/portal.dart';
 
-part '../../.gen/data/models/at_settings.cg.g.dart';
+part '../../../.gen/data/models/at_settings.cg.mapper.dart';
 
-@JsonSerializable()
-class ATSettings implements PortalSettings {
+@MappableClass(ignoreNull: true)
+class ATSettings with ATSettingsMappable implements PortalSettings {
   const ATSettings({this.token, this.userId, this.tokenAuthActive = false});
 
   final String? token;
   final String? userId;
-  @JsonKey(includeFromJson: false, includeToJson: false)
+
+  @MappableField(hook: SkipEncodingHook())
   final bool tokenAuthActive;
 
-  //TODO перевести на dart_mappable
-  ATSettings copyWith({
-    Object? token = _sentinel,
-    Object? userId = _sentinel,
-    bool? tokenAuthActive,
-  }) {
-    return ATSettings(
-      token: token == _sentinel ? this.token : token as String?,
-      userId: userId == _sentinel ? this.userId : userId as String?,
-      tokenAuthActive: tokenAuthActive ?? this.tokenAuthActive,
-    );
-  }
+  static const fromJson = ATSettingsMapper.fromJson;
+}
 
-  static const _sentinel = Object();
-
-  factory ATSettings.fromJson(Map<String, dynamic> json) =>
-      _$ATSettingsFromJson(json);
+class SkipEncodingHook extends MappingHook {
+  const SkipEncodingHook();
 
   @override
-  Map<String, dynamic> toJson() => _$ATSettingsToJson(this);
+  Object? beforeEncode(Object? value) => null;
 }

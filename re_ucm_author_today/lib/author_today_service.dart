@@ -22,7 +22,7 @@ class AuthorTodayService implements PortalService<ATSettings> {
 
   @override
   ATSettings settingsFromJson(Map<String, dynamic>? json) =>
-      json == null ? ATSettings() : ATSettings.fromJson(json);
+      json == null ? ATSettings() : ATSettingsMapper.fromMap(json);
 
   @override
   List<PortalSettingItem> buildSettingsSchema(ATSettings settings) {

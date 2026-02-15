@@ -63,6 +63,7 @@ class _WebAuthPageState extends State<WebAuthPage> {
               }
 
               if (uri.scheme != 'http' && uri.scheme != 'https') {
+                // ignore: use_build_context_synchronously
                 await launchExternalUrl(context, uri);
                 return NavigationActionPolicy.CANCEL;
               }

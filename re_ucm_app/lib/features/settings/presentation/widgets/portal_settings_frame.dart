@@ -25,6 +25,7 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
 
   @override
   void dispose() {
+    widget.session.resetTempFlags();
     for (final data in _textFieldsData.values) {
       data.controller.dispose();
     }

@@ -1,9 +1,9 @@
-import 'package:json_annotation/json_annotation.dart';
+import 'package:dart_mappable/dart_mappable.dart';
 
-part '../../.gen/data/models/at_work_metadata.cg.g.dart';
+part '../../../.gen/data/models/at_work_metadata.cg.mapper.dart';
 
-@JsonSerializable()
-class ATWorkMetadata {
+@MappableClass()
+class ATWorkMetadata with ATWorkMetadataMappable {
   final int id;
   final String title;
   final String? annotation;
@@ -55,7 +55,6 @@ class ATWorkMetadata {
     required this.tags,
   });
 
-  factory ATWorkMetadata.fromJson(Map<String, dynamic> json) =>
-      _$ATWorkMetadataFromJson(json);
-  Map<String, dynamic> toJson() => _$ATWorkMetadataToJson(this);
+  static ATWorkMetadata fromJson(Map<String, dynamic> json) =>
+      ATWorkMetadataMapper.fromMap(json);
 }

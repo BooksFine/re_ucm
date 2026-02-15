@@ -39,9 +39,14 @@ abstract class PortalSessionBase<T extends PortalSettings> with Store {
   PortalService<T> get service => portal.service;
 
   @action
+  void resetTempFlags() {
+    settings = portal.service.settingsFromJson(settings.toMap());
+  }
+
+  @action
   Future<void> updateSettings(T newSettings) async {
     settings = newSettings;
-    await _persistCallback(portal.code, newSettings.toJson());
+    await _persistCallback(portal.code, newSettings.toMap());
   }
 
   Future<Book> getBook(String id) =>

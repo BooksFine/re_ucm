@@ -44,6 +44,12 @@ class RecentBooksService {
     _repo.removeRecentBook(book);
   }
 
+  Future<void> restoreRecentBook(RecentBook book) async {
+    recentBooks.add(book);
+    recentBooks.sort((a, b) => a.added.compareTo(b.added));
+    _repo.setRecentBook(book);
+  }
+
   Future _fetchRecentBooks() async {
     final recent = await _repo.getRecentBooks();
     recent.sort((a, b) => a.added.compareTo(b.added));

@@ -3,7 +3,9 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:text_balancer/text_balancer.dart';
 
+import '../../../core/di.dart';
 import '../../../core/ui/constants.dart';
+import '../application/recent_books_service.dart';
 import '../domain/recent_book.cg.dart';
 import 'recent_book_card.dart';
 
@@ -26,6 +28,7 @@ class _AnimatedRecentBookCardState extends State<AnimatedRecentBookCard>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _sizeAnimation;
+  late RecentBooksService _service;
 
   @override
   void initState() {
@@ -35,7 +38,13 @@ class _AnimatedRecentBookCardState extends State<AnimatedRecentBookCard>
       parent: _controller,
       curve: Curves.easeInOut,
     );
-    _controller.value = 1.0;
+    _controller.forward();
+  }
+
+  @override
+  void didChangeDependencies() {
+    _service = AppDependencies.of(context).recentBooksService;
+    super.didChangeDependencies();
   }
 
   @override
@@ -44,56 +53,36 @@ class _AnimatedRecentBookCardState extends State<AnimatedRecentBookCard>
     super.dispose();
   }
 
-  Future<bool> isDeleteConfirmed() async {
-    bool isConfirmed = true;
-
-    final snack = ScaffoldMessenger.of(context).showSnackBar(
+  void showUndoSnackBar(ScaffoldMessengerState messenger) {
+    messenger.clearSnackBars();
+    messenger.showSnackBar(
       SnackBar(
         width: min(500, MediaQuery.sizeOf(context).width - 32),
         behavior: SnackBarBehavior.floating,
         dismissDirection: DismissDirection.horizontal,
-        duration: Duration(seconds: 3),
+        duration: const Duration(seconds: 3),
         content: TextBalancer('Удалено «${widget.book.title}»'),
         action: SnackBarAction(
           label: 'Отменить',
-          onPressed: () => isConfirmed = false,
+          onPressed: () => _service.restoreRecentBook(widget.book),
         ),
       ),
     );
-
-    await snack.closed;
-
-    return isConfirmed;
   }
 
-  bool isDismissed = false;
-  Future<dynamic> onDismissed() async {
-    isDismissed = true;
-    setState(() {});
-
-    if (await isDeleteConfirmed()) {
-      return widget.onDelete(widget.book);
-    }
-
-    _controller.forward(from: 0);
-    isDismissed = false;
-    setState(() {});
-  }
-
-  Future<dynamic> deleteBook() async {
+  Future<void> deleteBook() async {
     await _controller.reverse();
+    onDismissed();
+  }
 
-    if (await isDeleteConfirmed()) {
-      return widget.onDelete(widget.book);
-    }
-
-    _controller.forward();
+  Future<void> onDismissed() async {
+    final messenger = ScaffoldMessenger.of(context);
+    widget.onDelete(widget.book);
+    showUndoSnackBar(messenger);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (isDismissed) return SizedBox.shrink();
-
     return Dismissible(
       key: ValueKey(widget.book),
       onDismissed: (_) => onDismissed(),

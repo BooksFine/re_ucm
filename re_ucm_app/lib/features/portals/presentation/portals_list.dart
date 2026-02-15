@@ -33,18 +33,19 @@ class PortalsList extends StatelessWidget {
         separatorBuilder: (context, index) => const SizedBox(width: appPadding),
         itemBuilder: (context, index) {
           var portal = PortalFactory.portals[index];
-          return Observer(
-            builder: (context) {
-              return PortalCard(
-                portal: portal,
-                authIndication: authIndication,
-                isAuthorized: isAuthorizedResolver != null
-                    ? isAuthorizedResolver!(portal)
-                    : false,
-                onTap: onTap != null ? () => onTap!(portal) : null,
-              );
-            },
+
+          Widget buildCard() => PortalCard(
+            portal: portal,
+            authIndication: authIndication,
+            isAuthorized: isAuthorizedResolver != null
+                ? isAuthorizedResolver!(portal)
+                : false,
+            onTap: onTap != null ? () => onTap!(portal) : null,
           );
+
+          if (isAuthorizedResolver == null) return buildCard();
+
+          return Observer(builder: (context) => buildCard());
         },
       ),
     );

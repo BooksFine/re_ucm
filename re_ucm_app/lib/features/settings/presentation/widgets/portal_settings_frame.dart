@@ -66,9 +66,9 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
 
   void onWebAuthButtonTap(PortalSettingWebAuthButton field) async {
     final result = await Nav.pushWebAuth(field);
-    if (!mounted) return;
     final cookie = result as String?;
     if (cookie == null || cookie.isEmpty) {
+      if (!mounted) return;
       overlaySnackMessage(context, 'Авторизация отменена');
       return;
     }
@@ -136,7 +136,6 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
       ),
       PortalSettingWebAuthButton() => SettingsButton(
         title: field.title,
-        leading: const Icon(Icons.language),
         onTap: () => onWebAuthButtonTap(field),
       ),
     };

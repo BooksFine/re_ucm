@@ -13,7 +13,7 @@ class RecentBooksList extends StatefulWidget {
 }
 
 class _RecentBooksListState extends State<RecentBooksList> {
-  late final RecentBooksService service;
+  late RecentBooksService service;
 
   @override
   void didChangeDependencies() {

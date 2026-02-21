@@ -96,9 +96,7 @@ class _BrowserState extends State<Browser> {
           _updateNavButtons();
           if (isReload == true) return;
           try {
-            final bookId = widget.portal.service.getIdFromUrl(
-              url!.uriValue,
-            );
+            final bookId = widget.portal.service.getIdFromUrl(url!.uriValue);
             Nav.bookFromBrowser(widget.portal.code, bookId);
           } catch (e) {
             {}

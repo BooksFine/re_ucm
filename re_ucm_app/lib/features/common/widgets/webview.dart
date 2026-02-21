@@ -26,18 +26,23 @@ class AppWebView extends StatefulWidget {
   final Future<NavigationActionPolicy?> Function(
     InAppWebViewController controller,
     NavigationAction navigationAction,
-  )? shouldOverrideUrlLoading;
+  )?
+  shouldOverrideUrlLoading;
   final void Function(
     InAppWebViewController controller,
     WebUri? url,
     bool? isReload,
-  )? onUpdateVisitedHistory;
+  )?
+  onUpdateVisitedHistory;
   final Future<PermissionResponse?> Function(
     InAppWebViewController controller,
     PermissionRequest permissionRequest,
-  )? onPermissionRequest;
-  final void Function(InAppWebViewController controller, WebUri? url)? onLoadStart;
-  final void Function(InAppWebViewController controller, WebUri? url)? onLoadStop;
+  )?
+  onPermissionRequest;
+  final void Function(InAppWebViewController controller, WebUri? url)?
+  onLoadStart;
+  final void Function(InAppWebViewController controller, WebUri? url)?
+  onLoadStop;
 
   @override
   State<AppWebView> createState() => _AppWebViewState();
@@ -70,7 +75,8 @@ class _AppWebViewState extends State<AppWebView> {
         ...widget.extraChildren,
         if (isPageOpened)
           InAppWebView(
-            initialSettings: widget.initialSettings ??
+            initialSettings:
+                widget.initialSettings ??
                 InAppWebViewSettings(
                   useShouldOverrideUrlLoading: true,
                   useHybridComposition: false,
@@ -112,10 +118,8 @@ class _AppWebViewState extends State<AppWebView> {
           child: TweenAnimationBuilder(
             tween: Tween<double>(begin: 0, end: progress),
             duration: Durations.short4,
-            builder: (_, v, _) => LinearProgressIndicator(
-              value: v == 0 ? null : v,
-              minHeight: 3,
-            ),
+            builder: (_, v, _) =>
+                LinearProgressIndicator(value: v == 0 ? null : v, minHeight: 3),
           ),
         ),
       ],

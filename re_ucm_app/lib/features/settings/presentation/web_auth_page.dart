@@ -22,13 +22,15 @@ class _WebAuthPageState extends State<WebAuthPage> {
   bool isPageOpened = false;
 
   @override
-  initState() {
-    Future.delayed(Durations.short4, () {
+  didChangeDependencies() {
+    if (isPageOpened) return;
+
+    final route = ModalRoute.of(context);
+    Future.delayed(route?.transitionDuration ?? Durations.short4, () {
       isPageOpened = true;
       setState(() {});
     });
-
-    super.initState();
+    super.didChangeDependencies();
   }
 
   @override

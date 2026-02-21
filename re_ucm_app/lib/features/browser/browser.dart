@@ -37,13 +37,15 @@ class _BrowserState extends State<Browser> {
   bool isPageOpened = false;
 
   @override
-  initState() {
-    Future.delayed(Durations.short4, () {
+  didChangeDependencies() {
+    if (isPageOpened) return;
+
+    final route = ModalRoute.of(context);
+    Future.delayed(route?.transitionDuration ?? Durations.short4, () {
       isPageOpened = true;
       setState(() {});
     });
-
-    super.initState();
+    super.didChangeDependencies();
   }
 
   @override
@@ -91,7 +93,7 @@ class _BrowserState extends State<Browser> {
             InAppWebView(
               initialSettings: InAppWebViewSettings(
                 useShouldOverrideUrlLoading: true,
-                useHybridComposition: true,
+                useHybridComposition: false,
                 userAgent:
                     'Mozilla/5.0 (Linux; Android 13; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
               ),

@@ -42,8 +42,7 @@ class ChangelogPage extends StatelessWidget {
             ),
           );
         },
-        separatorBuilder: (context, index) =>
-            const SizedBox(height: appPadding),
+        separatorBuilder: (context, index) => const SizedBox(height: 12),
       ),
     );
   }

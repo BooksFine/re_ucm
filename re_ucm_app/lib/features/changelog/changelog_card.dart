@@ -10,7 +10,11 @@ class ChangelogCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: ColorScheme.of(context).surfaceTint.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(24),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(appPadding * 2),
         child: Column(

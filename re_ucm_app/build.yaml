@@ -19,12 +19,11 @@ targets:
         options:
           build_extensions:
             "^lib/{{}}.dart": "lib/.gen/{{}}.mapper.dart"
-      # chopper_generator|chopper_generator:
-      #   # Оптимизация скорости генерации
-      #   generate_for:
-      #     include:
-      #       - lib/**.cg.dart
-      #   # Изменение пути вывода
-      #   options:
-      #     build_extensions:
-      #       "^lib/{{}}.dart": "lib/.gen/{{}}.chopper.dart"
+
+builders:
+  changelog_builder:
+    import: "package:re_ucm/tool/changelog_builder.dart"
+    builder_factories: ["changelogBuilder"]
+    build_extensions: {"CHANGELOG.md": ["lib/.gen/features/changelog/changelog.gen.dart"]}
+    auto_apply: root_package
+    build_to: source

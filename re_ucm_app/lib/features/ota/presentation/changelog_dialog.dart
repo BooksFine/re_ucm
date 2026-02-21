@@ -16,9 +16,9 @@ class ChangelogDialog extends StatelessWidget {
         horizontal: appPadding * 2,
         vertical: appPadding * 6,
       ),
-      title: Text(changelog[0].title),
+      title: Text(changelogGen[0].title),
       titleTextStyle: Theme.of(context).textTheme.headlineMedium,
-      content: Text(changelog[0].content),
+      content: Text(changelogGen[0].content),
       actions: [
         SizedBox(
           height: 54,

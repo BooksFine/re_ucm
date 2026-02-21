@@ -33,12 +33,12 @@ class ChangelogPage extends StatelessWidget {
               vertical: appPadding,
             ) +
             EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
-        itemCount: changelog.length,
+        itemCount: changelogGen.length,
         itemBuilder: (context, index) {
           return Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 800),
-              child: ChangelogCard(model: changelog[index]),
+              child: ChangelogCard(model: changelogGen[index]),
             ),
           );
         },

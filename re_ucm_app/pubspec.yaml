@@ -45,6 +45,7 @@ dependencies:
   logger: ^2.5.0
   text_balancer: ^0.1.6
   dart_mappable: ^4.6.1
+  build: ^4.0.0
 
 dev_dependencies:
   flutter_test:

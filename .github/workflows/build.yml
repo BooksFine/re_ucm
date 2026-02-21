@@ -166,9 +166,19 @@ jobs:
           tag_prefix: ""
           custom_tag: ${{ steps.read-version.outputs.version }}
 
+      - name: Extract latest changelog
+        shell: bash
+        working-directory: re_ucm_app
+        run: |
+          # Extract everything from the first ### header until the second one appears
+          awk '/^### /{if (n++ == 1) exit} n' CHANGELOG.md > RELEASE_NOTES.md
+          
+          # Fallback: if RELEASE_NOTES.md is empty, just use the whole file
+          if [ ! -s RELEASE_NOTES.md ]; then cp CHANGELOG.md RELEASE_NOTES.md; fi
+
       - uses: ncipollo/release-action@v1
         with:
           tag: ${{ steps.tag_version.outputs.new_tag }}
           name: ReUCM v${{ steps.tag_version.outputs.new_tag }}
-          bodyFile: re_ucm_app/CHANGELOG.md
+          bodyFile: re_ucm_app/RELEASE_NOTES.md
           artifacts: "build/*.*"

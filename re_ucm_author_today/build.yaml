@@ -10,12 +10,7 @@ targets:
         options:
           build_extensions:
             "^lib/{{}}.dart": "lib/.gen/{{}}.g.dart"
-      dart_mappable_builder:
-        # Оптимизация скорости генерации
-        generate_for:
-          include:
-            - lib/**.cg.dart
-        # Изменение пути вывода
+      freezed:
         options:
           build_extensions:
-            "^lib/{{}}.dart": "lib/.gen/{{}}.mapper.dart"
+            "^lib/{{}}.dart": "lib/.gen/{{}}.freezed.dart"

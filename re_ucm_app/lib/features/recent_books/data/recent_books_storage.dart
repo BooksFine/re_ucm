@@ -16,7 +16,7 @@ class RecentBooksStorageSembast implements RecentBooksStorage {
 
   @override
   Future<void> setRecentBook(RecentBook book) async {
-    await _store.record(book.portal.code + book.id).put(db, book.toMap());
+    await _store.record(book.portal.code + book.id).put(db, book.toJson());
   }
 
   @override
@@ -25,10 +25,11 @@ class RecentBooksStorageSembast implements RecentBooksStorage {
   }
 
   @override
-  Future<List<RecentBook>> getRecentBooks() async {
-    final records = await _store.find(db);
-    return records.map((e) => RecentBookMapper.fromMap(e.value)).toList();
-  }
+    Future<List<RecentBook>> getRecentBooks() async {
+      final records = await _store.find(db);
+  
+      return records.map((e) => RecentBook.fromJson(e.value)).toList();
+    }
 
   RecentBooksStorageSembast._();
 

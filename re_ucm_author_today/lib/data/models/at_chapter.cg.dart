@@ -1,9 +1,9 @@
-import 'package:dart_mappable/dart_mappable.dart';
+import 'package:json_annotation/json_annotation.dart';
 
-part '../../../.gen/data/models/at_chapter.cg.mapper.dart';
+part '../../.gen/data/models/at_chapter.cg.g.dart';
 
-@MappableClass()
-class ATChapter with ATChapterMappable {
+@JsonSerializable()
+class ATChapter {
   final bool isSuccessful;
   final String? title;
   final String? text;
@@ -11,6 +11,8 @@ class ATChapter with ATChapterMappable {
 
   ATChapter(this.isSuccessful, this.title, this.text, this.key);
 
-  static ATChapter fromJson(Map<String, dynamic> json) =>
-      ATChapterMapper.fromMap(json);
+  factory ATChapter.fromJson(Map<String, dynamic> json) =>
+      _$ATChapterFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ATChapterToJson(this);
 }

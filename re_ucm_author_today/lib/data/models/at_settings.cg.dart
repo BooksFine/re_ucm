@@ -1,24 +1,24 @@
-import 'package:dart_mappable/dart_mappable.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:re_ucm_core/models/portal.dart';
 
-part '../../../.gen/data/models/at_settings.cg.mapper.dart';
+part '../../.gen/data/models/at_settings.cg.freezed.dart';
+part '../../.gen/data/models/at_settings.cg.g.dart';
 
-@MappableClass(ignoreNull: true)
-class ATSettings with ATSettingsMappable implements PortalSettings {
-  const ATSettings({this.token, this.userId, this.tokenAuthActive = false});
+@freezed
+abstract class ATSettings with _$ATSettings implements PortalSettings {
+  const ATSettings._();
 
-  final String? token;
-  final String? userId;
+  const factory ATSettings({
+    String? token,
+    String? userId,
+    @Default(false)
+    @JsonKey(includeToJson: false, includeFromJson: false)
+    bool tokenAuthActive,
+  }) = _ATSettings;
 
-  @MappableField(hook: SkipEncodingHook())
-  final bool tokenAuthActive;
-
-  static const fromJson = ATSettingsMapper.fromJson;
-}
-
-class SkipEncodingHook extends MappingHook {
-  const SkipEncodingHook();
+  factory ATSettings.fromJson(Map<String, dynamic> json) =>
+      _$ATSettingsFromJson(json);
 
   @override
-  Object? beforeEncode(Object? value) => null;
+  Map<String, dynamic> toMap() => toJson();
 }

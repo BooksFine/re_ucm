@@ -10,15 +10,6 @@ targets:
         options:
           build_extensions:
             "^lib/{{}}.dart": "lib/.gen/{{}}.g.dart"
-      dart_mappable_builder:
-        # Оптимизация скорости генерации
-        generate_for:
-          include:
-            - lib/**.cg.dart
-        # Изменение пути вывода
-        options:
-          build_extensions:
-            "^lib/{{}}.dart": "lib/.gen/{{}}.mapper.dart"
 
 builders:
   changelog_builder:

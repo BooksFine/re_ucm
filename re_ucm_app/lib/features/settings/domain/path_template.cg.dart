@@ -1,9 +1,9 @@
-import 'package:dart_mappable/dart_mappable.dart';
+import 'package:json_annotation/json_annotation.dart';
 
-part '../../../.gen/features/settings/domain/path_template.cg.mapper.dart';
+part '../../../.gen/features/settings/domain/path_template.cg.g.dart';
 
-@MappableClass()
-class PathTemplate with PathTemplateMappable {
+@JsonSerializable()
+class PathTemplate {
   final String path;
 
   static String initialPathPlaceholder = '%Серия%-%Номер в серии%';
@@ -12,5 +12,8 @@ class PathTemplate with PathTemplateMappable {
 
   PathTemplate.initial() : path = initialPathPlaceholder;
 
-  static const fromJson = PathTemplateMapper.fromJson;
+  factory PathTemplate.fromJson(Map<String, dynamic> json) =>
+      _$PathTemplateFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PathTemplateToJson(this);
 }

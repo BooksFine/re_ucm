@@ -1,18 +1,19 @@
-import 'package:dart_mappable/dart_mappable.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:re_ucm_core/models/portal.dart';
 
 import '../../portals/domain/portal_factory.dart';
 
-part '../../../.gen/features/recent_books/domain/recent_book.cg.mapper.dart';
+part '../../../.gen/features/recent_books/domain/recent_book.cg.g.dart';
 
-@MappableClass(includeCustomMappers: [PortalMapper()])
-class RecentBook with RecentBookMappable {
+@JsonSerializable()
+class RecentBook {
   final String id;
   final String title;
   final String authors;
   final String? coverUrl;
   final String? seriesName;
   final int? seriesNumber;
+  @JsonKey(fromJson: PortalFactory.fromJson, toJson: PortalFactory.toJson)
   final Portal portal;
   final DateTime added;
 
@@ -27,22 +28,8 @@ class RecentBook with RecentBookMappable {
     required this.added,
   });
 
-  static const fromJson = RecentBookMapper.fromJson;
-}
+  factory RecentBook.fromJson(Map<String, dynamic> json) =>
+      _$RecentBookFromJson(json);
 
-class PortalMapper extends SimpleMapper<Portal> {
-  const PortalMapper();
-
-  @override
-  Portal decode(dynamic value) {
-    if (value is Map<String, dynamic>) {
-      return PortalFactory.fromJson(value);
-    }
-    return PortalFactory.fromCode(value.toString());
-  }
-
-  @override
-  dynamic encode(Portal value) {
-    return PortalFactory.toJson(value);
-  }
+  Map<String, dynamic> toJson() => _$RecentBookToJson(this);
 }

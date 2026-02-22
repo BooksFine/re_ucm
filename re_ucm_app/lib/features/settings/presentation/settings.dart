@@ -7,6 +7,7 @@ import '../../../core/ui/settings.dart';
 import '../../portals/presentation/portals_list.dart';
 import '../application/settings_service.cg.dart';
 import 'settings_controller.cg.dart';
+import 'settings_states.dart';
 import 'widgets/download_path_editor.dart';
 import 'widgets/portal_settings_frame.dart';
 import 'widgets/settings_animated_switcher.dart';
@@ -26,83 +27,157 @@ class _SettingsState extends State<Settings> {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      type: MaterialType.transparency,
-      child: Stack(
-        children: [
-          Observer(
-            builder: (_) => ListView(
-              padding: EdgeInsets.zero,
-              shrinkWrap: true,
-              primary: false,
+    return Observer(
+      builder: (_) {
+        final bool isSubPage = controller.page is! SettingsMainPage;
+
+        return PopScope(
+          canPop: !isSubPage,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) controller.openMain();
+          },
+          child: Material(
+            type: .transparency,
+            child: Stack(
               children: [
-                const SizedBox(height: appPadding * 2),
-
-                const SettingsTitle('Настройки'),
-
-                const SizedBox(height: appPadding * 2),
-                PortalsList(
-                  authIndication: true,
-                  onTap: (portal) => controller.setSelectedSession(
-                    widget.service.sessionByCode(portal.code),
-                  ),
-                  isAuthorizedResolver: (portal) =>
-                      widget.service.sessionByCode(portal.code).isAuthorized,
-                ),
-                const SizedBox(height: appPadding / 2),
-
-                AnimatedSize(
-                  duration: Durations.medium2,
-                  alignment: .topCenter,
-                  child: SettingsAnimatedSwitcher(
-                    child: controller.selectedSession != null
-                        ? PortalSettingsFrame(
-                            key: ValueKey(
-                              'settings_${controller.selectedSession!.code}',
-                            ),
-                            session: controller.selectedSession!,
-                          )
-                        : Column(
-                            key: const ValueKey('global_settings'),
-                            children: [
-                              SizedBox(height: appPadding * 2),
-                              DownloadPathEditor(service: widget.service),
-                              SizedBox(height: appPadding),
-                              SettingsButton(
-                                title: 'История изменений',
-                                leading: const Icon(Icons.history),
-                                onTap: Nav.goChangelog,
-                              ),
-
-                              const SizedBox(height: appPadding),
-                              SocialRow(),
-                            ],
+                ListView(
+                  padding: .zero,
+                  shrinkWrap: true,
+                  primary: false,
+                  children: [
+                    const SizedBox(height: appPadding * 2),
+                    SettingsTitle(switch (controller.page) {
+                      SettingsMainPage() => 'Настройки',
+                      SettingsSaveSettingsPage() => 'Настройки сохранения',
+                    }),
+                    AnimatedSize(
+                      duration: Durations.medium2,
+                      alignment: .topCenter,
+                      child: SettingsAnimatedSwitcher(
+                        child: switch (controller.page) {
+                          SettingsMainPage v => _SettingsMainPage(
+                            page: v,
+                            controller: controller,
                           ),
+                          SettingsSaveSettingsPage() =>
+                            _SettingsSaveSettingsPage(controller: controller),
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: appPadding * 2),
+                  ],
+                ),
+                if (isSubPage)
+                  Align(
+                    heightFactor: 1,
+                    alignment: Alignment.centerLeft,
+                    child: InkResponse(
+                      radius: 24,
+                      highlightColor: Colors.transparent,
+                      onTap: controller.openMain,
+                      child: Padding(
+                        padding: EdgeInsets.all(appPadding * 2),
+                        child: Icon(
+                          Icons.arrow_back_ios_new,
+                          size: 24,
+                          color: ColorScheme.of(context).onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ),
+                Align(
+                  heightFactor: 1,
+                  alignment: Alignment.centerRight,
+                  child: InkResponse(
+                    radius: 24,
+                    highlightColor: Colors.transparent,
+                    onTap: Nav.back,
+                    child: Padding(
+                      padding: EdgeInsets.all(appPadding * 2),
+                      child: Icon(
+                        Icons.close,
+                        size: 24,
+                        color: ColorScheme.of(context).onSurfaceVariant,
+                      ),
+                    ),
                   ),
                 ),
-                const SizedBox(height: appPadding * 2),
               ],
             ),
           ),
-          Align(
-            heightFactor: 1,
-            alignment: Alignment.centerRight,
-            child: InkResponse(
-              radius: 24,
-              highlightColor: Colors.transparent,
-              onTap: Nav.back,
-              child: Padding(
-                padding: EdgeInsets.all(appPadding * 2),
-                child: Icon(
-                  Icons.close,
-                  size: 24,
-                  color: ColorScheme.of(context).onSurfaceVariant,
-                ),
-              ),
-            ),
+        );
+      },
+    );
+  }
+}
+
+class _SettingsMainPage extends StatelessWidget {
+  const _SettingsMainPage({required this.page, required this.controller});
+
+  final SettingsMainPage page;
+  final SettingsController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: .stretch,
+      children: [
+        PortalsList(
+          authIndication: true,
+          onTap: (portal) => controller.setSelectedSession(
+            controller.sessionByCode(portal.code),
           ),
-        ],
-      ),
+          isAuthorizedResolver: (portal) =>
+              controller.sessionByCode(portal.code).isAuthorized,
+        ),
+        const SizedBox(height: appPadding / 2),
+        AnimatedSize(
+          duration: Durations.medium2,
+          alignment: .topCenter,
+          child: SettingsAnimatedSwitcher(
+            child: page.selectedSession != null
+                ? PortalSettingsFrame(
+                    key: ValueKey('settings_${page.selectedSession!.code}'),
+                    session: page.selectedSession!,
+                  )
+                : Column(
+                    key: const ValueKey('global_settings'),
+                    children: [
+                      SettingsButton(
+                        title: 'Настройки сохранения',
+                        leading: const Icon(Icons.save_as_outlined),
+                        onTap: controller.openSaveSettings,
+                      ),
+                      SizedBox(height: appPadding),
+                      SettingsButton(
+                        title: 'История изменений',
+                        leading: const Icon(Icons.history),
+                        onTap: Nav.goChangelog,
+                      ),
+                      const SizedBox(height: appPadding),
+                      SocialRow(),
+                    ],
+                  ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SettingsSaveSettingsPage extends StatelessWidget {
+  const _SettingsSaveSettingsPage({required this.controller});
+
+  final SettingsController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: .stretch,
+      children: [
+        const SizedBox(height: appPadding * 4),
+        DownloadPathEditor(controller: controller),
+      ],
     );
   }
 }

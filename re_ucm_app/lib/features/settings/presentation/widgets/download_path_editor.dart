@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import '../../../../core/ui/constants.dart';
-import '../../application/settings_service.cg.dart';
 import '../../domain/path_placeholders.dart';
 import '../../domain/path_template.cg.dart';
+import '../../presentation/settings_controller.cg.dart';
 import 'tag_editing_controller.dart';
 
 class DownloadPathEditor extends StatefulWidget {
-  const DownloadPathEditor({super.key, required this.service});
+  const DownloadPathEditor({super.key, required this.controller});
 
-  final SettingsService service;
+  final SettingsController controller;
 
   @override
   State<DownloadPathEditor> createState() => _DownloadPathEditorState();
@@ -30,20 +30,20 @@ class _DownloadPathEditorState extends State<DownloadPathEditor> {
 
     final newTemplate = PathTemplate(path: value);
 
-    widget.service.updateDownloadPathTemplate(newTemplate);
+    widget.controller.updateDownloadPathTemplate(newTemplate);
   }
 
   final authorsSeparatorController = TextEditingController();
   void onAuthorsSeparatorChanged(String value) =>
-      widget.service.updateAuthorsPathSeparator(value);
+      widget.controller.updateAuthorsPathSeparator(value);
 
   @override
   void initState() {
     super.initState();
-    final savedTemplate = widget.service.downloadPathTemplate;
+    final savedTemplate = widget.controller.downloadPathTemplate;
     pathController = TagEditingController(text: savedTemplate.path);
     isPathEmpty = pathController.text.isEmpty;
-    authorsSeparatorController.text = widget.service.authorsPathSeparator;
+    authorsSeparatorController.text = widget.controller.authorsPathSeparator;
   }
 
   @override

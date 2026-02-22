@@ -46,4 +46,7 @@ abstract class SettingsControllerBase with Store {
   String get authorsPathSeparator => service.authorsPathSeparator;
   void updateAuthorsPathSeparator(String separator) =>
       service.updateAuthorsPathSeparator(separator);
+
+  String? get saveDirectory => service.saveDirectory;
+  void updateSaveDirectory(String? path) => service.updateSaveDirectory(path);
 }

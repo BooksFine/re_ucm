@@ -9,6 +9,8 @@ abstract interface class SettingsStorage {
   Future<PathTemplate> getDownloadPathTemplate();
   Future<void> setAuthorsPathSeparator(String separator);
   Future<String> getAuthorsPathSeparator();
+  Future<void> setSaveDirectory(String? path);
+  Future<String?> getSaveDirectory();
   Future<void> setPortalSettings(String code, Map<String, Object?> settings);
   Future<Map<String, Map<String, Object?>>> getPortalsSettings();
 }
@@ -56,6 +58,21 @@ class SettingsStorageSembast implements SettingsStorage {
   @override
   Future<String> getAuthorsPathSeparator() async {
     return await _store.record('authorsPathSeparator').get(db) ?? '';
+  }
+
+  @override
+  Future<void> setSaveDirectory(String? path) async {
+    final record = _store.record('saveDirectory');
+    if (path == null) {
+      await record.delete(db);
+    } else {
+      await record.put(db, path);
+    }
+  }
+
+  @override
+  Future<String?> getSaveDirectory() async {
+    return await _store.record('saveDirectory').get(db);
   }
 
   @override

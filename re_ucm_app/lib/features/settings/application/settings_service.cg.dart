@@ -20,6 +20,8 @@ class SettingsService {
   PathTemplate get downloadPathTemplate => _downloadPathTemplate;
   late String _authorsPathSeparator;
   String get authorsPathSeparator => _authorsPathSeparator;
+  late String? _saveDirectory;
+  String? get saveDirectory => _saveDirectory;
 
   List<PortalSession> get sessions => _sessions;
 
@@ -29,6 +31,7 @@ class SettingsService {
   Future<void> loadSettings() async {
     _downloadPathTemplate = await storage.getDownloadPathTemplate();
     _authorsPathSeparator = await storage.getAuthorsPathSeparator();
+    _saveDirectory = await storage.getSaveDirectory();
 
     final portalSettingsByCode = await storage.getPortalsSettings();
     _sessions = PortalFactory.portals.map((portal) {
@@ -58,5 +61,10 @@ class SettingsService {
   void updateAuthorsPathSeparator(String separator) {
     _authorsPathSeparator = separator;
     storage.setAuthorsPathSeparator(separator);
+  }
+
+  void updateSaveDirectory(String? path) {
+    _saveDirectory = path;
+    storage.setSaveDirectory(path);
   }
 }

@@ -149,14 +149,24 @@ abstract class BookPageControllerBase with Store {
       if (!isGranted) openAppSettings();
 
       final templateFileName = _buildTemplateFileName(data, settings);
+      final saveDirectory = settings.saveDirectory;
 
-      final finalPath = await FilePicker.platform.saveFile(
-        dialogTitle: 'Сохранение книги',
-        bytes: bookXmlBytes,
-        fileName: '$templateFileName.fb2',
-        type: FileType.custom,
-        allowedExtensions: ['fb2'],
-      );
+      String? finalPath;
+
+      if (saveDirectory != null && saveDirectory.isNotEmpty) {
+        finalPath = path.join(saveDirectory, '$templateFileName.fb2');
+        final file = File(finalPath);
+        await file.parent.create(recursive: true);
+        await file.writeAsBytes(bookXmlBytes!);
+      } else {
+        finalPath = await FilePicker.platform.saveFile(
+          dialogTitle: 'Сохранение книги',
+          bytes: bookXmlBytes,
+          fileName: '$templateFileName.fb2',
+          type: FileType.custom,
+          allowedExtensions: ['fb2'],
+        );
+      }
 
       if (finalPath == null) {
         return overlaySnackMessage(
@@ -191,7 +201,8 @@ abstract class BookPageControllerBase with Store {
       final label = match.group(1) ?? '';
       final placeholder = PathPlaceholders.fromLabel(label);
       if (placeholder == null) return '';
-      return placeholder.resolve(data, authorsSeparator);
+      final value = placeholder.resolve(data, authorsSeparator);
+      return value.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
     });
   }
 }

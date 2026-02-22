@@ -18,7 +18,7 @@
 			"detail": ""
 		},
 		{
-			"label": "[Build Runner] (force-aot)",
+			"label": "[Build Runner]",
 			"type": "shell",
 			"command": "dart",
 			"args": [
@@ -27,7 +27,6 @@
 				"build",
 				"-d",
 				"--workspace",
-				"--force-aot"
 			],
 			"isBackground": false,
 			"problemMatcher": [],

@@ -3,68 +3,80 @@ import 'package:flutter/material.dart';
 class TagEditingController extends TextEditingController {
   TagEditingController({super.text});
 
-  // Регулярка: ищем всё между % и %
-  static final RegExp tagRegExp = RegExp(r'%([^%]+)%');
+  // Инвертированные скобки "панцирь черепахи" для максимальной уникальности
+  // ⦘ (U+2998 Right Tortoise Shell Bracket)
+  static const String startTagChar = '\u2998';
+  // ⦗ (U+2997 Left Tortoise Shell Bracket)
+  static const String endTagChar = '\u2997';
+
+  // Регулярка: ищем всё между ⦘ и ⦗
+  static final RegExp tagRegExp = RegExp(
+    '$startTagChar([^$endTagChar]+)$endTagChar',
+  );
 
   @override
   set value(TextEditingValue newValue) {
     // 1. ЛОГИКА УДАЛЕНИЯ (Atomicity)
-    // Если текст стал короче (Backspace / Delete / Cut)
     if (newValue.text.length < value.text.length) {
-      // Ищем индекс первого изменения
+      // Ищем индекс, с которого началось изменение
       int changeIndex = -1;
-      // Сравниваем символы старого и нового текста
       for (int i = 0; i < newValue.text.length; i++) {
         if (value.text[i] != newValue.text[i]) {
           changeIndex = i;
           break;
         }
       }
-      // Если расхождений не нашли, значит отрезали хвост
       if (changeIndex == -1) changeIndex = newValue.text.length;
 
-      // Проверяем, попал ли индекс удаления внутрь тега в СТАРОМ тексте
+      // Вычисляем границы удаленного фрагмента в старом тексте
+      int deleteStart = changeIndex;
+      int deleteEnd = changeIndex + (value.text.length - newValue.text.length);
+      bool rangeExpanded = false;
+
       final matches = tagRegExp.allMatches(value.text);
       for (final match in matches) {
-        // Если удаление затронуло диапазон тега (включая границы %)
-        if (changeIndex >= match.start && changeIndex < match.end) {
-          // Удаляем весь тег целиком
-          final newText = value.text.replaceRange(match.start, match.end, "");
-
-          super.value = TextEditingValue(
-            text: newText,
-            // Ставим курсор ровно туда, где был начал тега
-            selection: TextSelection.collapsed(offset: match.start),
-          );
-          return;
+        // Проверяем, пересекается ли удаленный фрагмент с тегом
+        if (deleteEnd > match.start && deleteStart < match.end) {
+          // Если тег НЕ поглощен удалением полностью, а лишь "надкушен" – расширяем зону удаления
+          if (deleteStart > match.start) {
+            deleteStart = match.start;
+            rangeExpanded = true;
+          }
+          if (deleteEnd < match.end) {
+            deleteEnd = match.end;
+            rangeExpanded = true;
+          }
         }
+      }
+
+      // Если мы расширили зону удаления (зацепили кусок тега), применяем новые границы
+      if (rangeExpanded) {
+        final newText = value.text.replaceRange(deleteStart, deleteEnd, "");
+        super.value = TextEditingValue(
+          text: newText,
+          selection: TextSelection.collapsed(offset: deleteStart),
+        );
+        return;
       }
     }
 
     // 2. ЛОГИКА НАВИГАЦИИ (Прыжки через тег)
     final newSelection = newValue.selection;
-    final oldSelection =
-        value.selection; // Используем текущее состояние контроллера
+    final oldSelection = value.selection;
 
-    // Работаем только с курсором (не с выделением диапазона)
     if (newSelection.isCollapsed && oldSelection.isValid) {
       final matches = tagRegExp.allMatches(newValue.text);
 
       for (final match in matches) {
-        // Если курсор оказался ВНУТРИ тега (между % и %)
         if (newSelection.baseOffset > match.start &&
             newSelection.baseOffset < match.end) {
           int newOffset;
 
-          // Определяем направление движения
           if (newSelection.baseOffset < oldSelection.baseOffset) {
-            // Движение ВЛЕВО (были правее, стали левее) -> Прыгаем в НАЧАЛО тега
             newOffset = match.start;
           } else if (newSelection.baseOffset > oldSelection.baseOffset) {
-            // Движение ВПРАВО (были левее, стали правее) -> Прыгаем в КОНЕЦ тега
             newOffset = match.end;
           } else {
-            // Если кликнули мышкой внутрь: прыгаем к ближайшему краю
             final distToStart = newSelection.baseOffset - match.start;
             final distToEnd = match.end - newSelection.baseOffset;
             newOffset = (distToStart < distToEnd) ? match.start : match.end;
@@ -107,7 +119,7 @@ class TagEditingController extends TextEditingController {
       final String tagLabel = match.group(1) ?? "";
       final String fullMatch = match.group(0) ?? "";
 
-      // 2. Виджет тега (заменяет собой визуально первый символ '%')
+      // 2. Виджет тега (заменяет собой визуально первый символ '⦘')
       children.add(
         WidgetSpan(
           alignment: PlaceholderAlignment.middle,
@@ -116,7 +128,6 @@ class TagEditingController extends TextEditingController {
       );
 
       // 3. Скрытый хвост тега (начиная со второго символа)
-      // Это нужно, чтобы курсор позиционировался правильно.
       if (fullMatch.length > 1) {
         children.add(
           TextSpan(
@@ -154,15 +165,13 @@ class TagEditingController extends TextEditingController {
   }
 
   void insertTag(String tagLabel) {
-    // 1. Формируем строку тега
-    final String formattedTag = '%$tagLabel%';
+    // 1. Формируем строку тега с новыми асимметричными краями
+    final String formattedTag = '$startTagChar$tagLabel$endTagChar';
 
     // 2. Определяем позицию вставки
     final currentText = text;
     final currentSelection = selection;
 
-    // Если курсора нет (поле не в фокусе), вставляем в конец.
-    // Если есть выделение, заменяем его.
     final int start = currentSelection.isValid
         ? currentSelection.start
         : currentText.length;
@@ -176,8 +185,7 @@ class TagEditingController extends TextEditingController {
     // 4. Вычисляем новую позицию курсора (сразу после тега)
     final int newSelectionIndex = start + formattedTag.length;
 
-    // 5. Обновляем значение контроллера.
-    // Это автоматически добавит действие в историю Undo (Ctrl+Z).
+    // 5. Обновляем значение контроллера
     value = TextEditingValue(
       text: newText,
       selection: TextSelection.collapsed(offset: newSelectionIndex),

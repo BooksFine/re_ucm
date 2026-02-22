@@ -149,15 +149,18 @@ class _DownloadPathEditorState extends State<DownloadPathEditor> {
             border: InputBorder.none,
             suffixIcon: isPathEmpty
                 ? null
-                : IconButton(
-                    icon: Icon(
-                      Icons.clear,
-                      color: ColorScheme.of(context).onSurfaceVariant,
+                : TapRegion(
+                    groupId: 'test',
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.clear,
+                        color: ColorScheme.of(context).onSurfaceVariant,
+                      ),
+                      onPressed: () {
+                        pathController.clear();
+                        onPathChanged('');
+                      },
                     ),
-                    onPressed: () {
-                      pathController.clear();
-                      onPathChanged('');
-                    },
                   ),
           ),
         ),

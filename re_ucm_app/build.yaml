@@ -22,7 +22,7 @@ targets:
 
 builders:
   changelog_builder:
-    import: "package:re_ucm/tool/changelog_builder.dart"
+    import: "package:re_ucm/features/changelog/changelog_builder.dart"
     builder_factories: ["changelogBuilder"]
     build_extensions: {"CHANGELOG.md": ["lib/.gen/features/changelog/changelog.gen.dart"]}
     auto_apply: root_package

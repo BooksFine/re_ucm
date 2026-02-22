@@ -44,9 +44,7 @@ class ChangelogBuilder implements Builder {
       }
 
       content = _formatBullets(content);
-      technicalDetails = technicalDetails != null
-          ? _formatBullets(technicalDetails)
-          : null;
+      technicalDetails = technicalDetails;
 
       buffer.writeln("  Changelog(");
       buffer.writeln("    title: 'Релиз $version',");
@@ -73,7 +71,7 @@ class ChangelogBuilder implements Builder {
         .map((line) {
           final trimmed = line.trim();
           if (trimmed.startsWith('- ')) {
-            return '• ${trimmed.substring(2)}';
+            return '•   ${trimmed.substring(2)}';
           }
           return line;
         })

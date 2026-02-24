@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'core/di.dart';
@@ -9,16 +7,11 @@ import 'core/ui/theme.dart';
 import 'features/ota/ota_service.dart';
 import 'features/share_receiver/share_receiver.dart';
 
-Future settingUpSystemUIOverlay() async {
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      systemStatusBarContrastEnforced: false,
-      systemNavigationBarColor: Colors.transparent,
-      systemNavigationBarDividerColor: Colors.transparent,
-    ),
-  );
-  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-}
+const e2eOverlayStyle = SystemUiOverlayStyle(
+  systemStatusBarContrastEnforced: false,
+  systemNavigationBarColor: Colors.transparent,
+  systemNavigationBarDividerColor: Colors.transparent,
+);
 
 class MyWidgetsBinding extends WidgetsFlutterBinding {
   @override
@@ -32,7 +25,7 @@ void main() async {
 
   await loggerInit();
 
-  await settingUpSystemUIOverlay();
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   final app = await AppDependencies.init(child: const MainApp());
 
   runApp(app);
@@ -59,11 +52,14 @@ class _MainAppState extends State<MainApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      darkTheme: darkTheme,
-      theme: lightTheme,
-      routerConfig: router,
-      debugShowCheckedModeBanner: false,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: e2eOverlayStyle,
+      child: MaterialApp.router(
+        darkTheme: darkTheme,
+        theme: lightTheme,
+        routerConfig: router,
+        debugShowCheckedModeBanner: false,
+      ),
     );
   }
 }

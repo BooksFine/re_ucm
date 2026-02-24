@@ -9,6 +9,8 @@ class SettingsAnimatedSwitcher extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnimatedSwitcher(
       duration: Durations.medium2,
+      transitionBuilder: (child, animation) =>
+          FadeTransition(opacity: animation, child: child),
       layoutBuilder: (child, previousChildren) => Stack(
         alignment: .topCenter,
         children: [

@@ -87,6 +87,7 @@ class _DownloadPathEditorState extends State<DownloadPathEditor> {
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 12),
           child: TextField(
+            mouseCursor: SystemMouseCursors.click,
             readOnly: true,
             onTap: onPickSaveDirectory,
             controller: saveDirectoryController,

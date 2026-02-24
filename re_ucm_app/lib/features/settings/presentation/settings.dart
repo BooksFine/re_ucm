@@ -40,20 +40,20 @@ class _SettingsState extends State<Settings> {
             type: .transparency,
             child: Stack(
               children: [
-                ListView(
-                  padding: .zero,
-                  shrinkWrap: true,
-                  primary: false,
-                  children: [
-                    const SizedBox(height: appPadding * 2),
-                    SettingsTitle(switch (controller.page) {
-                      SettingsMainPage() => 'Настройки',
-                      SettingsSaveSettingsPage() => 'Настройки сохранения',
-                    }),
-                    AnimatedSize(
-                      duration: Durations.medium2,
-                      alignment: .topCenter,
-                      child: SettingsAnimatedSwitcher(
+                AnimatedSize(
+                  duration: Durations.medium2,
+                  alignment: .topCenter,
+                  child: ListView(
+                    padding: .zero,
+                    shrinkWrap: true,
+                    primary: false,
+                    children: [
+                      const SizedBox(height: appPadding * 2),
+                      SettingsTitle(switch (controller.page) {
+                        SettingsMainPage() => 'Настройки',
+                        SettingsSaveSettingsPage() => 'Настройки сохранения',
+                      }),
+                      SettingsAnimatedSwitcher(
                         child: switch (controller.page) {
                           SettingsMainPage v => _SettingsMainPage(
                             page: v,
@@ -63,9 +63,9 @@ class _SettingsState extends State<Settings> {
                             _SettingsSaveSettingsPage(controller: controller),
                         },
                       ),
-                    ),
-                    const SizedBox(height: appPadding * 2),
-                  ],
+                      const SizedBox(height: appPadding * 2),
+                    ],
+                  ),
                 ),
                 if (isSubPage)
                   InkResponse(
@@ -115,12 +115,15 @@ class _SettingsMainPage extends StatelessWidget {
   final SettingsMainPage page;
   final SettingsController controller;
 
+  static final plkey = GlobalKey();
+
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: .stretch,
       children: [
         PortalsList(
+          key: plkey,
           authIndication: true,
           onTap: (portal) => controller.setSelectedSession(
             controller.sessionByCode(portal.code),
@@ -129,34 +132,30 @@ class _SettingsMainPage extends StatelessWidget {
               controller.sessionByCode(portal.code).isAuthorized,
         ),
         const SizedBox(height: appPadding / 2),
-        AnimatedSize(
-          duration: Durations.medium2,
-          alignment: .topCenter,
-          child: SettingsAnimatedSwitcher(
-            child: page.selectedSession != null
-                ? PortalSettingsFrame(
-                    key: ValueKey('settings_${page.selectedSession!.code}'),
-                    session: page.selectedSession!,
-                  )
-                : Column(
-                    key: const ValueKey('global_settings'),
-                    children: [
-                      SettingsButton(
-                        title: 'Настройки сохранения',
-                        leading: const Icon(Icons.save_as_outlined),
-                        onTap: controller.openSaveSettings,
-                      ),
-                      SizedBox(height: appPadding),
-                      SettingsButton(
-                        title: 'История изменений',
-                        leading: const Icon(Icons.history),
-                        onTap: Nav.goChangelog,
-                      ),
-                      const SizedBox(height: appPadding),
-                      SocialRow(),
-                    ],
-                  ),
-          ),
+        SettingsAnimatedSwitcher(
+          child: page.selectedSession != null
+              ? PortalSettingsFrame(
+                  key: ValueKey('settings_${page.selectedSession!.code}'),
+                  session: page.selectedSession!,
+                )
+              : Column(
+                  key: const ValueKey('global_settings'),
+                  children: [
+                    SettingsButton(
+                      title: 'Настройки сохранения',
+                      leading: const Icon(Icons.save_as_outlined),
+                      onTap: controller.openSaveSettings,
+                    ),
+                    SizedBox(height: appPadding),
+                    SettingsButton(
+                      title: 'История изменений',
+                      leading: const Icon(Icons.history),
+                      onTap: Nav.goChangelog,
+                    ),
+                    const SizedBox(height: appPadding),
+                    SocialRow(),
+                  ],
+                ),
         ),
       ],
     );

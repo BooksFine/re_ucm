@@ -20,6 +20,7 @@ class SettingsTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
+        const SizedBox(width: appPadding),
         Expanded(
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: appPadding / 2),
@@ -29,7 +30,7 @@ class SettingsTextField extends StatelessWidget {
               decoration: InputDecoration(
                 hintText: hint,
                 contentPadding: const EdgeInsets.symmetric(
-                  horizontal: appPadding * 2,
+                  horizontal: appPadding,
                 ),
                 border: InputBorder.none,
               ),
@@ -59,7 +60,7 @@ class SettingsTextField extends StatelessWidget {
                     ),
                   ),
           ),
-        const SizedBox(width: appPadding / 2),
+        const SizedBox(width: appPadding),
       ],
     );
   }

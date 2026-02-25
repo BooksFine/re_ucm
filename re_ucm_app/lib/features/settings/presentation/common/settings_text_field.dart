@@ -1,4 +1,6 @@
-part of '../settings.dart';
+import 'package:flutter/material.dart';
+
+import '../../../../core/ui/constants.dart';
 
 class SettingsTextField extends StatelessWidget {
   const SettingsTextField({

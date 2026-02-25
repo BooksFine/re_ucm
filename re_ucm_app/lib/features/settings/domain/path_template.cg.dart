@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
-import '../presentation/widgets/tag_editing_controller.dart';
+import '../presentation/save_settings/tag_editing_controller.dart';
 
 part '../../../.gen/features/settings/domain/path_template.cg.g.dart';
 

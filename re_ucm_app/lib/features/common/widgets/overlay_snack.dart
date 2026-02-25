@@ -1,6 +1,8 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
-import '../constants.dart';
+import '../../../core/ui/constants.dart';
 
 void overlaySnackMessage(BuildContext context, String message) {
   final overlay = Overlay.of(context);
@@ -59,8 +61,13 @@ class __OverlaySnackMessageState extends State<_OverlaySnackMessage>
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = max(
+      MediaQuery.viewInsetsOf(context).bottom,
+      MediaQuery.paddingOf(context).bottom,
+    );
+
     return Positioned(
-      bottom: appPadding * 4 + MediaQuery.paddingOf(context).bottom,
+      bottom: appPadding * 4 + bottomInset,
       right: 0,
       child: FadeTransition(
         opacity: _animation,

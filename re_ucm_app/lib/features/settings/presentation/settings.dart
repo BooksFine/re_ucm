@@ -3,15 +3,16 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 
 import '../../../core/navigation/router_delegate.dart';
 import '../../../core/ui/constants.dart';
-import '../../../core/ui/settings.dart';
 import '../../portals/presentation/portals_list.dart';
 import '../application/settings_service.cg.dart';
+import 'about/social_row.dart';
+import 'common/settings_animated_switcher.dart';
+import 'common/settings_button.dart';
+import 'common/settings_title.dart';
+import 'portal_settings/portal_settings_frame.dart';
+import 'save_settings/download_path_editor.dart';
 import 'settings_controller.cg.dart';
 import 'settings_states.dart';
-import 'widgets/download_path_editor.dart';
-import 'widgets/portal_settings_frame.dart';
-import 'widgets/settings_animated_switcher.dart';
-import 'widgets/social_row.dart';
 
 class Settings extends StatefulWidget {
   const Settings({super.key, required this.service});

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:re_ucm_core/models/portal.dart';
+
 import '../../features/book/presentation/book_page.dart';
 import '../../features/browser/browser.dart';
 import '../../features/changelog/changelog_page.dart';
 import '../../features/home/home_page.dart';
 import '../../features/portals/domain/portal_factory.dart';
+import '../../features/settings/presentation/portal_settings/web_auth_page.dart';
 import '../../features/settings/presentation/settings_dialog.dart';
-import '../../features/settings/presentation/web_auth_page.dart';
 import '../di.dart';
 import 'dialog_page.dart';
 import 'modal_bottom_sheet_page.dart';

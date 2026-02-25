@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:re_ucm_core/models/portal.dart';
 
-import '../../../core/navigation/router_delegate.dart';
-import '../../common/widgets/appbar.dart';
-import '../../common/widgets/webview.dart';
+import '../../../../core/navigation/router_delegate.dart';
+import '../../../common/widgets/appbar.dart';
+import '../../../common/widgets/webview.dart';
 
 class WebAuthPage extends StatelessWidget {
   const WebAuthPage({super.key, required this.field});

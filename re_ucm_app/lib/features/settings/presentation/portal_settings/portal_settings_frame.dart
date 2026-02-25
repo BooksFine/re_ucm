@@ -4,11 +4,13 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:re_ucm_core/models/portal.dart';
 
 import '../../../../core/navigation/router_delegate.dart';
-import '../../../../core/ui/common/overlay_snack.dart';
 import '../../../../core/ui/constants.dart';
-import '../../../../core/ui/settings.dart';
+import '../../../common/widgets/overlay_snack.dart';
 import '../../../portals/application/portal_session.cg.dart';
-import 'settings_animated_switcher.dart';
+import '../common/settings_animated_switcher.dart';
+import '../common/settings_button.dart';
+import '../common/settings_text_field.dart';
+import '../common/settings_title.dart';
 
 class PortalSettingsFrame extends StatefulWidget {
   const PortalSettingsFrame({super.key, required this.session});

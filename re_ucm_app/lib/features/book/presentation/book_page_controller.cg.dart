@@ -13,14 +13,14 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../core/logger.dart';
 import '../../../core/navigation/router_delegate.dart';
-import '../../../core/ui/common/overlay_snack.dart';
+import '../../common/widgets/overlay_snack.dart';
 import '../../converters/fb2/converter.dart';
 import '../../portals/application/portal_session.cg.dart';
 import '../../recent_books/application/recent_books_service.dart';
 import '../../settings/application/settings_service.cg.dart';
 import '../../settings/domain/path_placeholders.dart';
 import '../../settings/domain/path_template.cg.dart';
-import '../../settings/presentation/widgets/tag_editing_controller.dart';
+import '../../settings/presentation/save_settings/tag_editing_controller.dart';
 
 part '../../../.gen/features/book/presentation/book_page_controller.cg.g.dart';
 

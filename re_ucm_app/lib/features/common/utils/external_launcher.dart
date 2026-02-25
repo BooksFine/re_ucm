@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../core/ui/common/overlay_snack.dart';
+import '../widgets/overlay_snack.dart';
 
 Future<void> launchExternalUrl(BuildContext context, WebUri uri) async {
   try {

@@ -67,26 +67,28 @@ class _SettingsState extends State<Settings> {
                     ],
                   ),
                 ),
-                if (isSubPage)
-                  InkResponse(
-                    key: const ValueKey('settings_back'),
-                    radius: 24,
-                    highlightColor: Colors.transparent,
-                    onTap: controller.openMain,
-                    child: Padding(
-                      padding: EdgeInsets.all(appPadding * 2),
-                      child: Icon(
-                        Icons.arrow_back_ios_new,
-                        size: 24,
-                        color: ColorScheme.of(context).onSurfaceVariant,
-                      ),
-                    ),
-                  ),
+
+                SettingsAnimatedSwitcher(
+                  child: isSubPage
+                      ? InkResponse(
+                          radius: 24,
+                          highlightColor: Colors.transparent,
+                          onTap: controller.openMain,
+                          child: Padding(
+                            padding: EdgeInsets.all(appPadding * 2),
+                            child: Icon(
+                              Icons.arrow_back_ios_new,
+                              size: 24,
+                              color: ColorScheme.of(context).onSurfaceVariant,
+                            ),
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                ),
                 Positioned(
                   top: 0,
                   right: 0,
                   child: InkResponse(
-                    key: const ValueKey('settings_close'),
                     radius: 24,
                     highlightColor: Colors.transparent,
                     onTap: Nav.back,

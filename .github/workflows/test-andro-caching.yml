@@ -1,0 +1,43 @@
+name: Test Android Caching
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test_android_cache:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: re_ucm_app
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.TOKEN }}
+          fetch-depth: 1
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "master"
+          cache: true
+
+      # Заменяем actions/cache на setup-gradle
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+        # По умолчанию он сам закэширует зависимости и build-cache.
+        # Если билд упадет или ты захочешь сбросить кэш, это по-прежнему 
+        # можно будет сделать только вручную через интерфейс GitHub.
+
+      - name: Pub Get
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk

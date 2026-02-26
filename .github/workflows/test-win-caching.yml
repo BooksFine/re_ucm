@@ -23,6 +23,11 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Sign Android release
+        run: |
+          echo '${{ secrets.ANDROID_KEYSTORE_FILE_BASE64 }}' | base64 --decode > android/app/upload-keystore.jks
+          echo '${{ secrets.ANDROID_KEY_PROPERTIES }}' > android/key.properties
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:

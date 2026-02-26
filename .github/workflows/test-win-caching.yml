@@ -43,4 +43,4 @@ jobs:
         run: dart run build_runner build -d --workspace
 
       - name: Build APK
-        run: flutter build apk --no-pub
+        run: flutter build apk

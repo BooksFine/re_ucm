@@ -1,0 +1,40 @@
+name: Test Windows C++ Caching
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test_windows_cache:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: re_ucm_app
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.TOKEN }}
+          fetch-depth: 1
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "master"
+          cache: true
+
+      - name: Restore Caches
+        uses: actions/cache@v5
+        with:
+          path: re_ucm_app/build/windows/
+          key: windows-build-${{ github.run_id }} 
+          restore-keys: windows-build-
+
+      - name: Pub Get
+        run: flutter pub get
+
+      - name: Build Runner
+        run: dart run build_runner build -d --workspace
+
+      - name: Build Windows
+        run: flutter build windows --no-pub

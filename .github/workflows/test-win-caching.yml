@@ -40,7 +40,7 @@ jobs:
         run: flutter pub get
         
       - name: Build Runner
-        run: dart run build_runner --workspace
+        run: dart run build_runner build -d --workspace
 
       - name: Build APK
         run: flutter build apk --no-pub

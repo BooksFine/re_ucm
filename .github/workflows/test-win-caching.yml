@@ -17,6 +17,23 @@ jobs:
           token: ${{ secrets.TOKEN }}
           fetch-depth: 1
 
+      - name: Setup RAM Disk and Junctions
+        shell: cmd
+        run: |
+          :: Устанавливаем ImDisk
+          choco install imdisk -y
+          
+          :: Создаем RAM-диск на 1.5 ГБ (буква R:)
+          imdisk -a -s 1536M -m R: -p "/fs:ntfs /q /y"
+          
+          :: Создаем целевые папки в ОЗУ
+          mkdir R:\.dart_tool
+          mkdir R:\build
+          
+          :: Создаем симлинки в текущей директории (re_ucm_app)
+          mklink /J .dart_tool R:\.dart_tool
+          mklink /J build R:\build
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -26,6 +43,7 @@ jobs:
       - name: Restore Caches
         uses: actions/cache@v5
         with:
+          # Сохраняем твой путь, cache action нормально пройдет по симлинку
           path: re_ucm_app/build/windows/
           key: windows-build-${{ github.run_id }} 
           restore-keys: windows-build-

@@ -1,11 +1,11 @@
-name: Test Windows C++ Caching
+name: Test Android Caching
 
 on:
   workflow_dispatch:
 
 jobs:
-  test_windows_cache:
-    runs-on: windows-latest
+  test_android_cache:
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: re_ucm_app
@@ -17,26 +17,11 @@ jobs:
           token: ${{ secrets.TOKEN }}
           fetch-depth: 1
 
-      - name: Setup RAM Disk for SDK and Pub Cache
-        shell: cmd
-        run: |
-          :: Ставим ImDisk
-          choco install imdisk -y
-          
-          :: Выделяем 3.5 ГБ под тяжелые кэши (если упадет по памяти, можно снизить до 3072M)
-          imdisk -a -s 3584M -m R: -p "/fs:ntfs /q /y"
-          
-          :: Создаем папки в ОЗУ
-          mkdir R:\flutter
-          mkdir R:\pub_cache
-          
-          :: Создаем родительские директории на системном диске, если их нет
-          if not exist C:\hostedtoolcache\windows mkdir C:\hostedtoolcache\windows
-          if not exist C:\Users\runneradmin\AppData\Local\Pub mkdir C:\Users\runneradmin\AppData\Local\Pub
-          
-          :: Перехватываем пути! Теперь экшены будут распаковывать архивы прямо в оперативку
-          mklink /J C:\hostedtoolcache\windows\flutter R:\flutter
-          mklink /J C:\Users\runneradmin\AppData\Local\Pub\Cache R:\pub_cache
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -44,21 +29,15 @@ jobs:
           channel: "master"
           cache: true
 
-      - name: Restore Project Caches
-        uses: actions/cache@v5
-        with:
-          # Кэшируем сборку и кодогенерацию, но они физически остаются на диске C:
-          path: |
-            re_ucm_app/build/windows/
-            re_ucm_app/.dart_tool/build/
-          key: windows-build-${{ github.run_id }} 
-          restore-keys: windows-build-
+      # Заменяем actions/cache на setup-gradle
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        # По умолчанию он сам закэширует зависимости и build-cache.
+        # Если билд упадет или ты захочешь сбросить кэш, это по-прежнему 
+        # можно будет сделать только вручную через интерфейс GitHub.
 
       - name: Pub Get
         run: flutter pub get
 
-      - name: Build Runner
-        run: dart run build_runner build -d --workspace
-
-      - name: Build Windows
-        run: flutter build windows --no-pub
+      - name: Build APK
+        run: flutter build apk --debug

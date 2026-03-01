@@ -1,13 +1,14 @@
 {
-    "cSpell.words": [
-        "appbar",
-        "fictionbook",
-        "inno",
-        "innoinstall",
-        "iscc",
-        "KHTML",
-        "Relogin",
-        "reucm",
-        "webauth"
-    ]
+  "cSpell.words": [
+    "appbar",
+    "fictionbook",
+    "inno",
+    "innoinstall",
+    "iscc",
+    "KHTML",
+    "Relogin",
+    "reucm",
+    "webauth"
+  ],
+  "dart.flutterSdkPath": ".fvm/versions/master"
 }

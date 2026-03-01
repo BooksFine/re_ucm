@@ -1,0 +1,24 @@
+name: re_ucm_lib
+description: A starting point for Dart libraries or applications.
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ^3.11.0
+
+resolution: workspace
+
+dependencies:
+  re_ucm_core:
+    path: ../re_ucm_core
+  mobx: ^2.3.3+2
+  sembast: ^3.7.1+2
+  json_annotation: ^4.10.0
+  path: ^1.9.0
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  build_runner: ^2.4.9
+  json_serializable: ^6.13.0
+  mobx_codegen: ^2.7.1
+  test: ^1.25.6

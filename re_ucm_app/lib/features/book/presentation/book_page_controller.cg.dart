@@ -9,18 +9,13 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:re_ucm_core/models/book.dart';
 import 'package:re_ucm_core/models/progress.dart';
+import 'package:re_ucm_lib/re_ucm_lib.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../core/logger.dart';
 import '../../../core/navigation/router_delegate.dart';
 import '../../common/widgets/overlay_snack.dart';
 import '../../converters/fb2/converter.dart';
-import '../../portals/application/portal_session.cg.dart';
-import '../../recent_books/application/recent_books_service.dart';
-import '../../settings/application/settings_service.cg.dart';
-import '../../settings/domain/path_placeholders.dart';
-import '../../settings/domain/path_template.cg.dart';
-import '../../settings/presentation/save_settings/tag_editing_controller.dart';
 
 part '../../../.gen/features/book/presentation/book_page_controller.cg.g.dart';
 
@@ -148,7 +143,10 @@ abstract class BookPageControllerBase with Store {
           .isGranted;
       if (!isGranted) openAppSettings();
 
-      final templateFileName = _buildTemplateFileName(data, settings);
+      final templateFileName = TemplateFormatter.buildTemplateFileName(
+        data,
+        settings,
+      );
       final saveDirectory = settings.saveDirectory;
 
       String? finalPath;
@@ -182,27 +180,5 @@ abstract class BookPageControllerBase with Store {
     } finally {
       if (!Platform.isWindows) await file.delete();
     }
-  }
-
-  String _buildTemplateFileName(Book data, SettingsService settings) {
-    var template = settings.downloadPathTemplate.path.trim();
-
-    if (template.isEmpty) template = PathTemplate.initialPathPlaceholder;
-    final rendered = _renderTemplate(template, data, settings).trim();
-
-    return rendered;
-  }
-
-  String _renderTemplate(String template, Book data, SettingsService settings) {
-    final separator = settings.authorsPathSeparator;
-    final authorsSeparator = separator.isEmpty ? ', ' : separator;
-
-    return template.replaceAllMapped(TagEditingController.tagRegExp, (match) {
-      final label = match.group(1) ?? '';
-      final placeholder = PathPlaceholders.fromLabel(label);
-      if (placeholder == null) return '';
-      final value = placeholder.resolve(data, authorsSeparator);
-      return value.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
-    });
   }
 }

@@ -1,13 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:re_ucm_lib/re_ucm_lib.dart';
 import 'package:share_handler/share_handler.dart';
 
 import '../../core/logger.dart';
 import '../../core/navigation/router_delegate.dart';
 import '../common/utils/uri_from_url.dart';
 import '../common/widgets/snack.dart';
-import '../portals/domain/portal_factory.dart';
 
 Future<void> shareHandler(BuildContext context) async {
   if (!Platform.isAndroid) return;

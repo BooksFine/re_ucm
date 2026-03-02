@@ -7,22 +7,21 @@ import 'domain/recent_book.cg.dart';
 
 part '../.gen/recent_books/recent_books_service.cg.g.dart';
 
-class RecentBooksService = RecentBooksServiceBase with _$RecentBooksService;
+class RecentBooksService extends _RecentBooksService with _$RecentBooksService {
+  RecentBooksService._();
 
-abstract class RecentBooksServiceBase with Store {
-  late final RecentBooksStorage _repo;
-
-  RecentBooksServiceBase._();
-  
   static Future<RecentBooksService> init(String databaseDirectory) async {
-    var service = RecentBooksService._().._initRepo(await RecentBooksStorageSembast.init(databaseDirectory));
-    service._fetchRecentBooks();
+    var service = RecentBooksService._()
+      .._initRepo(await RecentBooksStorageSembast.init(databaseDirectory))
+      .._fetchRecentBooks();
     return service;
   }
+}
 
-  void _initRepo(RecentBooksStorage repo) {
-    _repo = repo;
-  }
+abstract class _RecentBooksService with Store {
+  late final RecentBooksStorage _repo;
+
+  void _initRepo(RecentBooksStorage repo) => _repo = repo;
 
   final recentBooks = <RecentBook>[].asObservable();
 
@@ -55,7 +54,9 @@ abstract class RecentBooksServiceBase with Store {
 
   Future<void> restoreRecentBook(RecentBook book) async {
     recentBooks.add(book);
-    recentBooks.sort((RecentBook a, RecentBook b) => a.added.compareTo(b.added));
+    recentBooks.sort(
+      (RecentBook a, RecentBook b) => a.added.compareTo(b.added),
+    );
     _repo.setRecentBook(book);
   }
 

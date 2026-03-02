@@ -27,7 +27,9 @@ class RecentBooksStorageSembast implements RecentBooksStorage {
 
   RecentBooksStorageSembast._();
 
-  static Future<RecentBooksStorageSembast> init(String databaseDirectory) async {
+  static Future<RecentBooksStorageSembast> init(
+    String databaseDirectory,
+  ) async {
     var repo = RecentBooksStorageSembast._();
 
     repo.db = await databaseFactoryIo.openDatabase(

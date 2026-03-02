@@ -1,8 +1,8 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:re_ucm_lib/re_ucm_lib.dart';
+
 import '../../../../core/ui/constants.dart';
-import '../../domain/path_placeholders.dart';
-import '../../domain/path_template.cg.dart';
 import '../../presentation/settings_controller.cg.dart';
 import 'tag_editing_controller.dart';
 

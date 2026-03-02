@@ -1,7 +1,7 @@
 import 'package:re_ucm_core/models/book.dart';
 
-import '../domain/path_placeholders.dart';
-import '../domain/path_template.cg.dart';
+import 'path_placeholders.dart';
+import 'path_template.cg.dart';
 import '../settings_service.dart';
 
 class TemplateFormatter {
@@ -26,7 +26,10 @@ class TemplateFormatter {
   }
 
   static String renderTemplate(
-      String template, Book data, SettingsService settings) {
+    String template,
+    Book data,
+    SettingsService settings,
+  ) {
     final separator = settings.authorsPathSeparator;
     final authorsSeparator = separator.isEmpty ? ', ' : separator;
 

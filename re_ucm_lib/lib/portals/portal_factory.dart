@@ -14,10 +14,12 @@ class PortalFactory {
 
   // Fetch portal from code or URL
   static Portal fromCode(String code) =>
-      _portalsByCode[code] ?? (throw ArgumentError('Invalid portal code: $code'));
+      _portalsByCode[code] ??
+      (throw ArgumentError('Invalid portal code: $code'));
 
   static Portal fromUrl(Uri uri) =>
-      _portalsByUrl[uri.origin] ?? (throw ArgumentError('Invalid portal URL: $uri'));
+      _portalsByUrl[uri.origin] ??
+      (throw ArgumentError('Invalid portal URL: $uri'));
 
   static Portal fromJson(Map<String, dynamic> json) => fromCode(json['code']);
   static Map<String, dynamic> toJson(Portal portal) => {'code': portal.code};

@@ -1,10 +1,9 @@
 import 'package:flutter/widgets.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:re_ucm_author_today/re_ucm_author_today.dart';
+import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 import '../features/ota/ota_service.dart';
-import '../features/portals/domain/portal_factory.dart';
-import '../features/recent_books/application/recent_books_service.dart';
-import '../features/settings/application/settings_service.cg.dart';
 
 class AppDependencies extends InheritedWidget {
   final OTAService otaService;
@@ -33,8 +32,9 @@ class AppDependencies extends InheritedWidget {
     PortalFactory.registerAll([AuthorToday()]);
 
     final otaService = await OTAService.init();
-    final recentBooksService = await RecentBooksService.init();
-    final settingsService = await SettingsService.init();
+    final dir = await getApplicationSupportDirectory();
+    final recentBooksService = await RecentBooksService.init(dir.path);
+    final settingsService = await SettingsService.init(dir.path);
 
     return AppDependencies(
       otaService: otaService,

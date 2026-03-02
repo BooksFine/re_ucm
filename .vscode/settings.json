@@ -10,5 +10,4 @@
     "reucm",
     "webauth"
   ],
-  "dart.flutterSdkPath": ".fvm/versions/master"
 }

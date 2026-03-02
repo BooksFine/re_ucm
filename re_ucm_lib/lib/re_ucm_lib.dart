@@ -2,7 +2,7 @@
 export 'settings/domain/path_placeholders.dart';
 export 'settings/domain/path_template.cg.dart';
 export 'settings/settings_service.dart';
-export 'settings/utils/template_formatter.dart';
+export 'settings/domain/template_formatter.dart';
 
 // Recent Books
 export 'recent_books/domain/recent_book.cg.dart';

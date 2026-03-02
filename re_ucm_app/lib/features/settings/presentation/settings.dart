@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 import '../../../core/navigation/router_delegate.dart';
 import '../../../core/ui/constants.dart';
 import '../../portals/presentation/portals_list.dart';
-import '../application/settings_service.cg.dart';
 import 'about/social_row.dart';
 import 'common/settings_animated_switcher.dart';
 import 'common/settings_button.dart';

@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
+import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 import '../../../core/ui/constants.dart';
 import '../../common/widgets/appbar.dart';
 import '../../common/widgets/shimmer.dart';
-import '../../portals/application/portal_session.cg.dart';
-import '../../recent_books/application/recent_books_service.dart';
-import '../../settings/application/settings_service.cg.dart';
 import '../../settings/presentation/settings_dialog.dart';
 import 'book_page_controller.cg.dart';
 import 'widgets/annotation_viewer.dart';

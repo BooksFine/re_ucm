@@ -2,11 +2,10 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:re_ucm_lib/re_ucm_lib.dart';
 import 'package:text_balancer/text_balancer.dart';
 
 import '../../../core/di.dart';
-import '../application/recent_books_service.dart';
-import '../domain/recent_book.cg.dart';
 import 'animated_recent_book_card.dart';
 
 class RecentBooksList extends StatefulWidget {

@@ -1,11 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:re_ucm_lib/re_ucm_lib.dart';
 import 'package:text_balancer/text_balancer.dart';
 
 import '../../../core/navigation/router_delegate.dart';
 import '../../../core/ui/constants.dart';
 import '../../common/widgets/shimmer.dart';
-import '../domain/recent_book.cg.dart';
 
 class RecentBookCard extends StatelessWidget {
   const RecentBookCard({super.key, required this.book, this.onDelete});

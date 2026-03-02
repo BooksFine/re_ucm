@@ -1,6 +1,5 @@
 import 'package:re_ucm_core/models/portal.dart';
-
-import '../../portals/application/portal_session.cg.dart';
+import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 sealed class SettingsPageState {}
 

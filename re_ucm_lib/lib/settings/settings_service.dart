@@ -42,16 +42,9 @@ class SettingsService {
       return PortalSession(
         portal: portal,
         initialSettings: settings,
-        persistCallback: _persistPortalSettings,
+        persistCallback: storage.setPortalSettings,
       );
     }).toList();
-  }
-
-  Future<void> _persistPortalSettings(
-    String code,
-    Map<String, dynamic> json,
-  ) async {
-    await storage.setPortalSettings(code, json);
   }
 
   void updateDownloadPathTemplate(PathTemplate template) {

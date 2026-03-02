@@ -1,9 +1,7 @@
 import 'package:mobx/mobx.dart';
 import 'package:re_ucm_core/models/portal.dart';
 
-import '../../portals/application/portal_session.cg.dart';
-import '../application/settings_service.cg.dart';
-import '../domain/path_template.cg.dart';
+import 'package:re_ucm_lib/re_ucm_lib.dart';
 import 'settings_states.dart';
 
 part '../../../.gen/features/settings/presentation/settings_controller.cg.g.dart';

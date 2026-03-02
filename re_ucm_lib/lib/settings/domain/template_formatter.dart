@@ -17,9 +17,15 @@ class TemplateFormatter {
   );
 
   static String buildTemplateFileName(Book data, SettingsService settings) {
-    var template = settings.downloadPathTemplate.path.trim();
+    var template = data.series != null
+        ? settings.downloadPathTemplate.seriesPath.trim()
+        : settings.downloadPathTemplate.path.trim();
 
-    if (template.isEmpty) template = PathTemplate.initialPathPlaceholder;
+    if (template.isEmpty) {
+      template = data.series != null
+          ? PathTemplate.initialSeriesPathPlaceholder
+          : PathTemplate.initialPathPlaceholder;
+    }
     final rendered = renderTemplate(template, data, settings).trim();
 
     return rendered;

@@ -10,6 +10,13 @@ targets:
         options:
           build_extensions:
             "^lib/{{}}.dart": "lib/.gen/{{}}.g.dart"
+      freezed:
+        generate_for:
+          include:
+            - lib/**.cg.dart
+        options:
+          build_extensions:
+            "^lib/{{}}.dart": "lib/.gen/{{}}.freezed.dart"
       mobx_codegen:mobx_generator:
         generate_for:
           include:

@@ -8,7 +8,10 @@ class SettingsAnimatedSwitcher extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedSwitcher(
-      duration: Durations.medium2,
+      duration: Durations.long1,
+      reverseDuration: Durations.medium2,
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
       transitionBuilder: (child, animation) =>
           FadeTransition(opacity: animation, child: child),
       layoutBuilder: (child, previousChildren) => Stack(

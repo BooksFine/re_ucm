@@ -27,10 +27,13 @@ class _PathTemplateFieldState extends State<PathTemplateField> {
   late TagEditingController pathController;
   final FocusNode focus = FocusNode();
 
+  late String path = widget.initialPath;
   late bool isPathEmpty;
   String? pathError;
 
   static final illegalChars = RegExp(r'[<>:"|?*]');
+
+  bool isEditing = false;
 
   @override
   void initState() {
@@ -59,7 +62,21 @@ class _PathTemplateFieldState extends State<PathTemplateField> {
     }
   }
 
-  void _insertTemplateTag(String tag) {
+  void onPathSaved() {
+    if (pathError != null) return;
+    widget.onChanged(pathController.text);
+    path = pathController.text;
+    isEditing = false;
+    setState(() {});
+  }
+
+  void onUnfocus(PointerDownEvent event) {
+    focus.unfocus();
+    if (pathController.text.isNotEmpty) return;
+    pathController.text = path;
+  }
+
+  void insertTemplateTag(String tag) {
     pathController.insertTag(tag);
     onPathChanged(pathController.text);
   }
@@ -70,28 +87,19 @@ class _PathTemplateFieldState extends State<PathTemplateField> {
       children: [
         SizedBox(height: appPadding * 1.6),
         TextField(
+          readOnly: !isEditing,
           groupId: 'test',
           scrollPadding: const EdgeInsets.all(0),
           controller: pathController,
           focusNode: focus,
           maxLines: 1,
           onChanged: onPathChanged,
-          onTapOutside: (event) {
-            focus.unfocus();
-            if (pathController.text.isNotEmpty) return;
-            onPathChanged(widget.initialPath);
-            pathController.text = widget.initialPath;
-          },
-          style: TextStyle(
-            color: ColorScheme.of(context).onSurfaceVariant,
-            // height: 2,
-          ),
+          onTapOutside: onUnfocus,
+          style: TextStyle(color: ColorScheme.of(context).onSurfaceVariant),
           decoration: InputDecoration(
-            errorText: pathError,
-            visualDensity: VisualDensity.comfortable,
+            visualDensity: VisualDensity.compact,
             floatingLabelStyle: TextStyle(
-              // 16 / 0.75, компенсируем стандартное уменьшение Flutter'а
-              fontSize: 21.65,
+              fontSize: 20,
               color: ColorScheme.of(context).onSurfaceVariant,
             ),
             labelText: widget.title,
@@ -99,6 +107,7 @@ class _PathTemplateFieldState extends State<PathTemplateField> {
               fontSize: 16,
               color: ColorScheme.of(context).onSurfaceVariant,
             ),
+            errorText: pathError,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: appPadding * 2,
             ),
@@ -106,55 +115,63 @@ class _PathTemplateFieldState extends State<PathTemplateField> {
             suffixIcon: Row(
               mainAxisSize: .min,
               children: [
-                if (!isPathEmpty)
-                  TapRegion(
-                    groupId: 'test',
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.clear,
-                        color: ColorScheme.of(context).onSurfaceVariant,
+                if (isEditing) ...[
+                  if (!isPathEmpty)
+                    TapRegion(
+                      groupId: 'test',
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.clear,
+                          color: ColorScheme.of(context).onSurfaceVariant,
+                        ),
+                        onPressed: () {
+                          pathController.clear();
+                          onPathChanged('');
+                        },
                       ),
-                      onPressed: () {
-                        pathController.clear();
-                        onPathChanged('');
-                      },
+                    ),
+                  IconButton(
+                    icon: Icon(
+                      Icons.save_as_outlined,
+                      color: ColorScheme.of(context).onSurfaceVariant,
+                    ),
+                    onPressed: onPathSaved,
+                  ),
+                ] else
+                  IconButton(
+                    onPressed: () => setState(() => isEditing = true),
+                    icon: Icon(
+                      Icons.edit_outlined,
+                      color: ColorScheme.of(context).onSurfaceVariant,
                     ),
                   ),
-                IconButton(
-                  icon: Icon(
-                    Icons.save_as_outlined,
-                    color: ColorScheme.of(context).onSurfaceVariant,
-                  ),
-                  onPressed: () {
-                    if (pathError != null) return;
-                    widget.onChanged(pathController.text);
-                  },
-                ),
+
                 SizedBox(width: appPadding * 1.5),
               ],
             ),
           ),
         ),
-        // const SizedBox(height: appPadding),
-        SizedBox(
-          height: 40,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: appPadding * 1.5),
-            itemCount: widget.placeholders.length,
-            itemBuilder: (context, index) {
-              final tag = widget.placeholders[index];
-              return Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: PlaceholderButton(
-                  title: tag.label,
-                  groupId: 'test',
-                  onTap: () => _insertTemplateTag(tag.label),
-                ),
-              );
-            },
+        if (pathError != null) SizedBox(height: 16),
+        if (isEditing)
+          SizedBox(
+            height: 40,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: appPadding * 1.5),
+              itemCount: widget.placeholders.length,
+              itemBuilder: (context, index) {
+                final tag = widget.placeholders[index];
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: PlaceholderButton(
+                    title: tag.label,
+                    groupId: 'test',
+                    onTap: () => insertTemplateTag(tag.label),
+                  ),
+                );
+              },
+            ),
           ),
-        ),
       ],
     );
   }

@@ -4,7 +4,7 @@ import 'package:re_ucm_lib/re_ucm_lib.dart';
 import '../../../../core/ui/constants.dart';
 import '../../presentation/settings_controller.cg.dart';
 import 'authors_separator_field.dart';
-import 'path_template_card.dart';
+import 'path_template_field.dart';
 import 'save_directory_field.dart';
 
 class SaveSettings extends StatelessWidget {
@@ -18,9 +18,9 @@ class SaveSettings extends StatelessWidget {
       children: [
         SaveDirectoryField(controller: controller),
         const SizedBox(height: appPadding * 2),
-        PathTemplateCard(
+        PathTemplateField(
           title: 'Шаблон для произведений в серии',
-          path: controller.downloadPathTemplate.seriesPath,
+          initialPath: controller.downloadPathTemplate.seriesPath,
           onChanged: (newPath) {
             controller.updateDownloadPathTemplate(
               controller.downloadPathTemplate.copyWith(seriesPath: newPath),
@@ -28,9 +28,9 @@ class SaveSettings extends StatelessWidget {
           },
         ),
         const SizedBox(height: appPadding),
-        PathTemplateCard(
+        PathTemplateField(
           title: 'Шаблон для одиночных произведений',
-          path: controller.downloadPathTemplate.path,
+          initialPath: controller.downloadPathTemplate.path,
           placeholders: const [
             PathPlaceholders.name,
             PathPlaceholders.authors,

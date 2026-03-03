@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:re_ucm_core/models/portal.dart';
+import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 import '../../../../core/navigation/router_delegate.dart';
 import '../../../../core/ui/constants.dart';
 import '../../../common/widgets/overlay_snack.dart';
-import '../../../portals/application/portal_session.cg.dart';
 import '../common/settings_animated_switcher.dart';
 import '../common/settings_button.dart';
 import '../common/settings_text_field.dart';

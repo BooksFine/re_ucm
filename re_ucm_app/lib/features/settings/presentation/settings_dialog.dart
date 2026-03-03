@@ -1,11 +1,11 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 import '../../../core/navigation/predictive_back_builder.dart';
 import '../../../core/navigation/router_delegate.dart';
 import '../../../core/ui/constants.dart';
-import '../application/settings_service.cg.dart';
 import 'settings.dart';
 
 Future openSettingsDialog(BuildContext context) {

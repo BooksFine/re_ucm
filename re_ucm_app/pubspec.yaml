@@ -14,6 +14,7 @@ resolution: workspace
 dependencies:
   re_ucm_core: ^1.8.0
   re_ucm_author_today: ^1.2.0
+  re_ucm_lib: ^1.0.0
 
   cupertino_icons: ^1.0.8
   cached_network_image: ^3.3.1

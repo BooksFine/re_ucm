@@ -1,18 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 class TagEditingController extends TextEditingController {
   TagEditingController({super.text});
 
-  // Инвертированные скобки "панцирь черепахи" для максимальной уникальности
-  // ⦘ (U+2998 Right Tortoise Shell Bracket)
-  static const String startTagChar = '\u2998';
-  // ⦗ (U+2997 Left Tortoise Shell Bracket)
-  static const String endTagChar = '\u2997';
-
-  // Регулярка: ищем всё между ⦘ и ⦗
-  static final RegExp tagRegExp = RegExp(
-    '$startTagChar([^$endTagChar]+)$endTagChar',
-  );
+  static const String startTagChar = TemplateFormatter.startTagChar;
+  static const String endTagChar = TemplateFormatter.endTagChar;
+  static final RegExp tagRegExp = TemplateFormatter.tagRegExp;
 
   @override
   set value(TextEditingValue newValue) {

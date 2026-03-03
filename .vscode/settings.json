@@ -1,13 +1,18 @@
 {
-    "cSpell.words": [
-        "appbar",
-        "fictionbook",
-        "inno",
-        "innoinstall",
-        "iscc",
-        "KHTML",
-        "Relogin",
-        "reucm",
-        "webauth"
-    ]
+  "cSpell.words": [
+    "appbar",
+    "fictionbook",
+    "inappwebview",
+    "inno",
+    "innoinstall",
+    "iscc",
+    "KHTML",
+    "mobx",
+    "Relogin",
+    "reucm",
+    "Roboto",
+    "sembast",
+    "webauth",
+    "webp"
+  ],
 }

@@ -1,9 +1,9 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:re_ucm_core/models/portal.dart';
 
-import '../../portals/domain/portal_factory.dart';
+import '../../portals/portal_factory.dart';
 
-part '../../../.gen/features/recent_books/domain/recent_book.cg.g.dart';
+part '../../.gen/recent_books/domain/recent_book.cg.g.dart';
 
 @JsonSerializable()
 class RecentBook {

@@ -1,19 +1,8 @@
 import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart';
 import 'package:sembast/sembast_io.dart';
 
 import '../domain/path_template.cg.dart';
-
-abstract interface class SettingsStorage {
-  Future<void> setDownloadPathTemplate(PathTemplate template);
-  Future<PathTemplate> getDownloadPathTemplate();
-  Future<void> setAuthorsPathSeparator(String separator);
-  Future<String> getAuthorsPathSeparator();
-  Future<void> setSaveDirectory(String? path);
-  Future<String?> getSaveDirectory();
-  Future<void> setPortalSettings(String code, Map<String, Object?> settings);
-  Future<Map<String, Map<String, Object?>>> getPortalsSettings();
-}
+import 'settings_storage.dart';
 
 class SettingsStorageSembast implements SettingsStorage {
   late final Database db;
@@ -24,12 +13,11 @@ class SettingsStorageSembast implements SettingsStorage {
 
   SettingsStorageSembast._();
 
-  static Future<SettingsStorageSembast> init() async {
+  static Future<SettingsStorageSembast> init(String databaseDirectory) async {
     var repo = SettingsStorageSembast._();
-    var dir = await getApplicationSupportDirectory();
 
     repo.db = await databaseFactoryIo.openDatabase(
-      path.join(dir.path, 'settings.db'),
+      path.join(databaseDirectory, 'settings.db'),
       version: 1,
     );
     return repo;
@@ -42,9 +30,9 @@ class SettingsStorageSembast implements SettingsStorage {
 
   @override
   Future<PathTemplate> getDownloadPathTemplate() async {
-    final Map<String, dynamic>? templateJson = await _store
-        .record('downloadPathTemplate')
-        .get(db);
+    final Map<String, dynamic>? templateJson =
+        await _store.record('downloadPathTemplate').get(db)
+            as Map<String, dynamic>?;
     return templateJson != null
         ? PathTemplate.fromJson(templateJson)
         : PathTemplate.initial();
@@ -57,22 +45,22 @@ class SettingsStorageSembast implements SettingsStorage {
 
   @override
   Future<String> getAuthorsPathSeparator() async {
-    return await _store.record('authorsPathSeparator').get(db) ?? '';
+    return await _store.record('authorsPathSeparator').get(db) as String? ?? '';
   }
 
   @override
-  Future<void> setSaveDirectory(String? path) async {
+  Future<void> setSaveDirectory(String? dirPath) async {
     final record = _store.record('saveDirectory');
-    if (path == null) {
+    if (dirPath == null) {
       await record.delete(db);
     } else {
-      await record.put(db, path);
+      await record.put(db, dirPath);
     }
   }
 
   @override
   Future<String?> getSaveDirectory() async {
-    return await _store.record('saveDirectory').get(db);
+    return await _store.record('saveDirectory').get(db) as String?;
   }
 
   @override

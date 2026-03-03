@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 import '../../../core/navigation/router_delegate.dart';
 import '../../../core/ui/constants.dart';
 import '../../portals/presentation/portals_list.dart';
-import '../application/settings_service.cg.dart';
 import 'about/social_row.dart';
 import 'common/settings_animated_switcher.dart';
 import 'common/settings_button.dart';
 import 'common/settings_title.dart';
 import 'portal_settings/portal_settings_frame.dart';
-import 'save_settings/download_path_editor.dart';
+import 'save_settings/save_settings.dart';
 import 'settings_controller.cg.dart';
 import 'settings_states.dart';
 
@@ -118,7 +118,7 @@ class _SettingsMainPage extends StatelessWidget {
   final SettingsMainPage page;
   final SettingsController controller;
 
-  static final plkey = GlobalKey();
+  static final plKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -126,7 +126,7 @@ class _SettingsMainPage extends StatelessWidget {
       crossAxisAlignment: .stretch,
       children: [
         PortalsList(
-          key: plkey,
+          key: plKey,
           authIndication: true,
           onTap: (portal) => controller.setSelectedSession(
             controller.sessionByCode(portal.code),
@@ -176,7 +176,7 @@ class _SettingsSaveSettingsPage extends StatelessWidget {
       crossAxisAlignment: .stretch,
       children: [
         const SizedBox(height: appPadding * 4),
-        DownloadPathEditor(controller: controller),
+        SaveSettings(controller: controller),
       ],
     );
   }

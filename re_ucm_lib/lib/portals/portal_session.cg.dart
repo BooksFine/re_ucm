@@ -2,7 +2,7 @@ import 'package:mobx/mobx.dart';
 import 'package:re_ucm_core/models/book.dart';
 import 'package:re_ucm_core/models/portal.dart';
 
-part '../../../.gen/features/portals/application/portal_session.cg.g.dart';
+part '../.gen/portals/portal_session.cg.g.dart';
 
 class PortalSession<T extends PortalSettings> = PortalSessionBase<T>
     with _$PortalSession<T>;

@@ -143,6 +143,8 @@ class PredictiveBackGestureObserverState
 
   @override
   bool handleStartBackGesture(PredictiveBackEvent backEvent) {
+    if (widget.route.isCurrent != true) return false;
+
     final bool gestureInProgress =
         !backEvent.isButtonEvent && widget.route.popGestureEnabled;
     if (!gestureInProgress) return false;

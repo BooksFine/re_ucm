@@ -1,7 +1,8 @@
-import '../../portals/application/portal_session.cg.dart';
-import '../../portals/domain/portal_factory.dart';
-import '../data/settings_storage.dart';
-import '../domain/path_template.cg.dart';
+import '../portals/portal_session.cg.dart';
+import '../portals/portal_factory.dart';
+import 'data/settings_storage.dart';
+import 'data/settings_storage_sembast.dart';
+import 'domain/path_template.cg.dart';
 
 class SettingsService {
   SettingsService._();
@@ -9,9 +10,9 @@ class SettingsService {
   late final SettingsStorage storage;
   late final List<PortalSession> _sessions;
 
-  static Future<SettingsService> init() async {
+  static Future<SettingsService> init(String databaseDirectory) async {
     final service = SettingsService._();
-    service.storage = await SettingsStorageSembast.init();
+    service.storage = await SettingsStorageSembast.init(databaseDirectory);
     await service.loadSettings();
     return service;
   }
@@ -41,16 +42,9 @@ class SettingsService {
       return PortalSession(
         portal: portal,
         initialSettings: settings,
-        persistCallback: _persistPortalSettings,
+        persistCallback: storage.setPortalSettings,
       );
     }).toList();
-  }
-
-  Future<void> _persistPortalSettings(
-    String code,
-    Map<String, dynamic> json,
-  ) async {
-    await storage.setPortalSettings(code, json);
   }
 
   void updateDownloadPathTemplate(PathTemplate template) {

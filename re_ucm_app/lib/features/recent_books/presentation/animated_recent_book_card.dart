@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 import '../../../core/ui/constants.dart';
-import '../domain/recent_book.cg.dart';
 import 'recent_book_card.dart';
 
 class AnimatedRecentBookCard extends StatefulWidget {
@@ -58,7 +58,7 @@ class _AnimatedRecentBookCardState extends State<AnimatedRecentBookCard>
       child: SizeTransition(
         sizeFactor: _sizeAnimation,
         axis: .vertical,
-        alignment: .center,
+        alignment: .topCenter,
         child: Padding(
           padding: .only(top: widget.isFirst ? 0 : appPadding),
           child: RecentBookCard(onDelete: deleteBook, book: widget.book),

@@ -9,9 +9,11 @@ workspace:
   - re_ucm_app
   - re_ucm_author_today
   - re_ucm_core
+  - re_ucm_lib
 
 dependency_overrides:
   flutter_inappwebview:
     git:
       url: https://github.com/pichillilorenzo/flutter_inappwebview.git
       path: flutter_inappwebview
+

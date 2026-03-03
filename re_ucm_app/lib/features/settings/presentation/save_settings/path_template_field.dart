@@ -64,17 +64,15 @@ class _PathTemplateFieldState extends State<PathTemplateField> {
 
   void onPathSaved() {
     if (pathError != null) return;
+    if (isPathEmpty) pathController.text = path;
     widget.onChanged(pathController.text);
     path = pathController.text;
     isEditing = false;
+    focus.unfocus();
     setState(() {});
   }
 
-  void onUnfocus(PointerDownEvent event) {
-    focus.unfocus();
-    if (pathController.text.isNotEmpty) return;
-    pathController.text = path;
-  }
+  void onUnfocus(PointerDownEvent event) => focus.unfocus();
 
   void insertTemplateTag(String tag) {
     pathController.insertTag(tag);
@@ -152,26 +150,34 @@ class _PathTemplateFieldState extends State<PathTemplateField> {
           ),
         ),
         if (pathError != null) SizedBox(height: 16),
-        if (isEditing)
-          SizedBox(
-            height: 40,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: appPadding * 1.5),
-              itemCount: widget.placeholders.length,
-              itemBuilder: (context, index) {
-                final tag = widget.placeholders[index];
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: PlaceholderButton(
-                    title: tag.label,
-                    groupId: 'test',
-                    onTap: () => insertTemplateTag(tag.label),
+        AnimatedSize(
+          duration: Durations.short4,
+          reverseDuration: Durations.short1,
+          alignment: .topCenter,
+          child: isEditing
+              ? SizedBox(
+                  height: 40,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: appPadding * 1.5,
+                    ),
+                    itemCount: widget.placeholders.length,
+                    itemBuilder: (context, index) {
+                      final tag = widget.placeholders[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: PlaceholderButton(
+                          title: tag.label,
+                          groupId: 'test',
+                          onTap: () => insertTemplateTag(tag.label),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
-          ),
+                )
+              : SizedBox.shrink(),
+        ),
       ],
     );
   }

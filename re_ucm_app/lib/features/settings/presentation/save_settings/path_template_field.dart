@@ -72,8 +72,6 @@ class _PathTemplateFieldState extends State<PathTemplateField> {
     setState(() {});
   }
 
-  void onUnfocus(PointerDownEvent event) => focus.unfocus();
-
   void insertTemplateTag(String tag) {
     pathController.insertTag(tag);
     onPathChanged(pathController.text);
@@ -92,8 +90,9 @@ class _PathTemplateFieldState extends State<PathTemplateField> {
           focusNode: focus,
           maxLines: 1,
           onChanged: onPathChanged,
-          onTapOutside: onUnfocus,
+          onTapOutside: (v) {},
           style: TextStyle(color: ColorScheme.of(context).onSurfaceVariant),
+
           decoration: InputDecoration(
             visualDensity: VisualDensity.compact,
             floatingLabelStyle: TextStyle(
@@ -152,7 +151,6 @@ class _PathTemplateFieldState extends State<PathTemplateField> {
         if (pathError != null) SizedBox(height: 16),
         AnimatedSize(
           duration: Durations.short4,
-          reverseDuration: Durations.short1,
           alignment: .topCenter,
           child: isEditing
               ? SizedBox(

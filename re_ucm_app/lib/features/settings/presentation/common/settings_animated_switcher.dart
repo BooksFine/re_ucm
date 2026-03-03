@@ -17,7 +17,6 @@ class SettingsAnimatedSwitcher extends StatelessWidget {
       layoutBuilder: (child, previousChildren) => Stack(
         alignment: .topCenter,
         children: [
-          ?child,
           ...previousChildren.map(
             (child) => Positioned.fill(
               child: OverflowBox(
@@ -27,6 +26,7 @@ class SettingsAnimatedSwitcher extends StatelessWidget {
               ),
             ),
           ),
+          ?child,
         ],
       ),
       child: child,

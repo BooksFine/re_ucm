@@ -19,7 +19,7 @@ class SaveSettings extends StatelessWidget {
         SaveDirectoryField(controller: controller),
         const SizedBox(height: appPadding * 2),
         PathTemplateField(
-          title: 'Шаблон для произведений в серии',
+          title: 'Шаблон для книг в серии',
           initialPath: controller.downloadPathTemplate.seriesPath,
           onChanged: (newPath) {
             controller.updateDownloadPathTemplate(
@@ -29,7 +29,7 @@ class SaveSettings extends StatelessWidget {
         ),
         const SizedBox(height: appPadding),
         PathTemplateField(
-          title: 'Шаблон для одиночных произведений',
+          title: 'Шаблон для одиночных книг',
           initialPath: controller.downloadPathTemplate.path,
           placeholders: const [
             PathPlaceholders.name,

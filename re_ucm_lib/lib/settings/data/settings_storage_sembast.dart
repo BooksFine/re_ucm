@@ -45,7 +45,8 @@ class SettingsStorageSembast implements SettingsStorage {
 
   @override
   Future<String> getAuthorsPathSeparator() async {
-    return await _store.record('authorsPathSeparator').get(db) as String? ?? '';
+    return await _store.record('authorsPathSeparator').get(db) as String? ??
+        ', ';
   }
 
   @override

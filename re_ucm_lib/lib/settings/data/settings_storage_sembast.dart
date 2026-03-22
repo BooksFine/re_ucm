@@ -1,4 +1,5 @@
 import 'package:path/path.dart' as path;
+import 'package:re_ucm_lib/settings/domain/save_format.dart';
 import 'package:sembast/sembast_io.dart';
 
 import '../domain/path_template.cg.dart';
@@ -18,7 +19,13 @@ class SettingsStorageSembast implements SettingsStorage {
 
     repo.db = await databaseFactoryIo.openDatabase(
       path.join(databaseDirectory, 'settings.db'),
-      version: 1,
+      version: 2,
+      onVersionChanged: (db, oldVer, newVer) {
+        switch (oldVer) {
+          case 1:
+            db.dropAll();
+        }
+      },
     );
     return repo;
   }
@@ -76,5 +83,21 @@ class SettingsStorageSembast implements SettingsStorage {
       map[record.key] = record.value;
     }
     return map;
+  }
+
+  @override
+  Future<void> setSaveFormat(SaveFormat format) async =>
+      await _store.record('saveFormat').put(db, format.toJson());
+
+  @override
+  Future<SaveFormat?> getSaveFormat() async {
+    final formatStr = await _store.record('saveFormat').get(db) as String?;
+    if (formatStr == null) return null;
+    try {
+      return SaveFormat.fromJson(formatStr);
+    } catch (e) {
+      await _store.record('saveFormat').delete(db);
+      return null;
+    }
   }
 }

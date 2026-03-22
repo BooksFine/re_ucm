@@ -4,6 +4,7 @@ import 'package:re_ucm_lib/re_ucm_lib.dart';
 import '../../../../core/ui/constants.dart';
 import '../../presentation/settings_controller.cg.dart';
 import 'authors_separator_field.dart';
+import 'format_selector.dart';
 import 'path_template_field.dart';
 import 'save_directory_field.dart';
 
@@ -44,6 +45,8 @@ class SaveSettings extends StatelessWidget {
         ),
         const SizedBox(height: appPadding),
         AuthorsSeparatorField(controller: controller),
+        const SizedBox(height: appPadding * 2),
+        FormatSelector(),
       ],
     );
   }

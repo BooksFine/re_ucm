@@ -18,7 +18,4 @@ abstract class ATSettings with _$ATSettings implements PortalSettings {
 
   factory ATSettings.fromJson(Map<String, dynamic> json) =>
       _$ATSettingsFromJson(json);
-
-  @override
-  Map<String, dynamic> toMap() => toJson();
 }

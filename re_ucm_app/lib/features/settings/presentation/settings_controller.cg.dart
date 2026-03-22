@@ -2,6 +2,7 @@ import 'package:mobx/mobx.dart';
 import 'package:re_ucm_core/models/portal.dart';
 
 import 'package:re_ucm_lib/re_ucm_lib.dart';
+import 'package:re_ucm_lib/settings/domain/save_format.dart';
 import 'settings_states.dart';
 
 part '../../../.gen/features/settings/presentation/settings_controller.cg.g.dart';
@@ -36,6 +37,9 @@ abstract class SettingsControllerBase with Store {
   PortalSession sessionByCode(String code) => service.sessionByCode(code);
 
   //Save settings
+
+  SaveFormat get saveFormat => service.saveFormat;
+  void updateSaveFormat(SaveFormat format) => service.updateSaveFormat(format);
 
   PathTemplate get downloadPathTemplate => service.downloadPathTemplate;
   void updateDownloadPathTemplate(PathTemplate template) =>

@@ -18,7 +18,9 @@ class UpdateController {
 
   Future<bool> updateApp(VoidCallback callback) async {
     try {
-      if (kIsWeb || !Platform.isAndroid) return launchUrlString(releasesUrl);
+      if (kIsWeb || !Platform.isAndroid) {
+        return await launchUrlString(releasesUrl);
+      }
 
       progressStream = OtaUpdate()
           .execute(otaHost, destinationFilename: 'reucm-$actualVersion.apk')

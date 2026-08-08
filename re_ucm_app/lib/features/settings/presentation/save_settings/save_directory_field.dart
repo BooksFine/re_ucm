@@ -29,7 +29,7 @@ class _SaveDirectoryFieldState extends State<SaveDirectoryField> {
   }
 
   Future<void> onPickSaveDirectory() async {
-    final result = await FilePicker.platform.getDirectoryPath();
+    final result = await FilePicker.getDirectoryPath();
     if (result != null) {
       saveDirectoryController.text = result;
       widget.controller.updateSaveDirectory(result);

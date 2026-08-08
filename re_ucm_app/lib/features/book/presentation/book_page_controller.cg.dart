@@ -157,9 +157,9 @@ abstract class BookPageControllerBase with Store {
         await file.parent.create(recursive: true);
         await file.writeAsBytes(bookXmlBytes!);
       } else {
-        finalPath = await FilePicker.platform.saveFile(
+        finalPath = await FilePicker.saveFile(
           dialogTitle: 'Сохранение книги',
-          bytes: bookXmlBytes,
+          bytes: bookXmlBytes!,
           fileName: '$templateFileName.fb2',
           type: FileType.custom,
           allowedExtensions: ['fb2'],

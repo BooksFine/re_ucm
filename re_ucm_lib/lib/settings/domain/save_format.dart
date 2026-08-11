@@ -1,5 +1,5 @@
 enum SaveFormat {
-  fb2Zip('.fb2.zip', 'application/zip'),
+  fb2Zip('.fb2.zip', 'application/x-zip-compressed-fb2'),
   epub('.epub', 'application/epub+zip'),
   fb2('.fb2', 'application/x-fictionbook+xml');
 

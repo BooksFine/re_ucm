@@ -4,7 +4,7 @@ import 'package:re_ucm_author_today/domain/constants.dart';
 import 'package:re_ucm_core/models/portal.dart';
 
 class AuthorToday implements Portal<ATSettings> {
-  late final PortalService<ATSettings> _service = AuthorTodayService(this);
+  late final PortalService<ATSettings> _service = AuthorTodayService();
 
   @override
   String get code => codeAT;

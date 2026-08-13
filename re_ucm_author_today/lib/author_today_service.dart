@@ -1,5 +1,8 @@
+import 'dart:typed_data';
+import 'package:dio/dio.dart';
+import 'package:dart_book/dart_book.dart';
 import 'package:re_ucm_author_today/data/models/at_settings.cg.dart';
-import 'package:re_ucm_core/models/book.dart';
+import 'package:re_ucm_core/logger.dart';
 import 'package:re_ucm_core/models/portal.dart';
 
 import 'data/author_today_api.cg.dart';
@@ -14,8 +17,7 @@ class AuthorTodayService implements PortalService<ATSettings> {
   static const loginByWebAction = 'login_by_web';
   static const logoutAction = 'logout';
 
-  AuthorTodayService(this.portal);
-  final Portal portal;
+  AuthorTodayService();
 
   @override
   void Function(ATSettings updatedSettings)? onSettingsChanged;
@@ -138,7 +140,9 @@ class AuthorTodayService implements PortalService<ATSettings> {
         onSettingsChanged?.call(settings.copyWith(token: newToken));
         return newToken;
       }
-    } catch (_) {}
+    } catch (e, trace) {
+      logger.w('Failed to refresh AuthorToday token', error: e, stackTrace: trace);
+    }
     return null;
   }
 
@@ -158,17 +162,20 @@ class AuthorTodayService implements PortalService<ATSettings> {
   }
 
   @override
-  Future<Book> getBookFromId(String id, {required ATSettings settings}) async {
+  Future<BookMetadata> getBookMetadata(
+    String id, {
+    required ATSettings settings,
+  }) async {
     final api = AuthorTodayAPI.create(
       token: settings.token,
       onRelogin: () => _relogin(settings),
     );
     final res = await api.getMeta(id);
-    return metadataParserAT(res.data, portal);
+    return metadataParserAT(res.data);
   }
 
   @override
-  Future<List<Chapter>> getTextFromId(
+  Future<BookContent> getBookContent(
     String id, {
     required ATSettings settings,
   }) async {
@@ -180,15 +187,74 @@ class AuthorTodayService implements PortalService<ATSettings> {
     );
     final res = await api.getManyTexts(id);
     final successfulEntries = res.data.where((entry) => entry.isSuccessful);
-    return Future.wait(
-      successfulEntries.map((chapter) => _createChapter(chapter, userId)),
+    final sections = await Future.wait(
+      successfulEntries.map((chapter) => _createSection(chapter, userId)),
+    );
+    return BookContent(blocks: sections);
+  }
+
+  Future<BookSection> _createSection(ATChapter chapter, String? userId) async {
+    final text = await decryptData(chapter.text!, chapter.key!, userId);
+    final blocks = HtmlParser().parseFromString(text);
+
+    return BookSection(
+      title: chapter.title != null ? [BookText(chapter.title!)] : const [],
+      blocks: blocks,
     );
   }
 
-  Future<Chapter> _createChapter(ATChapter chapter, String? userId) async {
-    return Chapter(
-      title: chapter.title!,
-      content: await decryptData(chapter.text!, chapter.key!, userId),
-    );
+  @override
+  BookResourceResolver getResourceResolver(ATSettings settings) {
+    final dio = Dio();
+    return (request, {onByteProgress}) async {
+      final rawUri = request.source ?? request.id;
+      final url = rawUri.startsWith('/') ? '$urlAT$rawUri' : rawUri;
+
+      try {
+        final res = await dio.get<Uint8List>(
+          url,
+          options: Options(
+            responseType: ResponseType.bytes,
+            headers: {
+              'user-agent': userAgentAT,
+              if (settings.token != null)
+                'authorization': 'Bearer ${settings.token}',
+            },
+          ),
+          onReceiveProgress: (received, total) {
+            onByteProgress?.call(received, total > 0 ? total : null);
+          },
+        );
+
+        final bytes = res.data;
+        if (bytes == null) return null;
+
+        final headerContentType = res.headers.value('content-type');
+        final mediaType =
+            (headerContentType != null && headerContentType.startsWith('image/'))
+                ? headerContentType.split(';').first.trim()
+                : _guessMediaType(url);
+
+        return BookResource(
+          id: request.id,
+          mediaType: mediaType,
+          bytes: bytes,
+          originalUri: Uri.tryParse(url),
+        );
+      } catch (e, trace) {
+        logger.w('Failed to resolve AuthorToday resource: $url', error: e, stackTrace: trace);
+        return null;
+      }
+    };
+  }
+
+  static String _guessMediaType(String url) {
+    final lower = url.toLowerCase();
+    if (lower.endsWith('.png')) return 'image/png';
+    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
+    if (lower.endsWith('.gif')) return 'image/gif';
+    if (lower.endsWith('.webp')) return 'image/webp';
+    if (lower.endsWith('.svg')) return 'image/svg+xml';
+    return 'image/jpeg';
   }
 }

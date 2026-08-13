@@ -1,75 +1,88 @@
-import 'package:re_ucm_core/models/book.dart';
-import 'package:re_ucm_core/models/portal.dart';
+import 'package:dart_book/dart_book.dart';
 
 import '../../data/models/at_work_metadata.cg.dart';
 import 'genre_from_id.dart';
 
-Book metadataParserAT(ATWorkMetadata data, Portal portal) {
-  List<Author> authors = [];
-
-  authors.add(
-    Author(
-      url: 'https://author.today/u/${data.authorUserName}',
-      name: data.authorFIO,
+BookMetadata metadataParserAT(ATWorkMetadata data) {
+  final contributors = <BookContributor>[
+    BookContributor(
+      role: BookContributorRole.author,
+      name: PersonName(display: data.authorFIO),
+      homePage: Uri.tryParse('https://author.today/u/${data.authorUserName}'),
     ),
-  );
-  if (data.coAuthorId != null) {
-    authors.add(
-      Author(
-        url: 'https://author.today/u/${data.coAuthorUserName}',
-        name: data.coAuthorFIO!,
-      ),
-    );
-  }
-  if (data.secondCoAuthorId != null) {
-    authors.add(
-      Author(
-        url: 'https://author.today/u/${data.secondCoAuthorUserName}',
-        name: data.secondCoAuthorFIO!,
+  ];
+
+  if (data.coAuthorId != null && data.coAuthorFIO != null) {
+    contributors.add(
+      BookContributor(
+        role: BookContributorRole.author,
+        name: PersonName(display: data.coAuthorFIO!),
+        homePage: data.coAuthorUserName != null
+            ? Uri.tryParse('https://author.today/u/${data.coAuthorUserName}')
+            : null,
       ),
     );
   }
 
-  var annotation = data.annotation != null ? "<p>${data.annotation}</p>" : null;
+  if (data.secondCoAuthorId != null && data.secondCoAuthorFIO != null) {
+    contributors.add(
+      BookContributor(
+        role: BookContributorRole.author,
+        name: PersonName(display: data.secondCoAuthorFIO!),
+        homePage: data.secondCoAuthorUserName != null
+            ? Uri.tryParse('https://author.today/u/${data.secondCoAuthorUserName}')
+            : null,
+      ),
+    );
+  }
+
+  var rawAnnotation =
+      data.annotation != null ? "<p>${data.annotation}</p>" : null;
   if (data.authorNotes != null) {
-    annotation ??= "";
-    annotation +=
-        "<b>Примечание автора:</b>"
-        "<br>"
+    rawAnnotation ??= "";
+    rawAnnotation +=
+        "<p><b>Примечание автора:</b></p>"
         "<p>${data.authorNotes}</p>";
   }
 
-  Series? series;
-  if (data.seriesId != null) {
-    series = Series(
-      url: "https://author.today/work/series/${data.seriesId}",
+  BookContent? annotationContent;
+  if (rawAnnotation != null && rawAnnotation.isNotEmpty) {
+    final blocks = HtmlParser().parseFromString(rawAnnotation);
+    annotationContent = BookContent(blocks: blocks);
+  }
+
+  BookSeries? series;
+  if (data.seriesId != null && data.seriesTitle != null) {
+    series = BookSeries(
       name: data.seriesTitle!,
-      number: data.seriesWorkNumber!,
+      number: data.seriesWorkNumber,
+      url: Uri.tryParse("https://author.today/work/series/${data.seriesId}"),
     );
   }
 
-  var genres = <Genre>[];
+  final genres = <BookGenre>[];
   for (var id in [data.genreId, data.firstSubGenreId, data.secondSubGenreId]) {
     if (id != null) {
       genres.add(genreFromId(id));
     }
   }
 
-  Book book = Book(
+  return BookMetadata(
     id: data.id.toString(),
-    url: 'https://author.today/work/${data.id}',
     title: data.title,
-    authors: authors,
-    annotation: annotation,
+    language: 'ru',
     isFinished: data.isFinished,
-    lastUpdateTime: data.lastUpdateTime,
-    coverUrl: data.coverUrl,
-    genres: genres,
-    tags: List<String>.from(data.tags),
-    series: series,
     textLength: data.textLength,
-    portal: portal,
+    contributors: contributors,
+    genres: genres,
+    keywords: List<String>.from(data.tags),
+    annotation: annotationContent,
+    series: series,
+    cover: data.coverUrl != null
+        ? BookCover(ref: BookResourceRef(data.coverUrl!), alt: data.title)
+        : null,
+    source: Uri.tryParse('https://author.today/work/${data.id}'),
+    updatedAt: data.lastUpdateTime,
   );
-
-  return book;
 }
+

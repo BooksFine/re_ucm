@@ -1,11 +1,11 @@
-import 'package:re_ucm_core/models/book.dart';
+import 'package:dart_book/dart_book.dart';
 
-Genre genreFromId(int id) {
+BookGenre genreFromId(int id) {
   var genre = genreMap[id];
   if (genre != null) {
-    return Genre(ru: genre['nameRU'], en: genre['nameEn']!);
+    return BookGenre(code: genre['nameEn']!, name: genre['nameRU']!);
   }
-  return Genre(ru: 'Неизвестный жанр', en: 'unknown');
+  return const BookGenre(code: 'unknown', name: 'Неизвестный жанр');
 }
 
 final Map<int, Map<String, String>> genreMap = {

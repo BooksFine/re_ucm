@@ -85,35 +85,34 @@ class PortalCardBase extends StatelessWidget {
               children: [
                 Expanded(
                   child: Stack(
+                    alignment: Alignment.center,
                     children: [
-                      SvgPicture(
-                        SvgAssetLoader(
-                          portal.logo.assetPath,
-                          packageName: portal.logo.packageName,
+                      Center(
+                        child: SvgPicture(
+                          SvgAssetLoader(
+                            portal.logo.assetPath,
+                            packageName: portal.logo.packageName,
+                          ),
+                          colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
                         ),
-                        colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
                       ),
                       if (authIndication == true)
-                        Align(
-                          alignment: Alignment.bottomRight,
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                              right: appPadding * 3,
+                        Positioned(
+                          right: 4,
+                          bottom: 0,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isActive
+                                  ? Colors.green[400]
+                                  : Colors.grey[600],
                             ),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: isActive
-                                    ? Colors.green[400]
-                                    : Colors.grey[600],
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(1),
-                                child: Icon(
-                                  isActive ? Icons.check : Icons.add,
-                                  color: Colors.white,
-                                  size: 12,
-                                ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(1),
+                              child: Icon(
+                                isActive ? Icons.check : Icons.add,
+                                color: Colors.white,
+                                size: 12,
                               ),
                             ),
                           ),

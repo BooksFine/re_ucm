@@ -1,4 +1,5 @@
-import 'package:re_ucm_core/models/book.dart';
+import 'package:dart_book/dart_book.dart';
+import 'package:re_ucm_core/models/portal.dart';
 
 import 'path_placeholders.dart';
 import 'path_template.cg.dart';
@@ -16,7 +17,11 @@ class TemplateFormatter {
     '$startTagChar([^$endTagChar]+)$endTagChar',
   );
 
-  static String buildTemplateFileName(Book data, SettingsService settings) {
+  static String buildTemplateFileName(
+    BookMetadata data,
+    Portal portal,
+    SettingsService settings,
+  ) {
     var template = data.series != null
         ? settings.downloadPathTemplate.seriesPath.trim()
         : settings.downloadPathTemplate.path.trim();
@@ -26,14 +31,15 @@ class TemplateFormatter {
           ? PathTemplate.initialSeriesPathPlaceholder
           : PathTemplate.initialPathPlaceholder;
     }
-    final rendered = renderTemplate(template, data, settings).trim();
+    final rendered = renderTemplate(template, data, portal, settings).trim();
 
     return rendered;
   }
 
   static String renderTemplate(
     String template,
-    Book data,
+    BookMetadata data,
+    Portal portal,
     SettingsService settings,
   ) {
     final separator = settings.authorsPathSeparator;
@@ -43,7 +49,7 @@ class TemplateFormatter {
       final label = match.group(1) ?? '';
       final placeholder = PathPlaceholders.fromLabel(label);
       if (placeholder == null) return '';
-      final value = placeholder.resolve(data, authorsSeparator);
+      final value = placeholder.resolve(data, portal, authorsSeparator);
       return value.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
     });
   }

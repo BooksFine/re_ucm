@@ -1,5 +1,6 @@
+import 'package:dart_book/dart_book.dart';
 import 'package:mobx/mobx.dart';
-import 'package:re_ucm_core/models/book.dart';
+import 'package:re_ucm_core/models/portal.dart';
 
 import 'data/recent_books_storage.dart';
 import 'data/recent_books_storage_sembast.dart';
@@ -25,19 +26,23 @@ abstract class _RecentBooksService with Store {
 
   final recentBooks = <RecentBook>[].asObservable();
 
-  Future<void> addRecentBook(Book book) async {
+  Future<void> addRecentBook(BookMetadata metadata, Portal portal) async {
     recentBooks.removeWhere(
-      (e) => e.portal.code + e.id == book.portal.code + book.id,
+      (e) => e.portal.code + e.id == portal.code + metadata.id,
     );
 
+    final authors = metadata.contributors
+        .map((e) => e.name.toDisplayString())
+        .join(', ');
+
     final recentBook = RecentBook(
-      id: book.id,
-      title: book.title,
-      authors: book.authors.map((e) => e.name).join(', '),
-      coverUrl: book.coverUrl,
-      seriesName: book.series?.name,
-      seriesNumber: book.series?.number,
-      portal: book.portal,
+      id: metadata.id,
+      title: metadata.title,
+      authors: authors,
+      coverUrl: metadata.cover?.ref.id,
+      seriesName: metadata.series?.name,
+      seriesNumber: metadata.series?.number,
+      portal: portal,
       added: DateTime.now(),
     );
     recentBooks.add(recentBook);

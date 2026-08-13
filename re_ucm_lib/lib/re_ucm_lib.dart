@@ -11,3 +11,6 @@ export 'recent_books/recent_books_service.cg.dart';
 // Portals
 export 'portals/portal_factory.dart';
 export 'portals/portal_session.cg.dart';
+
+// Exporters
+export 'exporters/book_exporter.dart';

@@ -1,4 +1,5 @@
 import 'package:path/path.dart' as path;
+import 'package:re_ucm_core/logger.dart';
 import 'package:re_ucm_lib/settings/domain/save_format.dart';
 import 'package:sembast/sembast_io.dart';
 
@@ -95,7 +96,12 @@ class SettingsStorageSembast implements SettingsStorage {
     if (formatStr == null) return null;
     try {
       return SaveFormat.fromJson(formatStr);
-    } catch (e) {
+    } catch (e, trace) {
+      logger.w(
+        'Failed to deserialize saveFormat, deleting corrupted record',
+        error: e,
+        stackTrace: trace,
+      );
       await _store.record('saveFormat').delete(db);
       return null;
     }

@@ -1,4 +1,5 @@
-import 'package:re_ucm_core/models/book.dart';
+import 'package:dart_book/dart_book.dart';
+import 'package:re_ucm_core/models/portal.dart';
 
 enum PathPlaceholders {
   name('Название'),
@@ -18,18 +19,24 @@ enum PathPlaceholders {
     return null;
   }
 
-  String resolve(Book data, String authorsSeparator) {
+  String resolve(
+    BookMetadata data,
+    Portal portal,
+    String authorsSeparator,
+  ) {
     switch (this) {
       case PathPlaceholders.name:
         return data.title;
       case PathPlaceholders.series:
         return data.series?.name ?? '';
       case PathPlaceholders.seriesNumber:
-        return data.series?.number.toString() ?? '';
+        return data.series?.number?.toString() ?? '';
       case PathPlaceholders.authors:
-        return data.authors.map((e) => e.name).join(authorsSeparator);
+        return data.contributors
+            .map((e) => e.name.toDisplayString())
+            .join(authorsSeparator);
       case PathPlaceholders.portal:
-        return data.portal.name;
+        return portal.name;
     }
   }
 }

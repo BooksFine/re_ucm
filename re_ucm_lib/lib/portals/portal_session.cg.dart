@@ -1,5 +1,5 @@
+import 'package:dart_book/dart_book.dart';
 import 'package:mobx/mobx.dart';
-import 'package:re_ucm_core/models/book.dart';
 import 'package:re_ucm_core/models/portal.dart';
 
 part '../.gen/portals/portal_session.cg.g.dart';
@@ -11,9 +11,8 @@ abstract class PortalSessionBase<T extends PortalSettings> with Store {
   PortalSessionBase({
     required this.portal,
     required T initialSettings,
-    required Future<void> Function(String code, Map<String, dynamic> json)
-    persistCallback,
-  }) : _persistCallback = persistCallback {
+    required this._persistCallback,
+  }) {
     settings = initialSettings;
     portal.service.onSettingsChanged = (s) => updateSettings(s);
   }
@@ -49,9 +48,12 @@ abstract class PortalSessionBase<T extends PortalSettings> with Store {
     await _persistCallback(portal.code, newSettings.toJson());
   }
 
-  Future<Book> getBook(String id) =>
-      portal.service.getBookFromId(id, settings: settings);
+  Future<BookMetadata> getBookMetadata(String id) =>
+      portal.service.getBookMetadata(id, settings: settings);
 
-  Future<List<Chapter>> getText(String id) =>
-      portal.service.getTextFromId(id, settings: settings);
+  Future<BookContent> getBookContent(String id) =>
+      portal.service.getBookContent(id, settings: settings);
+
+  BookResourceResolver getResourceResolver() =>
+      portal.service.getResourceResolver(settings);
 }

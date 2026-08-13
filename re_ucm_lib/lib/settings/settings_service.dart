@@ -25,7 +25,10 @@ class SettingsService {
 
   late SaveFormat _saveFormat;
   SaveFormat get saveFormat => _saveFormat;
-  void updateSaveFormat(SaveFormat format) => storage.setSaveFormat(format);
+  void updateSaveFormat(SaveFormat format) {
+    _saveFormat = format;
+    storage.setSaveFormat(format);
+  }
 
   late String? _saveDirectory;
   String? get saveDirectory => _saveDirectory;

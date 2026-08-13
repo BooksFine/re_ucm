@@ -78,11 +78,29 @@ BookMetadata metadataParserAT(ATWorkMetadata data) {
     keywords: List<String>.from(data.tags),
     annotation: annotationContent,
     series: series,
-    cover: data.coverUrl != null
-        ? BookCover(ref: BookResourceRef(data.coverUrl!), alt: data.title)
+    cover: _processCoverUrl(data.coverUrl) != null
+        ? BookCover(
+            ref: BookResourceRef(_processCoverUrl(data.coverUrl)!),
+            alt: data.title,
+          )
         : null,
     source: Uri.tryParse('https://author.today/work/${data.id}'),
     updatedAt: data.lastUpdateTime,
   );
+}
+
+String? _processCoverUrl(String? rawUrl) {
+  if (rawUrl == null || rawUrl.isEmpty) return null;
+  final uri = Uri.tryParse(rawUrl);
+  if (uri == null) return rawUrl;
+
+  final queryParams = Map<String, String>.from(uri.queryParameters)
+    ..remove('width')
+    ..remove('height')
+    ..remove('rmode');
+
+  return uri
+      .replace(queryParameters: queryParams.isNotEmpty ? queryParams : null)
+      .toString();
 }
 

@@ -16,8 +16,8 @@ class _UpdateWidgetState extends State<UpdateWidget> {
   late final UpdateController controller;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     controller = UpdateController(AppDependencies.of(context).otaService);
   }
 

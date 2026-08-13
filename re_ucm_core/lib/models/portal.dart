@@ -1,6 +1,6 @@
 library;
 
-import 'package:re_ucm_core/models/book.dart';
+import 'package:dart_book/dart_book.dart';
 
 part 'portal/portal.dart';
 part 'portal/portal_service.dart';

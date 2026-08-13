@@ -11,7 +11,9 @@ abstract interface class PortalService<T extends PortalSettings> {
 
   void Function(T updatedSettings)? onSettingsChanged;
 
-  Future<Book> getBookFromId(String id, {required T settings});
+  Future<BookMetadata> getBookMetadata(String id, {required T settings});
 
-  Future<List<Chapter>> getTextFromId(String id, {required T settings});
+  Future<BookContent> getBookContent(String id, {required T settings});
+
+  BookResourceResolver getResourceResolver(T settings);
 }

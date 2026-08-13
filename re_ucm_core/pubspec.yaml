@@ -6,12 +6,13 @@ publish_to: none
 repository: https://github.com/BooksFine/re_ucm_core
 
 environment:
-  sdk: ^3.11.0
+  sdk: ^3.13.0
 
 resolution: workspace
 
 dependencies:
   logger: ^2.5.0
+  dart_book:
 
 dev_dependencies:
   lints: ^6.0.0

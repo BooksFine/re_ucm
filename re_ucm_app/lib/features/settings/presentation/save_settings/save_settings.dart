@@ -46,7 +46,7 @@ class SaveSettings extends StatelessWidget {
         const SizedBox(height: appPadding),
         AuthorsSeparatorField(controller: controller),
         const SizedBox(height: appPadding * 2),
-        FormatSelector(),
+        FormatSelector(controller: controller),
       ],
     );
   }

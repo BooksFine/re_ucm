@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:re_ucm_core/models/portal.dart';
 
+import '../../core/logger.dart';
 import '../../core/navigation/router_delegate.dart';
 import '../common/widgets/appbar.dart';
 import '../common/widgets/webview.dart';
@@ -89,6 +90,7 @@ class _BrowserState extends State<Browser> {
             Nav.bookFromBrowser(widget.portal.code, bookId);
             return NavigationActionPolicy.CANCEL;
           } catch (e) {
+            logger.d('Navigated URL is not a book: $uri');
             return NavigationActionPolicy.ALLOW;
           }
         },
@@ -99,7 +101,7 @@ class _BrowserState extends State<Browser> {
             final bookId = widget.portal.service.getIdFromUrl(url!.uriValue);
             Nav.bookFromBrowser(widget.portal.code, bookId);
           } catch (e) {
-            {}
+            logger.d('History URL is not a book: ${url?.uriValue}');
           }
         },
       ),

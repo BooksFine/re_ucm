@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dart_book/dart_book.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:re_ucm_core/models/book.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../../../../core/ui/constants.dart';
@@ -10,14 +10,18 @@ import '../../../common/widgets/shimmer.dart';
 class BookHeader extends StatelessWidget {
   const BookHeader({super.key, required this.book});
 
-  final Book book;
+  final BookMetadata book;
 
   @override
   Widget build(BuildContext context) {
+    final coverUrl = book.cover?.ref.id;
+    final authors =
+        book.contributors.map((e) => e.name.toDisplayString()).join(', ');
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (book.coverUrl != null)
+        if (coverUrl != null && coverUrl.isNotEmpty)
           ClipRRect(
             borderRadius: BorderRadius.circular(cardBorderRadius),
             child: CachedNetworkImage(
@@ -33,7 +37,7 @@ class BookHeader extends StatelessWidget {
                   ),
                 );
               },
-              imageUrl: book.coverUrl!,
+              imageUrl: coverUrl,
               width: 110,
               height: 160,
               fit: BoxFit.fill,
@@ -56,7 +60,7 @@ class BookHeader extends StatelessWidget {
             children: [
               const SizedBox(height: appPadding),
               Text(book.title, style: Theme.of(context).textTheme.titleMedium),
-              Text(book.authors.map((e) => e.name).join(', ')),
+              Text(authors),
               if (book.textLength != null)
                 Padding(
                   padding: const EdgeInsets.only(top: appPadding * 2),
@@ -83,14 +87,18 @@ class BookHeader extends StatelessWidget {
                         ),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
-                            launchUrlString(
-                              book.series!.url,
-                              mode: LaunchMode.externalApplication,
-                            );
+                            if (book.series!.url != null) {
+                              launchUrlString(
+                                book.series!.url!.toString(),
+                                mode: LaunchMode.externalApplication,
+                              );
+                            }
                           },
                       ),
-                      const TextSpan(text: ' • '),
-                      TextSpan(text: book.series!.number.toString()),
+                      if (book.series!.number != null) ...[
+                        const TextSpan(text: ' • '),
+                        TextSpan(text: book.series!.number.toString()),
+                      ],
                     ],
                   ),
                 ),

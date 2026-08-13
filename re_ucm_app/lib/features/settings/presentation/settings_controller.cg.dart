@@ -38,8 +38,14 @@ abstract class SettingsControllerBase with Store {
 
   //Save settings
 
-  SaveFormat get saveFormat => service.saveFormat;
-  void updateSaveFormat(SaveFormat format) => service.updateSaveFormat(format);
+  @observable
+  late SaveFormat saveFormat = service.saveFormat;
+
+  @action
+  void updateSaveFormat(SaveFormat format) {
+    saveFormat = format;
+    service.updateSaveFormat(format);
+  }
 
   PathTemplate get downloadPathTemplate => service.downloadPathTemplate;
   void updateDownloadPathTemplate(PathTemplate template) =>

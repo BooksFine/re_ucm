@@ -1,21 +1,21 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:dart_book/dart_book.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:mobx/mobx.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:re_ucm_core/models/book.dart';
 import 'package:re_ucm_core/models/progress.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../core/constants.dart';
 import '../../../core/logger.dart';
 import '../../../core/navigation/router_delegate.dart';
 import '../../common/widgets/overlay_snack.dart';
-import '../../converters/fb2/converter.dart';
 
 part '../../../.gen/features/book/presentation/book_page_controller.cg.g.dart';
 
@@ -37,7 +37,7 @@ abstract class BookPageControllerBase with Store {
   final String id;
 
   @observable
-  late ObservableFuture<Book> book = ObservableFuture(_fetch());
+  late ObservableFuture<BookMetadata> book = ObservableFuture(_fetch());
 
   @action
   void fetch() => book = ObservableFuture(_fetch());
@@ -45,12 +45,12 @@ abstract class BookPageControllerBase with Store {
   bool get isAuthorized => session.isAuthorized;
 
   @action
-  Future<Book> _fetch() async {
+  Future<BookMetadata> _fetch() async {
     try {
       logger.i('Fetching book metadata [${session.code}-$id]');
-      final book = await session.getBook(id);
-      recentBooksService.addRecentBook(book);
-      return book;
+      final metadata = await session.getBookMetadata(id);
+      recentBooksService.addRecentBook(metadata, session.portal);
+      return metadata;
     } catch (e, trace) {
       logger.e(
         'Error fetching book metadata [${session.code}-$id]',
@@ -86,14 +86,30 @@ abstract class BookPageControllerBase with Store {
     logger.i('Downloading book');
     isDownloading = true;
     try {
-      final chapters = await session.getText(id);
-      book.value!.chapters.clear();
-      book.value!.chapters.addAll(chapters);
+      final content = await session.getBookContent(id);
 
-      bookXmlBytes = await convertToFB2(book.value!, (progress) {
-        this.progress = progress;
-        logger.i('Progress: $progress');
-      });
+      final templateFileName = TemplateFormatter.buildTemplateFileName(
+        book.value!,
+        session.portal,
+        settings,
+      );
+
+      bookXmlBytes = await BookExporter.export(
+        metadata: book.value!,
+        content: content,
+        format: settings.saveFormat,
+        resourceResolver: session.getResourceResolver(),
+        options: BookEncodingOptions(
+          documentId:
+              'UCM-${session.portal.code.toUpperCase()}-${book.value!.id}',
+          programUsed: 'ReUltimateCopyManager $appVersion',
+          entryFilename: templateFileName,
+        ),
+        onProgress: (p) {
+          progress = p;
+          logger.i('Progress: $p');
+        },
+      );
     } catch (e, trace) {
       logger.e('Book downloading error', error: e, stackTrace: trace);
       progress = Progress(stage: Stages.error, message: e.toString());
@@ -112,25 +128,29 @@ abstract class BookPageControllerBase with Store {
 
     name = name.replaceAll(RegExp(r'[<>:"/\\|?*]'), '');
 
+    final format = settings.saveFormat;
+    final ext = format.ext;
+    final mimeType = format.mimeType;
+
     var tempDir = (await getTemporaryDirectory()).path;
-    final filePath = path.join(tempDir, '$name.fb2');
+    final filePath = path.join(tempDir, '$name$ext');
     var file = File(filePath);
     await file.writeAsBytes(bookXmlBytes!);
 
     try {
       final xfile = XFile(
         filePath,
-        name: '$name.fb2',
-        mimeType: 'application/x-fictionbook+xml',
+        name: '$name$ext',
+        mimeType: mimeType,
       );
 
       if (share) {
+        final authors =
+            data.contributors.map((e) => e.name.toDisplayString()).join(', ');
         final text =
             '${data.title}'
-            '\nАвторы: ${data.authors.map((e) => e.name).join(', ')}'
-            '${data.series == null ? '' : '\nСерия: ${data.series!.name} #${data.series!.number}'}'
-            '\n'
-            '\nПо: «${data.chapters.last.title}»';
+            '\nАвторы: $authors'
+            '${data.series == null ? '' : '\nСерия: ${data.series!.name} #${data.series!.number}'}';
 
         await SharePlus.instance.share(
           ShareParams(files: [xfile], text: text, subject: name),
@@ -145,6 +165,7 @@ abstract class BookPageControllerBase with Store {
 
       final templateFileName = TemplateFormatter.buildTemplateFileName(
         data,
+        session.portal,
         settings,
       );
       final saveDirectory = settings.saveDirectory;
@@ -152,17 +173,18 @@ abstract class BookPageControllerBase with Store {
       String? finalPath;
 
       if (saveDirectory != null && saveDirectory.isNotEmpty) {
-        finalPath = path.join(saveDirectory, '$templateFileName.fb2');
+        finalPath = path.join(saveDirectory, '$templateFileName$ext');
         final file = File(finalPath);
         await file.parent.create(recursive: true);
         await file.writeAsBytes(bookXmlBytes!);
       } else {
+        final cleanExt = ext.startsWith('.') ? ext.substring(1) : ext;
         finalPath = await FilePicker.saveFile(
           dialogTitle: 'Сохранение книги',
           bytes: bookXmlBytes!,
-          fileName: '$templateFileName.fb2',
+          fileName: '$templateFileName$ext',
           type: FileType.custom,
-          allowedExtensions: ['fb2'],
+          allowedExtensions: [cleanExt],
         );
       }
 

@@ -3,7 +3,7 @@ description: ""
 publish_to: none
 homepage: "https://reucm.pages.dev"
 repository: "https://github.com/BooksFine/re_ucm"
-version: 2.4.0+14321
+version: 3.0.0+14463
 
 environment:
   sdk: ^3.13.0

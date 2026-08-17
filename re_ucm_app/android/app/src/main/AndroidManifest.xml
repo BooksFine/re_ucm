@@ -43,7 +43,7 @@
             android:name="io.flutter.embedding.android.EnableImpeller"
             android:value="true" />
 
-        <provider
+        <!-- <provider
             android:name="sk.fourq.otaupdate.OtaUpdateFileProvider"
             android:authorities="${applicationId}.ota_update_provider"
             android:exported="false"
@@ -51,7 +51,7 @@
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/filepaths" />
-        </provider>
+        </provider> -->
 
     </application>
 

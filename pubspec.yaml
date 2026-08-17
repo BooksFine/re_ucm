@@ -3,7 +3,7 @@ description: ""
 publish_to: none
 
 environment:
-  sdk: ^3.13.0
+  sdk: ^3.12.0
 
 workspace:
   - re_ucm_app
@@ -12,11 +12,11 @@ workspace:
   - re_ucm_lib
 
 dependency_overrides:
-  analyzer: ^13.3.0
   flutter_inappwebview:
     git:
       url: https://github.com/pichillilorenzo/flutter_inappwebview.git
       path: flutter_inappwebview
   dart_book:
     path: ../dart_book
+  xml: ^7.0.1
 

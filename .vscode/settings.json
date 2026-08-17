@@ -16,4 +16,5 @@
     "webauth",
     "webp"
   ],
+  "dart.flutterSdkPath": ".fvm/versions/stable"
 }

@@ -7,13 +7,22 @@ import 'package:re_ucm_core/models/progress.dart';
 
 import '../settings/domain/save_format.dart';
 
+class ResolvedBookResult {
+  final Book book;
+  final List<ImageDownloadTask> failedTasks;
+
+  const ResolvedBookResult({
+    required this.book,
+    required this.failedTasks,
+  });
+}
+
 class BookExporter {
-  static Future<Uint8List> export({
+  static Future<ResolvedBookResult> resolveBook({
     required BookMetadata metadata,
     required BookContent content,
-    required SaveFormat format,
     required BookResourceResolver resourceResolver,
-    BookEncodingOptions? options,
+    List<BookResource> initialResources = const [],
     bool includeAfterword = true,
     int maxConcurrentDownloads = 4,
     void Function(Progress progress)? onProgress,
@@ -34,46 +43,47 @@ class BookExporter {
     final initialBook = Book(
       metadata: metadata,
       content: fullContent,
-      resources: const [],
+      resources: initialResources,
     );
+
+    var lastStates = <BookResourceDownloadState>[];
 
     final resolvedBook = await initialBook.resolveResources(
       resourceResolver,
       baseUri: metadata.source,
       maxConcurrent: maxConcurrentDownloads,
       onProgress: (completed, total, states) {
-        final activeTasks = states.map((s) {
-          final ImageDownloadStatus status;
-          if (s.isCompleted) {
-            status = ImageDownloadStatus.completed;
-          } else if (s.isFailed) {
-            status = ImageDownloadStatus.failed;
-          } else if (s.receivedBytes > 0) {
-            status = ImageDownloadStatus.downloading;
-          } else {
-            status = ImageDownloadStatus.pending;
-          }
-
-          final cleanName = s.id.split('/').last.split('?').first;
-          return ImageDownloadTask(
-            id: cleanName.isNotEmpty ? cleanName : s.id,
-            receivedBytes: s.receivedBytes,
-            totalBytes: s.totalBytes,
-            status: status,
-          );
-        }).toList();
-
+        lastStates = states;
         onProgress?.call(
           Progress(
             stage: Stages.imageDownloading,
             current: completed,
             total: total,
-            activeTasks: List.unmodifiable(activeTasks),
+            activeTasks: List.unmodifiable(
+              states.map(_taskFromState),
+            ),
           ),
         );
       },
     );
 
+    final failedTasks = lastStates
+        .where((s) => s.isFailed)
+        .map(_taskFromState)
+        .toList(growable: false);
+
+    return ResolvedBookResult(
+      book: resolvedBook,
+      failedTasks: failedTasks,
+    );
+  }
+
+  static Future<Uint8List> encode({
+    required Book book,
+    required SaveFormat format,
+    BookEncodingOptions? options,
+    void Function(Progress progress)? onProgress,
+  }) async {
     onProgress?.call(Progress(stage: .building));
 
     final BookEncoder encoder;
@@ -86,12 +96,33 @@ class BookExporter {
         encoder = EpubEncoder();
     }
 
-    final params = _IsolateEncodeParams(encoder, resolvedBook, options);
+    final params = _IsolateEncodeParams(encoder, book, options);
     final Uint8List bytes = await Isolate.run(params.run);
 
     onProgress?.call(Progress(stage: Stages.done));
 
     return bytes;
+  }
+
+  static ImageDownloadTask _taskFromState(BookResourceDownloadState s) {
+    final ImageDownloadStatus status;
+    if (s.isCompleted) {
+      status = ImageDownloadStatus.completed;
+    } else if (s.isFailed) {
+      status = ImageDownloadStatus.failed;
+    } else if (s.receivedBytes > 0) {
+      status = ImageDownloadStatus.downloading;
+    } else {
+      status = ImageDownloadStatus.pending;
+    }
+
+    final cleanName = s.id.split('/').last.split('?').first;
+    return ImageDownloadTask(
+      id: cleanName.isNotEmpty ? cleanName : s.id,
+      receivedBytes: s.receivedBytes,
+      totalBytes: s.totalBytes,
+      status: status,
+    );
   }
 
   static BookSection _createBooksFineAfterword(Uri? bookUrl, String bookTitle) {

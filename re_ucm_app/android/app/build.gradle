@@ -44,6 +44,22 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        manifestPlaceholders = [appName: "ReUCM"]
+    }
+
+    flavorDimensions = ["default"]
+
+    productFlavors {
+        prod {
+            dimension "default"
+            applicationId "dev.pages.reucm.app"
+            manifestPlaceholders = [appName: "ReUCM"]
+        }
+        alpha {
+            dimension "default"
+            applicationIdSuffix ".alpha"
+            manifestPlaceholders = [appName: "[α]ReUCM"]
+        }
     }
 
     signingConfigs {

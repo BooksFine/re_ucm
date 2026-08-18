@@ -40,6 +40,7 @@ class OTAService {
   void setLatestLaunchVersion() => otaRepo.setLatestLaunchVersion(appVersion);
 
   void update() async {
+    if (isAlphaFlavor) return;
     await getActualVersion();
 
     if (actualVersion != null && actualVersion != appVersion) {

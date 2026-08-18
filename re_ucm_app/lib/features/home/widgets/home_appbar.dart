@@ -41,7 +41,7 @@ class HomeAppbar extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'ReUCM',
+                      appName,
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
                     const Text('v$appVersion'),

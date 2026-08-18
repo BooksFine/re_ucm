@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'core/constants.dart';
 import 'core/di.dart';
 import 'core/logger.dart';
 import 'core/navigation/router.dart';
@@ -55,6 +56,7 @@ class _MainAppState extends State<MainApp> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: e2eOverlayStyle,
       child: MaterialApp.router(
+        title: appName,
         darkTheme: darkTheme,
         theme: lightTheme,
         routerConfig: router,

@@ -7,7 +7,7 @@ BookMetadata metadataParserAT(ATWorkMetadata data) {
   final contributors = <BookContributor>[
     BookContributor(
       role: BookContributorRole.author,
-      name: PersonName(display: data.authorFIO),
+      name: personNameFromFio(data.authorFIO),
       homePage: Uri.tryParse('https://author.today/u/${data.authorUserName}'),
     ),
   ];
@@ -16,7 +16,7 @@ BookMetadata metadataParserAT(ATWorkMetadata data) {
     contributors.add(
       BookContributor(
         role: BookContributorRole.author,
-        name: PersonName(display: data.coAuthorFIO!),
+        name: personNameFromFio(data.coAuthorFIO!),
         homePage: data.coAuthorUserName != null
             ? Uri.tryParse('https://author.today/u/${data.coAuthorUserName}')
             : null,
@@ -28,7 +28,7 @@ BookMetadata metadataParserAT(ATWorkMetadata data) {
     contributors.add(
       BookContributor(
         role: BookContributorRole.author,
-        name: PersonName(display: data.secondCoAuthorFIO!),
+        name: personNameFromFio(data.secondCoAuthorFIO!),
         homePage: data.secondCoAuthorUserName != null
             ? Uri.tryParse('https://author.today/u/${data.secondCoAuthorUserName}')
             : null,
@@ -87,6 +87,26 @@ BookMetadata metadataParserAT(ATWorkMetadata data) {
     source: Uri.tryParse('https://author.today/work/${data.id}'),
     updatedAt: data.lastUpdateTime,
   );
+}
+
+PersonName personNameFromFio(String fio) {
+  final parts = fio
+      .trim()
+      .split(RegExp(r'\s+'))
+      .where((p) => p.isNotEmpty)
+      .toList();
+
+  return switch (parts.length) {
+    1 => PersonName(nickname: parts[0], display: fio.trim()),
+    2 => PersonName(first: parts[0], last: parts[1], display: fio.trim()),
+    3 => PersonName(
+        last: parts[0],
+        first: parts[1],
+        middle: parts[2],
+        display: fio.trim(),
+      ),
+    _ => PersonName(display: fio.trim()),
+  };
 }
 
 String? _processCoverUrl(String? rawUrl) {

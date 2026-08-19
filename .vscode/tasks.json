@@ -2,20 +2,44 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"type": "flutter",
-			"command": "flutter",
-			"args": [
-				"build",
-				"apk",
-				"--split-per-abi"
-			],
+			"label": "[Build] Bump build number",
+			"type": "shell",
+			"command": "dart run bumper build",
 			"options": {
 				"cwd": "${workspaceFolder}/re_ucm_app"
 			},
-			"group": "build",
 			"problemMatcher": [],
-			"label": "[Build] Split APK",
-			"detail": ""
+			"group": "build"
+		},
+		{
+			"label": "[Build] Windows",
+			"type": "shell",
+			"command": "dart run bumper build && flutter build windows",
+			"options": {
+				"cwd": "${workspaceFolder}/re_ucm_app"
+			},
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "[Build] Android APK (prod, split-per-abi)",
+			"type": "shell",
+			"command": "dart run bumper build && flutter build apk --split-per-abi",
+			"options": {
+				"cwd": "${workspaceFolder}/re_ucm_app"
+			},
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "[Build] Android APK (alpha)",
+			"type": "shell",
+			"command": "dart run bumper build && flutter build apk --flavor alpha --split-per-abi",
+			"options": {
+				"cwd": "${workspaceFolder}/re_ucm_app"
+			},
+			"problemMatcher": [],
+			"group": "build"
 		},
 		{
 			"label": "[Build Runner]",

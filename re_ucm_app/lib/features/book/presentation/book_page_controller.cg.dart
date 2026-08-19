@@ -158,6 +158,7 @@ abstract class BookPageControllerBase with Store {
           documentId: 'UCM-${session.portal.code.toUpperCase()}-${data.id}',
           programUsed: 'ReUltimateCopyManager $appVersion',
           entryFilename: templateFileName,
+          namingPolicy: BookResourceNamingPolicy.sequential,
         ),
         onProgress: (p) {
           progress = p;

@@ -77,7 +77,7 @@ BookMetadata metadataParserAT(ATWorkMetadata data) {
     genres: genres,
     keywords: List<String>.from(data.tags),
     annotation: annotationContent,
-    series: series,
+    series: [?series],
     cover: _processCoverUrl(data.coverUrl) != null
         ? BookCover(
             ref: BookResourceRef(_processCoverUrl(data.coverUrl)!),

@@ -17,6 +17,8 @@ dependency_overrides:
       url: https://github.com/pichillilorenzo/flutter_inappwebview.git
       path: flutter_inappwebview
   dart_book:
-    path: ../dart_book
+    git:
+      url: https://github.com/BooksFine/dart_book.git
+      ref: v0.1.0
   xml: ^7.0.1
 

@@ -75,29 +75,29 @@ class BookHeader extends StatelessWidget {
                   ),
                 ),
               const SizedBox(height: appPadding * 2),
-              if (book.series != null)
+              if (book.primarySeries != null)
                 Text.rich(
                   TextSpan(
                     children: [
                       const TextSpan(text: 'Цикл: '),
                       TextSpan(
-                        text: book.series!.name,
+                        text: book.primarySeries!.name,
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.primary,
                         ),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
-                            if (book.series!.url != null) {
+                            if (book.primarySeries!.url != null) {
                               launchUrlString(
-                                book.series!.url!.toString(),
+                                book.primarySeries!.url!.toString(),
                                 mode: LaunchMode.externalApplication,
                               );
                             }
                           },
                       ),
-                      if (book.series!.number != null) ...[
+                      if (book.primarySeries!.number != null) ...[
                         const TextSpan(text: ' • '),
-                        TextSpan(text: book.series!.number.toString()),
+                        TextSpan(text: book.primarySeries!.number.toString()),
                       ],
                     ],
                   ),

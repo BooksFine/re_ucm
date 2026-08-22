@@ -22,12 +22,12 @@ class TemplateFormatter {
     Portal portal,
     SettingsService settings,
   ) {
-    var template = data.series != null
+    var template = data.primarySeries != null
         ? settings.downloadPathTemplate.seriesPath.trim()
         : settings.downloadPathTemplate.path.trim();
 
     if (template.isEmpty) {
-      template = data.series != null
+      template = data.primarySeries != null
           ? PathTemplate.initialSeriesPathPlaceholder
           : PathTemplate.initialPathPlaceholder;
     }

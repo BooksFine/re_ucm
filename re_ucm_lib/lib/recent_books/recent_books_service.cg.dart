@@ -40,8 +40,8 @@ abstract class _RecentBooksService with Store {
       title: metadata.title,
       authors: authors,
       coverUrl: metadata.cover?.ref.id,
-      seriesName: metadata.series?.name,
-      seriesNumber: metadata.series?.number,
+      seriesName: metadata.primarySeries?.name,
+      seriesNumber: metadata.primarySeries?.number,
       portal: portal,
       added: DateTime.now(),
     );

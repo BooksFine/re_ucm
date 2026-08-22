@@ -260,10 +260,12 @@ packages:
   dart_book:
     dependency: "direct overridden"
     description:
-      path: "../dart_book"
-      relative: true
-    source: path
-    version: "1.0.0"
+      path: "."
+      ref: "v0.1.0"
+      resolved-ref: "7e50f6dc77e142b3035675b320063445a56384e6"
+      url: "https://github.com/BooksFine/dart_book.git"
+    source: git
+    version: "0.1.0"
   dart_style:
     dependency: transitive
     description:

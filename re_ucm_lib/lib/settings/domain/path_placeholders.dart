@@ -28,9 +28,9 @@ enum PathPlaceholders {
       case PathPlaceholders.name:
         return data.title;
       case PathPlaceholders.series:
-        return data.series?.name ?? '';
+        return data.primarySeries?.name ?? '';
       case PathPlaceholders.seriesNumber:
-        return data.series?.number?.toString() ?? '';
+        return data.primarySeries?.number?.toString() ?? '';
       case PathPlaceholders.authors:
         return data.contributors
             .map((e) => e.name.toDisplayString())

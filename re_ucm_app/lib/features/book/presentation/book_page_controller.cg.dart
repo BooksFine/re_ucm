@@ -134,9 +134,10 @@ abstract class BookPageControllerBase with Store {
     if (resolvedBook == null) return;
     isDownloading = true;
     try {
-      var data = book.value!;
-      var name = data.series != null
-          ? '${data.series?.name}–${data.series?.number}'
+      final data = book.value!;
+      final primarySeries = data.primarySeries;
+      var name = primarySeries != null
+          ? '${primarySeries.name}–${primarySeries.number}'
           : data.title;
 
       name = name.replaceAll(RegExp(r'[<>:"/\\|?*]'), '');
@@ -181,7 +182,7 @@ abstract class BookPageControllerBase with Store {
           final text =
               '${data.title}'
               '\nАвторы: $authors'
-              '${data.series == null ? '' : '\nСерия: ${data.series!.name} #${data.series!.number}'}';
+              '${data.primarySeries == null ? '' : '\nСерия: ${data.primarySeries!.name} #${data.primarySeries!.number}'}';
 
           await SharePlus.instance.share(
             ShareParams(files: [xfile], text: text, subject: name),

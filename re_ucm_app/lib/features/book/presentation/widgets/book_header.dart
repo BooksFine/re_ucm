@@ -15,8 +15,9 @@ class BookHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final coverUrl = book.cover?.ref.id;
-    final authors =
-        book.contributors.map((e) => e.name.toDisplayString()).join(', ');
+    final authors = book.contributors
+        .map((e) => e.name.toDisplayString())
+        .join(', ');
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,

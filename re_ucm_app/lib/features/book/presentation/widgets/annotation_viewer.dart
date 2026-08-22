@@ -33,7 +33,9 @@ class AnnotationViewer extends StatelessWidget {
       if (block is BookParagraph) {
         sb.write('<p>${_inlinesToHtml(block.inlines)}</p>');
       } else if (block is BookHeading) {
-        sb.write('<h${block.level}>${_inlinesToHtml(block.text)}</h${block.level}>');
+        sb.write(
+          '<h${block.level}>${_inlinesToHtml(block.text)}</h${block.level}>',
+        );
       } else if (block is BookRawHtmlBlock) {
         sb.write(block.html);
       } else if (block is BookSection) {
@@ -58,7 +60,9 @@ class AnnotationViewer extends StatelessWidget {
       } else if (inline is BookEmphasis) {
         sb.write('<i>${_inlinesToHtml(inline.children)}</i>');
       } else if (inline is BookLink) {
-        sb.write('<a href="${inline.href}">${_inlinesToHtml(inline.children)}</a>');
+        sb.write(
+          '<a href="${inline.href}">${_inlinesToHtml(inline.children)}</a>',
+        );
       } else if (inline is BookRawHtmlInline) {
         sb.write(inline.html);
       }

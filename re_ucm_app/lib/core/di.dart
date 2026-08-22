@@ -20,8 +20,7 @@ class AppDependencies extends InheritedWidget {
   });
 
   static AppDependencies of(BuildContext context) {
-    final result = context
-        .getInheritedWidgetOfExactType<AppDependencies>();
+    final result = context.getInheritedWidgetOfExactType<AppDependencies>();
     assert(result != null, 'No AppDependencies found in context');
     return result!;
   }

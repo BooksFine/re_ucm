@@ -11,10 +11,7 @@ class ResolvedBookResult {
   final Book book;
   final List<ImageDownloadTask> failedTasks;
 
-  const ResolvedBookResult({
-    required this.book,
-    required this.failedTasks,
-  });
+  const ResolvedBookResult({required this.book, required this.failedTasks});
 }
 
 class BookExporter {
@@ -59,9 +56,7 @@ class BookExporter {
             stage: Stages.imageDownloading,
             current: completed,
             total: total,
-            activeTasks: List.unmodifiable(
-              states.map(_taskFromState),
-            ),
+            activeTasks: List.unmodifiable(states.map(_taskFromState)),
           ),
         );
       },
@@ -72,10 +67,7 @@ class BookExporter {
         .map(_taskFromState)
         .toList(growable: false);
 
-    return ResolvedBookResult(
-      book: resolvedBook,
-      failedTasks: failedTasks,
-    );
+    return ResolvedBookResult(book: resolvedBook, failedTasks: failedTasks);
   }
 
   static Future<Uint8List> encode({

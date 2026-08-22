@@ -21,27 +21,26 @@ class ProgressBar extends StatelessWidget {
           alignment: Alignment.topCenter,
           child: switch (progress.stage) {
             Stages.imageDownloading => _buildImageDownloadingPanel(
-                context,
-                progress,
-              ),
+              context,
+              progress,
+            ),
             Stages.error => Text(progress.message ?? 'Произошла ошибка'),
-            _ => controller.failedTasks.isEmpty
-                ? const SizedBox(height: appPadding * 2)
-                : _buildFailedPanel(context),
+            _ =>
+              controller.failedTasks.isEmpty
+                  ? const SizedBox(height: appPadding * 2)
+                  : _buildFailedPanel(context),
           },
         );
       },
     );
   }
 
-  Widget _buildImageDownloadingPanel(
-    BuildContext context,
-    Progress progress,
-  ) {
+  Widget _buildImageDownloadingPanel(BuildContext context, Progress progress) {
     final current = progress.current ?? 0;
     final total = progress.total ?? 0;
-    final double? totalProgressVal =
-        (total > 0) ? (current / total).clamp(0.0, 1.0) : null;
+    final double? totalProgressVal = (total > 0)
+        ? (current / total).clamp(0.0, 1.0)
+        : null;
 
     final visibleTasks = progress.activeTasks
         .where((task) => task.status != ImageDownloadStatus.completed)
@@ -53,10 +52,7 @@ class ProgressBar extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: appPadding * 2),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(cardBorderRadius),
-        border: Border.all(
-          color: theme.colorScheme.primary,
-          width: 0.5,
-        ),
+        border: Border.all(color: theme.colorScheme.primary, width: 0.5),
       ),
       child: Padding(
         padding: const EdgeInsets.all(appPadding * 2),
@@ -110,33 +106,33 @@ class ProgressBar extends StatelessWidget {
 
     final (Widget statusIcon, String statusText) = switch (task.status) {
       ImageDownloadStatus.completed => (
-          Icon(Icons.check_circle, size: 16, color: Colors.green.shade400),
-          _formatBytes(task.receivedBytes),
-        ),
+        Icon(Icons.check_circle, size: 16, color: Colors.green.shade400),
+        _formatBytes(task.receivedBytes),
+      ),
       ImageDownloadStatus.failed => (
-          Icon(Icons.error, size: 16, color: theme.colorScheme.error),
-          'Ошибка',
-        ),
+        Icon(Icons.error, size: 16, color: theme.colorScheme.error),
+        'Ошибка',
+      ),
       ImageDownloadStatus.downloading => (
-          SizedBox(
-            width: 18,
-            height: 18,
-            child: Padding(
-              padding: const EdgeInsets.all(1),
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: theme.colorScheme.primary,
-              ),
+        SizedBox(
+          width: 18,
+          height: 18,
+          child: Padding(
+            padding: const EdgeInsets.all(1),
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: theme.colorScheme.primary,
             ),
           ),
-          task.totalBytes != null
-              ? '${_formatBytes(task.receivedBytes)} / ${_formatBytes(task.totalBytes!)}'
-              : _formatBytes(task.receivedBytes),
         ),
+        task.totalBytes != null
+            ? '${_formatBytes(task.receivedBytes)} / ${_formatBytes(task.totalBytes!)}'
+            : _formatBytes(task.receivedBytes),
+      ),
       ImageDownloadStatus.pending => (
-          Icon(Icons.schedule, size: 16, color: theme.disabledColor),
-          'В очереди',
-        ),
+        Icon(Icons.schedule, size: 16, color: theme.disabledColor),
+        'В очереди',
+      ),
     };
 
     return SizedBox(
@@ -169,7 +165,8 @@ class ProgressBar extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: task.status == ImageDownloadStatus.downloading &&
+            child:
+                task.status == ImageDownloadStatus.downloading &&
                     task.progress != null
                 ? Align(
                     alignment: Alignment.bottomCenter,
@@ -200,10 +197,7 @@ class ProgressBar extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: appPadding * 2),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(cardBorderRadius),
-        border: Border.all(
-          color: theme.colorScheme.error,
-          width: 0.5,
-        ),
+        border: Border.all(color: theme.colorScheme.error, width: 0.5),
       ),
       child: Padding(
         padding: const EdgeInsets.all(appPadding * 2),

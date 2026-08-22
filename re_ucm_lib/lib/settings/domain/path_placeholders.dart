@@ -19,11 +19,7 @@ enum PathPlaceholders {
     return null;
   }
 
-  String resolve(
-    BookMetadata data,
-    Portal portal,
-    String authorsSeparator,
-  ) {
+  String resolve(BookMetadata data, Portal portal, String authorsSeparator) {
     switch (this) {
       case PathPlaceholders.name:
         return data.title;

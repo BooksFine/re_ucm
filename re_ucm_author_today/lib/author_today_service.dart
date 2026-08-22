@@ -141,7 +141,11 @@ class AuthorTodayService implements PortalService<ATSettings> {
         return newToken;
       }
     } catch (e, trace) {
-      logger.w('Failed to refresh AuthorToday token', error: e, stackTrace: trace);
+      logger.w(
+        'Failed to refresh AuthorToday token',
+        error: e,
+        stackTrace: trace,
+      );
     }
     return null;
   }
@@ -231,9 +235,10 @@ class AuthorTodayService implements PortalService<ATSettings> {
 
         final headerContentType = res.headers.value('content-type');
         final mediaType =
-            (headerContentType != null && headerContentType.startsWith('image/'))
-                ? headerContentType.split(';').first.trim()
-                : _guessMediaType(url);
+            (headerContentType != null &&
+                headerContentType.startsWith('image/'))
+            ? headerContentType.split(';').first.trim()
+            : _guessMediaType(url);
 
         return BookResource(
           id: request.id,
@@ -242,7 +247,11 @@ class AuthorTodayService implements PortalService<ATSettings> {
           originalUri: Uri.tryParse(url),
         );
       } catch (e, trace) {
-        logger.w('Failed to resolve AuthorToday resource: $url', error: e, stackTrace: trace);
+        logger.w(
+          'Failed to resolve AuthorToday resource: $url',
+          error: e,
+          stackTrace: trace,
+        );
         return null;
       }
     };

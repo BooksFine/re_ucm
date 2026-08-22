@@ -30,14 +30,17 @@ BookMetadata metadataParserAT(ATWorkMetadata data) {
         role: BookContributorRole.author,
         name: personNameFromFio(data.secondCoAuthorFIO!),
         homePage: data.secondCoAuthorUserName != null
-            ? Uri.tryParse('https://author.today/u/${data.secondCoAuthorUserName}')
+            ? Uri.tryParse(
+                'https://author.today/u/${data.secondCoAuthorUserName}',
+              )
             : null,
       ),
     );
   }
 
-  var rawAnnotation =
-      data.annotation != null ? "<p>${data.annotation}</p>" : null;
+  var rawAnnotation = data.annotation != null
+      ? "<p>${data.annotation}</p>"
+      : null;
   if (data.authorNotes != null) {
     rawAnnotation ??= "";
     rawAnnotation +=
@@ -100,11 +103,11 @@ PersonName personNameFromFio(String fio) {
     1 => PersonName(nickname: parts[0], display: fio.trim()),
     2 => PersonName(first: parts[0], last: parts[1], display: fio.trim()),
     3 => PersonName(
-        last: parts[0],
-        first: parts[1],
-        middle: parts[2],
-        display: fio.trim(),
-      ),
+      last: parts[0],
+      first: parts[1],
+      middle: parts[2],
+      display: fio.trim(),
+    ),
     _ => PersonName(display: fio.trim()),
   };
 }
@@ -123,4 +126,3 @@ String? _processCoverUrl(String? rawUrl) {
       .replace(queryParameters: queryParams.isNotEmpty ? queryParams : null)
       .toString();
 }
-

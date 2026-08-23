@@ -1,39 +1,18 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# re_ucm_author_today
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages).
+Модуль поддержки портала [Author.Today](https://author.today) для ReUltimateCopyManager.
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages).
--->
+Реализует интерфейсы `Portal` и `PortalService` из [re_ucm_core](../re_ucm_core/) с формированием структуры книги через [dart_book](https://github.com/BooksFine/dart_book).
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+## Особенности
 
-## Features
+- **Авторизация**: через встроенный браузер (перехват cookies) или прямой ввод Bearer-токена. Автоматическое обновление токена при истечении сессии.
+- **Расшифровка глав**: расшифровка защищенного текста (AES-128-CBC + PKCS7).
+- **Метаданные**: обработка авторов и соавторов, жанров, циклов и оригиналов обложек.
+- **Загрузка ресурсов**: встроенный резолвер для картинок в главах.
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+## Сборка
 
-## Getting started
-
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
-
-## Usage
-
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
-
-```dart
-const like = 'sample';
+```bash
+dart run build_runner build --delete-conflicting-outputs
 ```
-
-## Additional information
-
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.

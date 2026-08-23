@@ -101,7 +101,13 @@ abstract class BookPageControllerBase with Store {
     logger.i('Downloading book');
     isDownloading = true;
     try {
-      final content = _contentCache ??= await session.getBookContent(id);
+      final content = _contentCache ??= await session.getBookContent(
+        id,
+        onProgress: (p) {
+          progress = p;
+          logger.i('Chapter Progress: $p');
+        },
+      );
 
       final result = await BookExporter.resolveBook(
         metadata: book.value!,
@@ -179,10 +185,26 @@ abstract class BookPageControllerBase with Store {
           final authors = data.contributors
               .map((e) => e.name.toDisplayString())
               .join(', ');
+
+          String statusText;
+          if (data.isFinished) {
+            statusText = '\n\nПолностью';
+          } else {
+            final sections =
+                resolvedBook?.content.blocks.whereType<BookSection>().toList() ??
+                    const [];
+            final lastChapter = sections.isNotEmpty ? sections.last : null;
+            final lastTitle = lastChapter != null
+                ? _inlinesToPlainText(lastChapter.title).trim()
+                : '';
+            statusText = lastTitle.isNotEmpty ? '\n\nПо: «$lastTitle»' : '';
+          }
+
           final text =
               '${data.title}'
               '\nАвторы: $authors'
-              '${data.primarySeries == null ? '' : '\nСерия: ${data.primarySeries!.name} #${data.primarySeries!.number}'}';
+              '${data.primarySeries == null ? '' : '\nСерия: ${data.primarySeries!.name} #${data.primarySeries!.number}'}'
+              '$statusText';
 
           await SharePlus.instance.share(
             ShareParams(files: [xfile], text: text, subject: name),
@@ -206,13 +228,14 @@ abstract class BookPageControllerBase with Store {
           await file.writeAsBytes(bytes);
         } else {
           final cleanExt = ext.startsWith('.') ? ext.substring(1) : ext;
-          finalPath = await FilePicker.saveFile(
+          final savedUri = await FilePicker.saveFile(
             dialogTitle: 'Сохранение книги',
             bytes: bytes,
             fileName: '$templateFileName$ext',
             type: FileType.custom,
             allowedExtensions: [cleanExt],
           );
+          finalPath = savedUri != null ? (savedUri.isScheme('file') ? savedUri.toFilePath() : savedUri.toString()) : null;
         }
 
         if (finalPath == null) {
@@ -235,5 +258,32 @@ abstract class BookPageControllerBase with Store {
     } finally {
       isDownloading = false;
     }
+  }
+
+  String _inlinesToPlainText(List<BookInline> inlines) {
+    final buffer = StringBuffer();
+    for (final inline in inlines) {
+      switch (inline) {
+        case BookText t:
+          buffer.write(t.text);
+        case BookEmphasis e:
+          buffer.write(_inlinesToPlainText(e.children));
+        case BookStrong s:
+          buffer.write(_inlinesToPlainText(s.children));
+        case BookStrike st:
+          buffer.write(_inlinesToPlainText(st.children));
+        case BookNamedStyle n:
+          buffer.write(_inlinesToPlainText(n.inlines));
+        case BookLink l:
+          buffer.write(_inlinesToPlainText(l.children));
+        case BookSuperscript sup:
+          buffer.write(_inlinesToPlainText(sup.children));
+        case BookSubscript sub:
+          buffer.write(_inlinesToPlainText(sub.children));
+        default:
+          break;
+      }
+    }
+    return buffer.toString();
   }
 }

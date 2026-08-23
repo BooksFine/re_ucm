@@ -193,7 +193,9 @@ abstract class BookPageControllerBase with Store {
             final sections =
                 resolvedBook?.content.blocks.whereType<BookSection>().toList() ??
                     const [];
-            final lastChapter = sections.isNotEmpty ? sections.last : null;
+            final lastChapter = sections.length > 1
+                ? sections[sections.length - 2]
+                : (sections.isNotEmpty ? sections.first : null);
             final lastTitle = lastChapter != null
                 ? _inlinesToPlainText(lastChapter.title).trim()
                 : '';

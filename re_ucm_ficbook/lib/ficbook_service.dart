@@ -94,14 +94,24 @@ class FicbookService implements PortalService<FBSettings> {
     }
 
     if (segments[0] == 'readfic') {
-      if (segments.length >= 2) {
+      if (segments.length >= 2 && _isValidFicbookId(segments[1])) {
         return segments[1];
       }
       throw ArgumentError('ID фанфика не найден в ссылке: $url');
     }
 
-    // Direct ID in first segment if any
-    return segments[0];
+    if (segments.length == 1 && _isValidFicbookId(segments[0])) {
+      return segments[0];
+    }
+
+    throw ArgumentError('Ссылка не является страницей фанфика: $url');
+  }
+
+  bool _isValidFicbookId(String id) {
+    return int.tryParse(id) != null ||
+        RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')
+            .hasMatch(id) ||
+        RegExp(r'^[0-9a-fA-F]{32}$').hasMatch(id);
   }
 
   @override

@@ -11,6 +11,31 @@ enum Stages {
 }
 
 enum ImageDownloadStatus { pending, downloading, completed, failed }
+enum ChapterDownloadStatus { pending, downloading, completed, failed }
+
+class ChapterDownloadTask {
+  final int index;
+  final String title;
+  final ChapterDownloadStatus status;
+
+  const ChapterDownloadTask({
+    required this.index,
+    required this.title,
+    this.status = ChapterDownloadStatus.pending,
+  });
+
+  ChapterDownloadTask copyWith({
+    int? index,
+    String? title,
+    ChapterDownloadStatus? status,
+  }) {
+    return ChapterDownloadTask(
+      index: index ?? this.index,
+      title: title ?? this.title,
+      status: status ?? this.status,
+    );
+  }
+}
 
 class ImageDownloadTask {
   final String id;
@@ -48,6 +73,7 @@ class Progress {
   var stage = Stages.none;
   int? current;
   int? total;
+  List<ChapterDownloadTask> chapterTasks;
   List<ImageDownloadTask> activeTasks;
   String? message;
 
@@ -55,6 +81,7 @@ class Progress {
     this.stage = Stages.none,
     this.current,
     this.total,
+    this.chapterTasks = const [],
     this.activeTasks = const [],
     this.message,
   });
@@ -66,6 +93,7 @@ class Progress {
     if (stage != Stages.none) params.add('stage: $stage');
     if (current != null) params.add('current: $current');
     if (total != null) params.add('total: $total');
+    if (chapterTasks.isNotEmpty) params.add('chapters: ${chapterTasks.length}');
     if (activeTasks.isNotEmpty) params.add('tasks: ${activeTasks.length}');
     if (message != null) params.add('message: $message');
 

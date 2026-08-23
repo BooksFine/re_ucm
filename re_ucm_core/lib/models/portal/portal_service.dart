@@ -13,7 +13,11 @@ abstract interface class PortalService<T extends PortalSettings> {
 
   Future<BookMetadata> getBookMetadata(String id, {required T settings});
 
-  Future<BookContent> getBookContent(String id, {required T settings});
+  Future<BookContent> getBookContent(
+    String id, {
+    required T settings,
+    void Function(Progress progress)? onProgress,
+  });
 
   BookResourceResolver getResourceResolver(T settings);
 }

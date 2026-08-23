@@ -4,6 +4,7 @@ import 'package:dart_book/dart_book.dart';
 import 'package:re_ucm_author_today/data/models/at_settings.cg.dart';
 import 'package:re_ucm_core/logger.dart';
 import 'package:re_ucm_core/models/portal.dart';
+import 'package:re_ucm_core/models/progress.dart';
 
 import 'data/author_today_api.cg.dart';
 import 'data/models/at_chapter.cg.dart';
@@ -182,6 +183,7 @@ class AuthorTodayService implements PortalService<ATSettings> {
   Future<BookContent> getBookContent(
     String id, {
     required ATSettings settings,
+    void Function(Progress progress)? onProgress,
   }) async {
     final token = settings.token;
     final userId = settings.userId;
@@ -189,8 +191,19 @@ class AuthorTodayService implements PortalService<ATSettings> {
       token: token,
       onRelogin: () => _relogin(settings),
     );
+    onProgress?.call(
+      Progress(stage: Stages.downloading, message: 'Загрузка текста...'),
+    );
     final res = await api.getManyTexts(id);
-    final successfulEntries = res.data.where((entry) => entry.isSuccessful);
+    final successfulEntries = res.data.where((entry) => entry.isSuccessful).toList();
+    onProgress?.call(
+      Progress(
+        stage: Stages.decrypting,
+        current: 0,
+        total: successfulEntries.length,
+        message: 'Расшифровка глав...',
+      ),
+    );
     final sections = await Future.wait(
       successfulEntries.map((chapter) => _createSection(chapter, userId)),
     );

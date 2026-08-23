@@ -9,6 +9,7 @@ import '../../../../core/ui/constants.dart';
 import '../../../common/widgets/overlay_snack.dart';
 import '../common/settings_animated_switcher.dart';
 import '../common/settings_button.dart';
+import '../common/settings_number_field.dart';
 import '../common/settings_text_field.dart';
 import '../common/settings_title.dart';
 
@@ -64,6 +65,10 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
 
   void onActionButtonTap(PortalSettingActionButton field) async {
     await updateSettings(await field.onTap(widget.session.settings));
+  }
+
+  void onNumberFieldChanged(PortalSettingNumberField field, int value) async {
+    await updateSettings(await field.onChanged(widget.session.settings, value));
   }
 
   void onWebAuthButtonTap(PortalSettingWebAuthButton field) async {
@@ -126,10 +131,19 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
         child: SettingsTitle(field.title),
       ),
       PortalSettingTextField() => SettingsTextField(
+        title: field.title,
         hint: field.hint ?? 'Введите значение',
         controller: _getOrInitFieldData(field).controller,
         isLoading: _getOrInitFieldData(field).isLoading,
         onSubmit: (v) => onTextFieldSubmit(field, v),
+      ),
+      PortalSettingNumberField() => SettingsNumberField(
+        title: field.title,
+        subtitle: field.subtitle,
+        value: field.value,
+        min: field.min,
+        max: field.max,
+        onChanged: (v) => onNumberFieldChanged(field, v),
       ),
       PortalSettingActionButton() => SettingsButton(
         title: field.title,

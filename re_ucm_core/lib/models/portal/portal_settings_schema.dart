@@ -84,3 +84,26 @@ final class PortalSettingWebAuthButton extends PortalSettingItem {
 
 typedef PortalSettingsWebAuthHandler =
     Future<PortalSettings> Function(PortalSettings settings, String cookie);
+
+final class PortalSettingNumberField extends PortalSettingItem {
+  const PortalSettingNumberField({
+    required this.actionId,
+    required this.title,
+    this.subtitle,
+    required this.value,
+    this.min = 1,
+    this.max = 20,
+    required this.onChanged,
+  });
+
+  final String actionId;
+  final String title;
+  final String? subtitle;
+  final int value;
+  final int min;
+  final int max;
+  final PortalSettingsNumberHandler onChanged;
+}
+
+typedef PortalSettingsNumberHandler =
+    Future<PortalSettings> Function(PortalSettings settings, int value);

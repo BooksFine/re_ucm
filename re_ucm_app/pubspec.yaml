@@ -3,7 +3,7 @@ description: ""
 publish_to: none
 homepage: "https://reucm.pages.dev"
 repository: "https://github.com/BooksFine/re_ucm"
-version: 3.0.0+14533
+version: 3.0.0+14539
 
 environment:
   sdk: ^3.12.0
@@ -14,6 +14,7 @@ resolution: workspace
 dependencies:
   re_ucm_core: ^1.8.0
   re_ucm_author_today: ^1.2.0
+  re_ucm_ficbook: any
   re_ucm_lib: ^1.0.0
   dart_book:
 

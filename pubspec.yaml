@@ -10,6 +10,7 @@ workspace:
   - re_ucm_author_today
   - re_ucm_core
   - re_ucm_lib
+  - re_ucm_ficbook
 
 dependency_overrides:
   flutter_inappwebview:
@@ -17,8 +18,6 @@ dependency_overrides:
       url: https://github.com/pichillilorenzo/flutter_inappwebview.git
       path: flutter_inappwebview
   dart_book:
-    git:
-      url: https://github.com/BooksFine/dart_book.git
-      ref: v0.1.0
+    path: ../dart_book
   xml: ^7.0.1
 

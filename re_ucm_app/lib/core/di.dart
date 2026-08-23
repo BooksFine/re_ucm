@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:re_ucm_author_today/re_ucm_author_today.dart';
+import 'package:re_ucm_ficbook/re_ucm_ficbook.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 import 'package:sembast/sembast_io.dart';
 
@@ -31,7 +32,10 @@ class AppDependencies extends InheritedWidget {
   static Future<AppDependencies> init({required Widget child}) async {
     disableSembastCooperator();
 
-    PortalFactory.registerAll([AuthorToday()]);
+    PortalFactory.registerAll([
+      AuthorToday(),
+      Ficbook(),
+    ]);
 
     final otaService = await OTAService.init();
     final dir = await getApplicationSupportDirectory();

@@ -20,6 +20,10 @@ class ProgressBar extends StatelessWidget {
           duration: Durations.short4,
           alignment: Alignment.topCenter,
           child: switch (progress.stage) {
+            Stages.downloading => _buildChapterDownloadingPanel(
+              context,
+              progress,
+            ),
             Stages.imageDownloading => _buildImageDownloadingPanel(
               context,
               progress,
@@ -32,6 +36,143 @@ class ProgressBar extends StatelessWidget {
           },
         );
       },
+    );
+  }
+
+  Widget _buildChapterDownloadingPanel(
+    BuildContext context,
+    Progress progress,
+  ) {
+    final current = progress.current ?? 0;
+    final total = progress.total ?? 0;
+    final double? totalProgressVal = (total > 0)
+        ? (current / total).clamp(0.0, 1.0)
+        : null;
+
+    final visibleTasks = progress.chapterTasks
+        .where((task) => task.status != ChapterDownloadStatus.completed)
+        .toList();
+
+    final theme = Theme.of(context);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: appPadding * 2),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(cardBorderRadius),
+        border: Border.all(color: theme.colorScheme.primary, width: 0.5),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(appPadding * 2),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Загрузка глав:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  total > 0
+                      ? '$current из $total'
+                      : (progress.message ?? 'Инициализация...'),
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ],
+            ),
+            const SizedBox(height: appPadding),
+            LinearProgressIndicator(
+              borderRadius: BorderRadius.circular(90),
+              value: totalProgressVal,
+            ),
+            if (visibleTasks.isNotEmpty) ...[
+              const SizedBox(height: appPadding * 2),
+              const Divider(height: 1),
+              const SizedBox(height: appPadding),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 220),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: visibleTasks.length,
+                  separatorBuilder: (_, _) =>
+                      const SizedBox(height: appPadding),
+                  itemBuilder: (context, index) {
+                    final task = visibleTasks[index];
+                    return _buildChapterTaskRow(context, task);
+                  },
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChapterTaskRow(BuildContext context, ChapterDownloadTask task) {
+    final theme = Theme.of(context);
+
+    final (Widget statusIcon, String statusText) = switch (task.status) {
+      ChapterDownloadStatus.completed => (
+        Icon(Icons.check_circle, size: 16, color: Colors.green.shade400),
+        'Готово',
+      ),
+      ChapterDownloadStatus.failed => (
+        Icon(Icons.error, size: 16, color: theme.colorScheme.error),
+        'Ошибка',
+      ),
+      ChapterDownloadStatus.downloading => (
+        SizedBox(
+          width: 18,
+          height: 18,
+          child: Padding(
+            padding: const EdgeInsets.all(1),
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: theme.colorScheme.primary,
+            ),
+          ),
+        ),
+        'Загрузка...',
+      ),
+      ChapterDownloadStatus.pending => (
+        Icon(Icons.schedule, size: 16, color: theme.disabledColor),
+        'В очереди',
+      ),
+    };
+
+    return SizedBox(
+      height: 24,
+      child: Row(
+        children: [
+          statusIcon,
+          const SizedBox(width: appPadding),
+          Text(
+            '#${task.index}',
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.primary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(width: appPadding / 2),
+          Expanded(
+            child: Text(
+              task.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall,
+            ),
+          ),
+          const SizedBox(width: appPadding),
+          Text(
+            statusText,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

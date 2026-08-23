@@ -1,6 +1,7 @@
 import 'package:dart_book/dart_book.dart';
 import 'package:mobx/mobx.dart';
 import 'package:re_ucm_core/models/portal.dart';
+import 'package:re_ucm_core/models/progress.dart';
 
 part '../.gen/portals/portal_session.cg.g.dart';
 
@@ -51,8 +52,15 @@ abstract class PortalSessionBase<T extends PortalSettings> with Store {
   Future<BookMetadata> getBookMetadata(String id) =>
       portal.service.getBookMetadata(id, settings: settings);
 
-  Future<BookContent> getBookContent(String id) =>
-      portal.service.getBookContent(id, settings: settings);
+  Future<BookContent> getBookContent(
+    String id, {
+    void Function(Progress progress)? onProgress,
+  }) =>
+      portal.service.getBookContent(
+        id,
+        settings: settings,
+        onProgress: onProgress,
+      );
 
   BookResourceResolver getResourceResolver() =>
       portal.service.getResourceResolver(settings);

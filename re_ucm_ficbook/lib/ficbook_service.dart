@@ -1,3 +1,4 @@
+import 'dart:isolate';
 import 'dart:typed_data';
 import 'package:dart_book/dart_book.dart';
 import 'package:dio/dio.dart';
@@ -5,6 +6,7 @@ import 'package:re_ucm_core/logger.dart';
 import 'package:re_ucm_core/models/portal.dart';
 import 'package:re_ucm_core/models/progress.dart';
 
+import 'data/models/fb_chapter_info.dart';
 import 'data/models/fb_settings.cg.dart';
 import 'domain/constants.dart';
 import 'domain/utils/content_parser.dart';
@@ -133,7 +135,11 @@ class FicbookService implements PortalService<FBSettings> {
     );
 
     final html = res.data ?? '';
-    return metadataParserFB(html, id, Uri.parse(mirror));
+    final baseUri = Uri.parse(mirror);
+    return _runIsolated(
+      _parseMetadataTask,
+      (html: html, id: id, baseUri: baseUri),
+    );
   }
 
   @override
@@ -164,8 +170,10 @@ class FicbookService implements PortalService<FBSettings> {
     );
 
     final mainHtml = mainRes.data ?? '';
-    final metadata = metadataParserFB(mainHtml, id, baseUri);
-    final toc = parseTableOfContents(mainHtml, baseUri, metadata.title);
+    final (metadata, toc) = await _runIsolated(
+      _parseMainTask,
+      (html: mainHtml, id: id, baseUri: baseUri),
+    );
 
     final chapterTasks = List.generate(
       toc.length,
@@ -219,9 +227,11 @@ class FicbookService implements PortalService<FBSettings> {
             ),
           );
 
-          final section = parseChapterSection(
-            chapterRes.data ?? '',
-            chapter.title,
+          final htmlData = chapterRes.data ?? '';
+          final chapterTitle = chapter.title;
+          final section = await _runIsolated(
+            _parseChapterTask,
+            (html: htmlData, title: chapterTitle),
           );
           results[cur] = section;
           chapterTasks[cur] = chapterTasks[cur].copyWith(
@@ -248,6 +258,30 @@ class FicbookService implements PortalService<FBSettings> {
 
     final sections = results.whereType<BookSection>().toList();
     return BookContent(blocks: sections);
+  }
+
+  static (BookMetadata, List<FBChapterInfo>) _parseMainTask(
+    ({String html, String id, Uri baseUri}) args,
+  ) {
+    final meta = metadataParserFB(args.html, args.id, args.baseUri);
+    final toc = parseTableOfContents(args.html, args.baseUri, meta.title);
+    return (meta, toc);
+  }
+
+  static BookSection _parseChapterTask(
+    ({String html, String title}) args,
+  ) {
+    return parseChapterSection(args.html, args.title);
+  }
+
+  static BookMetadata _parseMetadataTask(
+    ({String html, String id, Uri baseUri}) args,
+  ) {
+    return metadataParserFB(args.html, args.id, args.baseUri);
+  }
+
+  static Future<T> _runIsolated<A, T>(T Function(A) computation, A message) {
+    return Isolate.run(() => computation(message));
   }
 
   @override

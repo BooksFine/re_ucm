@@ -1,3 +1,4 @@
+import 'dart:isolate';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:dart_book/dart_book.dart';
@@ -7,7 +8,6 @@ import 'package:re_ucm_core/models/portal.dart';
 import 'package:re_ucm_core/models/progress.dart';
 
 import 'data/author_today_api.cg.dart';
-import 'data/models/at_chapter.cg.dart';
 import 'domain/constants.dart';
 import 'domain/utils/metadata_parser.dart';
 import 'domain/utils/decrypt.dart';
@@ -195,7 +195,8 @@ class AuthorTodayService implements PortalService<ATSettings> {
       Progress(stage: Stages.downloading, message: 'Загрузка текста...'),
     );
     final res = await api.getManyTexts(id);
-    final successfulEntries = res.data.where((entry) => entry.isSuccessful).toList();
+    final successfulEntries =
+        res.data.where((entry) => entry.isSuccessful).toList();
     onProgress?.call(
       Progress(
         stage: Stages.decrypting,
@@ -204,20 +205,58 @@ class AuthorTodayService implements PortalService<ATSettings> {
         message: 'Расшифровка глав...',
       ),
     );
-    final sections = await Future.wait(
-      successfulEntries.map((chapter) => _createSection(chapter, userId)),
+    final rawChapters = successfulEntries
+        .map((e) => (text: e.text, key: e.key, title: e.title))
+        .toList(growable: false);
+
+    final sections = await _runIsolated(
+      _decryptAndParseChapters,
+      (chapters: rawChapters, userId: userId),
     );
+
     return BookContent(blocks: sections);
   }
 
-  Future<BookSection> _createSection(ATChapter chapter, String? userId) async {
-    final text = await decryptData(chapter.text!, chapter.key!, userId);
-    final blocks = HtmlParser().parseFromString(text);
+  static List<BookSection> _decryptAndParseChapters(
+    ({
+      List<({String? text, String? key, String? title})> chapters,
+      String? userId,
+    }) params,
+  ) {
+    final results = <BookSection>[];
+    for (final chapter in params.chapters) {
+      final chapterText = chapter.text;
+      final chapterKey = chapter.key;
+      final chapterTitle = chapter.title;
+      if (chapterText == null || chapterKey == null) {
+        results.add(
+          BookSection(
+            title: chapterTitle != null ? [BookText(chapterTitle)] : const [],
+            blocks: const [],
+          ),
+        );
+        continue;
+      }
+      final key = generateUserKey(
+        inputString: chapterKey,
+        userId: params.userId,
+        certHash: xATCertificate,
+      );
+      final text = decryptChapter(chapterText, key);
+      final blocks = HtmlParser().parseFromString(text);
 
-    return BookSection(
-      title: chapter.title != null ? [BookText(chapter.title!)] : const [],
-      blocks: blocks,
-    );
+      results.add(
+        BookSection(
+          title: chapterTitle != null ? [BookText(chapterTitle)] : const [],
+          blocks: blocks,
+        ),
+      );
+    }
+    return results;
+  }
+
+  static Future<T> _runIsolated<A, T>(T Function(A) computation, A message) {
+    return Isolate.run(() => computation(message));
   }
 
   @override

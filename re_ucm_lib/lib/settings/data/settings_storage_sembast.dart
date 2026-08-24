@@ -20,12 +20,9 @@ class SettingsStorageSembast implements SettingsStorage {
 
     repo.db = await databaseFactoryIo.openDatabase(
       path.join(databaseDirectory, 'settings.db'),
-      version: 2,
-      onVersionChanged: (db, oldVer, newVer) {
-        switch (oldVer) {
-          case 1:
-            db.dropAll();
-        }
+      version: 3,
+      onVersionChanged: (db, oldVer, newVer) async {
+        await db.dropAll();
       },
     );
     return repo;
@@ -38,12 +35,20 @@ class SettingsStorageSembast implements SettingsStorage {
 
   @override
   Future<PathTemplate> getDownloadPathTemplate() async {
-    final Map<String, dynamic>? templateJson =
-        await _store.record('downloadPathTemplate').get(db)
-            as Map<String, dynamic>?;
-    return templateJson != null
-        ? PathTemplate.fromJson(templateJson)
-        : PathTemplate.initial();
+    try {
+      final record = await _store.record('downloadPathTemplate').get(db);
+      if (record is Map) {
+        return PathTemplate.fromJson(Map<String, dynamic>.from(record));
+      }
+      return PathTemplate.initial();
+    } catch (e, trace) {
+      logger.w(
+        'Failed to deserialize downloadPathTemplate, resetting to initial',
+        error: e,
+        stackTrace: trace,
+      );
+      return PathTemplate.initial();
+    }
   }
 
   @override
@@ -53,8 +58,8 @@ class SettingsStorageSembast implements SettingsStorage {
 
   @override
   Future<String> getAuthorsPathSeparator() async {
-    return await _store.record('authorsPathSeparator').get(db) as String? ??
-        ', ';
+    final val = await _store.record('authorsPathSeparator').get(db);
+    return val is String ? val : ', ';
   }
 
   @override
@@ -69,7 +74,8 @@ class SettingsStorageSembast implements SettingsStorage {
 
   @override
   Future<String?> getSaveDirectory() async {
-    return await _store.record('saveDirectory').get(db) as String?;
+    final val = await _store.record('saveDirectory').get(db);
+    return val is String ? val : null;
   }
 
   @override

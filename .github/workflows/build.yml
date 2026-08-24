@@ -6,9 +6,6 @@ on:
 jobs:
   build_android:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: re_ucm_app
 
     steps:
       - name: Checkout code
@@ -31,24 +28,26 @@ jobs:
         run: flutter pub get
 
       - name: BuildRunner
-        run: dart run build_runner build --delete-conflicting-outputs
+        run: dart run build_runner build --delete-conflicting-outputs --workspace
 
       - name: Sign Android release
+        working-directory: re_ucm_app
         run: |
           echo '${{ secrets.ANDROID_KEYSTORE_FILE_BASE64 }}' | base64 --decode > android/app/upload-keystore.jks
           echo '${{ secrets.ANDROID_KEY_PROPERTIES }}' > android/key.properties
 
       - name: Build Android release
+        working-directory: re_ucm_app
         run: |
           mkdir app-build
 
-          flutter build apk --release
-          flutter build apk --release --split-per-abi
+          flutter build apk --flavor prod --release
+          flutter build apk --flavor prod --release --split-per-abi
 
-          cp ./build/app/outputs/flutter-apk/app-release.apk "./app-build/ReUCM_android.apk"
-          cp ./build/app/outputs/flutter-apk/app-arm64-v8a-release.apk "./app-build/ReUCM_android_arm64-v8a.apk"
-          cp ./build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk "./app-build/ReUCM_android_armeabi-v7a.apk"
-          cp ./build/app/outputs/flutter-apk/app-x86_64-release.apk "./app-build/ReUCM_android_x86_64.apk"
+          cp ./build/app/outputs/flutter-apk/app-prod-release.apk "./app-build/ReUCM_android.apk"
+          cp ./build/app/outputs/flutter-apk/app-prod-arm64-v8a-release.apk "./app-build/ReUCM_android_arm64-v8a.apk"
+          cp ./build/app/outputs/flutter-apk/app-prod-armeabi-v7a-release.apk "./app-build/ReUCM_android_armeabi-v7a.apk"
+          cp ./build/app/outputs/flutter-apk/app-prod-x86_64-release.apk "./app-build/ReUCM_android_x86_64.apk"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -77,9 +76,6 @@ jobs:
 
   build_windows:
     runs-on: windows-latest
-    defaults:
-      run:
-        working-directory: re_ucm_app
 
     steps:
       - name: Checkout code
@@ -95,12 +91,14 @@ jobs:
         run: flutter pub get
 
       - name: BuildRunner
-        run: dart run build_runner build --delete-conflicting-outputs
+        run: dart run build_runner build --delete-conflicting-outputs --workspace
 
       - name: Build Windows release
+        working-directory: re_ucm_app
         run: flutter build windows --release
 
       - name: Build installer and portable .7z archive
+        working-directory: re_ucm_app
         shell: bash
         run: |
           echo "Creating portable 7z archive"

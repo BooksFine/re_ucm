@@ -24,7 +24,7 @@
 		{
 			"label": "[Build] Android APK (prod, split-per-abi)",
 			"type": "shell",
-			"command": "dart run bumper build && flutter build apk --split-per-abi",
+			"command": "dart run bumper build && flutter build apk --split-per-abi && dart run ../.vscode/export_apk.dart --flavor prod",
 			"options": {
 				"cwd": "${workspaceFolder}/re_ucm_app"
 			},
@@ -34,7 +34,7 @@
 		{
 			"label": "[Build] Android APK (alpha)",
 			"type": "shell",
-			"command": "dart run bumper build && flutter build apk --flavor alpha --split-per-abi",
+			"command": "dart run bumper build && flutter build apk --flavor alpha --split-per-abi && dart run ../.vscode/export_apk.dart --flavor alpha",
 			"options": {
 				"cwd": "${workspaceFolder}/re_ucm_app"
 			},

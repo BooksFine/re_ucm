@@ -45,9 +45,9 @@ jobs:
           flutter build apk --flavor prod --release --split-per-abi
 
           cp ./build/app/outputs/flutter-apk/app-prod-release.apk "./app-build/ReUCM_android.apk"
-          cp ./build/app/outputs/flutter-apk/app-prod-arm64-v8a-release.apk "./app-build/ReUCM_android_arm64-v8a.apk"
-          cp ./build/app/outputs/flutter-apk/app-prod-armeabi-v7a-release.apk "./app-build/ReUCM_android_armeabi-v7a.apk"
-          cp ./build/app/outputs/flutter-apk/app-prod-x86_64-release.apk "./app-build/ReUCM_android_x86_64.apk"
+          cp ./build/app/outputs/flutter-apk/app-arm64-v8a-prod-release.apk "./app-build/ReUCM_android_arm64-v8a.apk"
+          cp ./build/app/outputs/flutter-apk/app-armeabi-v7a-prod-release.apk "./app-build/ReUCM_android_armeabi-v7a.apk"
+          cp ./build/app/outputs/flutter-apk/app-x86_64-prod-release.apk "./app-build/ReUCM_android_x86_64.apk"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

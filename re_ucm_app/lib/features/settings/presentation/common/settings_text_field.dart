@@ -87,9 +87,7 @@ class SettingsTextField extends StatelessWidget {
                         )
                       : Material(
                           color: theme.colorScheme.primaryContainer,
-                          borderRadius: BorderRadius.circular(
-                            cardBorderRadius,
-                          ),
+                          borderRadius: BorderRadius.circular(cardBorderRadius),
                           child: InkWell(
                             borderRadius: BorderRadius.circular(
                               cardBorderRadius,

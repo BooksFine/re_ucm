@@ -191,8 +191,10 @@ abstract class BookPageControllerBase with Store {
             statusText = '\n\nПолностью';
           } else {
             final sections =
-                resolvedBook?.content.blocks.whereType<BookSection>().toList() ??
-                    const [];
+                resolvedBook?.content.blocks
+                    .whereType<BookSection>()
+                    .toList() ??
+                const [];
             final lastChapter = sections.length > 1
                 ? sections[sections.length - 2]
                 : (sections.isNotEmpty ? sections.first : null);
@@ -237,7 +239,11 @@ abstract class BookPageControllerBase with Store {
             type: FileType.custom,
             allowedExtensions: [cleanExt],
           );
-          finalPath = savedUri != null ? (savedUri.isScheme('file') ? savedUri.toFilePath() : savedUri.toString()) : null;
+          finalPath = savedUri != null
+              ? (savedUri.isScheme('file')
+                    ? savedUri.toFilePath()
+                    : savedUri.toString())
+              : null;
         }
 
         if (finalPath == null) {

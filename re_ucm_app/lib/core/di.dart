@@ -32,10 +32,7 @@ class AppDependencies extends InheritedWidget {
   static Future<AppDependencies> init({required Widget child}) async {
     disableSembastCooperator();
 
-    PortalFactory.registerAll([
-      AuthorToday(),
-      Ficbook(),
-    ]);
+    PortalFactory.registerAll([AuthorToday(), Ficbook()]);
 
     final otaService = await OTAService.init();
     final dir = await getApplicationSupportDirectory();

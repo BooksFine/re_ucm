@@ -28,11 +28,8 @@
 
 ## Поддерживаемые ресурсы
 
-<div style="display: flex; overflow-x: auto;">
-  <a href="https://author.today" target="_blank">
-    <img src="https://github.com/user-attachments/assets/4c2232d2-a3ee-41f5-a8bb-2ac0f6f64223" alt="Author Today" width="100">
-  </a>
-</div>
+- [Author.Today](https://author.today)
+- [Ficbook (Книга Фанфиков)](https://ficbook.net)
 
 ## Платформы и требования
 
@@ -46,6 +43,7 @@
 - [re_ucm_core](re_ucm_core/) — pure-Dart ядро (интерфейсы `Portal`, схемы настроек, модели прогресса).
 - [re_ucm_lib](re_ucm_lib/) — pure-Dart библиотека бизнес-логики (хранилище Sembast, экспорт в изолятах, шаблонизатор путей).
 - [re_ucm_author_today](re_ucm_author_today/) — модуль поддержки Author.Today.
+- [re_ucm_ficbook](re_ucm_ficbook/) — модуль поддержки Ficbook (Книга Фанфиков).
 - [re_ucm_app](re_ucm_app/) — основное Flutter-приложение (Android, Windows).
 
 ### Сборка и запуск

@@ -21,9 +21,9 @@ class Ficbook implements Portal<FBSettings> {
 
   @override
   PortalLogo get logo => const PortalLogo(
-        assetPath: 'assets/logo.svg',
-        packageName: 're_ucm_ficbook',
-      );
+    assetPath: 'assets/logo.svg',
+    packageName: 're_ucm_ficbook',
+  );
 
   @override
   PortalService<FBSettings> get service => _service;

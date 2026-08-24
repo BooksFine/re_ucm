@@ -11,6 +11,7 @@ enum Stages {
 }
 
 enum ImageDownloadStatus { pending, downloading, completed, failed }
+
 enum ChapterDownloadStatus { pending, downloading, completed, failed }
 
 class ChapterDownloadTask {

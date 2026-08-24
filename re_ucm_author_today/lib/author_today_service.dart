@@ -195,8 +195,9 @@ class AuthorTodayService implements PortalService<ATSettings> {
       Progress(stage: Stages.downloading, message: 'Загрузка текста...'),
     );
     final res = await api.getManyTexts(id);
-    final successfulEntries =
-        res.data.where((entry) => entry.isSuccessful).toList();
+    final successfulEntries = res.data
+        .where((entry) => entry.isSuccessful)
+        .toList();
     onProgress?.call(
       Progress(
         stage: Stages.decrypting,
@@ -209,10 +210,10 @@ class AuthorTodayService implements PortalService<ATSettings> {
         .map((e) => (text: e.text, key: e.key, title: e.title))
         .toList(growable: false);
 
-    final sections = await _runIsolated(
-      _decryptAndParseChapters,
-      (chapters: rawChapters, userId: userId),
-    );
+    final sections = await _runIsolated(_decryptAndParseChapters, (
+      chapters: rawChapters,
+      userId: userId,
+    ));
 
     return BookContent(blocks: sections);
   }
@@ -221,7 +222,8 @@ class AuthorTodayService implements PortalService<ATSettings> {
     ({
       List<({String? text, String? key, String? title})> chapters,
       String? userId,
-    }) params,
+    })
+    params,
   ) {
     final results = <BookSection>[];
     for (final chapter in params.chapters) {

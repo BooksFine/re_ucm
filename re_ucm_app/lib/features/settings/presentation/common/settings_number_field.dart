@@ -37,10 +37,7 @@ class SettingsNumberField extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: theme.textTheme.titleMedium,
-                ),
+                Text(title, style: theme.textTheme.titleMedium),
                 if (subtitle != null) ...[
                   const SizedBox(height: 2),
                   Text(
@@ -55,8 +52,9 @@ class SettingsNumberField extends StatelessWidget {
           ),
           const SizedBox(width: appPadding),
           Material(
-            color: theme.colorScheme.surfaceContainerHighest
-                .withValues(alpha: 0.5),
+            color: theme.colorScheme.surfaceContainerHighest.withValues(
+              alpha: 0.5,
+            ),
             borderRadius: BorderRadius.circular(cardBorderRadius),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -80,7 +78,9 @@ class SettingsNumberField extends StatelessWidget {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: appPadding * 1.5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: appPadding * 1.5,
+                  ),
                   child: Text(
                     '$value',
                     style: theme.textTheme.titleMedium?.copyWith(

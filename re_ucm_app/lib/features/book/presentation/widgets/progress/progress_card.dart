@@ -27,8 +27,9 @@ class ProgressCard<T> extends StatelessWidget {
     final cur = current ?? 0;
     final tot = total ?? 0;
     final double? progressVal = (tot > 0) ? (cur / tot).clamp(0.0, 1.0) : null;
-    final statusText =
-        tot > 0 ? '$cur из $tot' : (message ?? 'Инициализация...');
+    final statusText = tot > 0
+        ? '$cur из $tot'
+        : (message ?? 'Инициализация...');
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: appPadding * 2),

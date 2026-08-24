@@ -6,7 +6,8 @@ BookMetadata metadataParserFB(String htmlSource, String id, Uri baseUri) {
   final document = html.parse(htmlSource);
 
   // Title
-  final titleElement = document.querySelector('h1.fanfic-inline-title') ??
+  final titleElement =
+      document.querySelector('h1.fanfic-inline-title') ??
       document.querySelector('h1');
   final title = titleElement?.text.trim() ?? 'Без названия';
 
@@ -38,21 +39,20 @@ BookMetadata metadataParserFB(String htmlSource, String id, Uri baseUri) {
 
   // Cover
   BookCover? cover;
-  final coverTag = document.querySelector('fanfic-cover') ??
+  final coverTag =
+      document.querySelector('fanfic-cover') ??
       document.querySelector('.fanfic-cover img');
-  final coverSrc = coverTag?.attributes['src-original'] ??
-      coverTag?.attributes['src'];
+  final coverSrc =
+      coverTag?.attributes['src-original'] ?? coverTag?.attributes['src'];
   if (coverSrc != null && coverSrc.isNotEmpty) {
     final coverUri = baseUri.resolve(coverSrc).toString();
-    cover = BookCover(
-      ref: BookResourceRef(coverUri),
-      alt: title,
-    );
+    cover = BookCover(ref: BookResourceRef(coverUri), alt: title);
   }
 
   // Annotation
   BookContent? annotationContent;
-  final descElement = document.querySelector('div[itemprop="description"]') ??
+  final descElement =
+      document.querySelector('div[itemprop="description"]') ??
       document.querySelector('.fanfic-description-section');
   if (descElement != null && descElement.innerHtml.trim().isNotEmpty) {
     final blocks = HtmlParser().parseFromString(descElement.innerHtml);
@@ -61,7 +61,9 @@ BookMetadata metadataParserFB(String htmlSource, String id, Uri baseUri) {
 
   // Tags & Keywords & Fandoms
   final keywords = <String>[];
-  final tagElements = document.querySelectorAll('a.tag, a.fandom-link, .badge-tag');
+  final tagElements = document.querySelectorAll(
+    'a.tag, a.fandom-link, .badge-tag',
+  );
   for (final tagEl in tagElements) {
     final tagText = tagEl.text.trim();
     if (tagText.isNotEmpty && !keywords.contains(tagText)) {
@@ -71,7 +73,8 @@ BookMetadata metadataParserFB(String htmlSource, String id, Uri baseUri) {
 
   // Status (Finished / In progress)
   final bodyText = document.body?.text ?? '';
-  final isFinished = bodyText.contains('Завершён') ||
+  final isFinished =
+      bodyText.contains('Завершён') ||
       bodyText.contains('завершён') ||
       document.querySelector('.badge-status-finished') != null;
 

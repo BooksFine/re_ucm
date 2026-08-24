@@ -13,7 +13,7 @@ import 'widgets/book_actions_bar.dart';
 import 'widgets/book_header.dart';
 import 'widgets/book_page_skeleton.dart';
 import 'widgets/error_message.dart';
-import 'widgets/progress_bar.dart';
+import 'widgets/progress/progress_bar.dart';
 import 'widgets/unauthorized_alert.dart';
 
 class BookPage extends StatefulWidget {

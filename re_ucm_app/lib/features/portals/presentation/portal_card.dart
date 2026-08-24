@@ -98,7 +98,7 @@ class PortalCardBase extends StatelessWidget {
                       ),
                       if (authIndication == true)
                         Positioned(
-                          right: 4,
+                          right: 20,
                           bottom: 0,
                           child: Container(
                             decoration: BoxDecoration(

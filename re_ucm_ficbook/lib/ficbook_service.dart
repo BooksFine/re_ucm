@@ -19,19 +19,20 @@ class FicbookService implements PortalService<FBSettings> {
   final Dio _dio;
 
   FicbookService({Dio? dio})
-      : _dio = dio ??
-            Dio(
-              BaseOptions(
-                headers: {
-                  'user-agent': userAgentFB,
-                  'accept':
-                      'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                  'accept-language': 'ru',
-                },
-                connectTimeout: const Duration(seconds: 15),
-                receiveTimeout: const Duration(seconds: 15),
-              ),
-            );
+    : _dio =
+          dio ??
+          Dio(
+            BaseOptions(
+              headers: {
+                'user-agent': userAgentFB,
+                'accept':
+                    'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'accept-language': 'ru',
+              },
+              connectTimeout: const Duration(seconds: 15),
+              receiveTimeout: const Duration(seconds: 15),
+            ),
+          );
 
   @override
   void Function(FBSettings updatedSettings)? onSettingsChanged;
@@ -43,7 +44,7 @@ class FicbookService implements PortalService<FBSettings> {
   @override
   List<PortalSettingItem> buildSettingsSchema(FBSettings settings) {
     return [
-      const PortalSettingSectionTitle('Ficbook (Книга Фанфиков)'),
+      const PortalSettingSectionTitle('Ficbook'),
       PortalSettingGroup([
         PortalSettingTextField(
           actionId: changeMirrorAction,
@@ -52,8 +53,9 @@ class FicbookService implements PortalService<FBSettings> {
               ? defaultMirrorFB
               : 'Текущее: ${settings.mirrorUrl}',
           onSubmit: (s, value) async {
-            final mirror =
-                value.trim().isEmpty ? defaultMirrorFB : value.trim();
+            final mirror = value.trim().isEmpty
+                ? defaultMirrorFB
+                : value.trim();
             final updated = (s as FBSettings).copyWith(mirrorUrl: mirror);
             onSettingsChanged?.call(updated);
             return updated;
@@ -68,8 +70,9 @@ class FicbookService implements PortalService<FBSettings> {
           max: 20,
           onChanged: (s, value) async {
             final clamped = value.clamp(1, 20);
-            final updated =
-                (s as FBSettings).copyWith(maxConcurrentDownloads: clamped);
+            final updated = (s as FBSettings).copyWith(
+              maxConcurrentDownloads: clamped,
+            );
             onSettingsChanged?.call(updated);
             return updated;
           },
@@ -111,8 +114,9 @@ class FicbookService implements PortalService<FBSettings> {
 
   bool _isValidFicbookId(String id) {
     return int.tryParse(id) != null ||
-        RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')
-            .hasMatch(id) ||
+        RegExp(
+          r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+        ).hasMatch(id) ||
         RegExp(r'^[0-9a-fA-F]{32}$').hasMatch(id);
   }
 
@@ -128,18 +132,17 @@ class FicbookService implements PortalService<FBSettings> {
       targetUrl,
       options: Options(
         responseType: ResponseType.plain,
-        headers: {
-          'user-agent': userAgentFB,
-        },
+        headers: {'user-agent': userAgentFB},
       ),
     );
 
     final html = res.data ?? '';
     final baseUri = Uri.parse(mirror);
-    return _runIsolated(
-      _parseMetadataTask,
-      (html: html, id: id, baseUri: baseUri),
-    );
+    return _runIsolated(_parseMetadataTask, (
+      html: html,
+      id: id,
+      baseUri: baseUri,
+    ));
   }
 
   @override
@@ -153,27 +156,23 @@ class FicbookService implements PortalService<FBSettings> {
     final targetUrl = '$mirror/readfic/$id';
 
     onProgress?.call(
-      Progress(
-        stage: Stages.downloading,
-        message: 'Получение оглавления...',
-      ),
+      Progress(stage: Stages.downloading, message: 'Получение оглавления...'),
     );
 
     final mainRes = await _dio.get<String>(
       targetUrl,
       options: Options(
         responseType: ResponseType.plain,
-        headers: {
-          'user-agent': userAgentFB,
-        },
+        headers: {'user-agent': userAgentFB},
       ),
     );
 
     final mainHtml = mainRes.data ?? '';
-    final (metadata, toc) = await _runIsolated(
-      _parseMainTask,
-      (html: mainHtml, id: id, baseUri: baseUri),
-    );
+    final (metadata, toc) = await _runIsolated(_parseMainTask, (
+      html: mainHtml,
+      id: id,
+      baseUri: baseUri,
+    ));
 
     final chapterTasks = List.generate(
       toc.length,
@@ -221,18 +220,16 @@ class FicbookService implements PortalService<FBSettings> {
             chapter.url.toString(),
             options: Options(
               responseType: ResponseType.plain,
-              headers: {
-                'user-agent': userAgentFB,
-              },
+              headers: {'user-agent': userAgentFB},
             ),
           );
 
           final htmlData = chapterRes.data ?? '';
           final chapterTitle = chapter.title;
-          final section = await _runIsolated(
-            _parseChapterTask,
-            (html: htmlData, title: chapterTitle),
-          );
+          final section = await _runIsolated(_parseChapterTask, (
+            html: htmlData,
+            title: chapterTitle,
+          ));
           results[cur] = section;
           chapterTasks[cur] = chapterTasks[cur].copyWith(
             status: ChapterDownloadStatus.completed,
@@ -268,9 +265,7 @@ class FicbookService implements PortalService<FBSettings> {
     return (meta, toc);
   }
 
-  static BookSection _parseChapterTask(
-    ({String html, String title}) args,
-  ) {
+  static BookSection _parseChapterTask(({String html, String title}) args) {
     return parseChapterSection(args.html, args.title);
   }
 
@@ -297,9 +292,7 @@ class FicbookService implements PortalService<FBSettings> {
           url,
           options: Options(
             responseType: ResponseType.bytes,
-            headers: {
-              'user-agent': userAgentFB,
-            },
+            headers: {'user-agent': userAgentFB},
           ),
           onReceiveProgress: (received, total) {
             onByteProgress?.call(received, total > 0 ? total : null);
@@ -310,7 +303,8 @@ class FicbookService implements PortalService<FBSettings> {
         if (bytes == null) return null;
 
         final headerContentType = res.headers.value('content-type');
-        final mediaType = (headerContentType != null &&
+        final mediaType =
+            (headerContentType != null &&
                 headerContentType.startsWith('image/'))
             ? headerContentType.split(';').first.trim()
             : _guessMediaType(url);

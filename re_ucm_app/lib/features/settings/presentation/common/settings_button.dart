@@ -35,10 +35,13 @@ class SettingsButton extends StatelessWidget {
               children: [
                 if (leading != null)
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: appPadding),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: appPadding * 2,
+                    ),
                     child: leading!,
-                  ),
-                const SizedBox(width: appPadding),
+                  )
+                else
+                  const SizedBox(width: appPadding * 2),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,7 +59,7 @@ class SettingsButton extends StatelessWidget {
                   ),
                 ),
                 trailing ?? const Icon(Icons.arrow_forward_ios),
-                const SizedBox(width: appPadding),
+                const SizedBox(width: appPadding * 2),
               ],
             ),
           ),

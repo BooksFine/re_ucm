@@ -1,13 +1,11 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
-import 'package:pointycastle/export.dart';
+import 'package:cryptography/cryptography.dart';
 
 import 'package:re_ucm_author_today/domain/constants.dart';
 
-// import 'dart:typed_data';
-// import 'package:encrypt/encrypt.dart';
+final _aesCbc = AesCbc.with128bits(macAlgorithm: MacAlgorithm.empty);
 
 String reverseString(String input) {
   // Используем руны для корректной работы с Unicode символами
@@ -71,32 +69,26 @@ Future<String> decryptData(String text, String key, String? userId) async {
   return decryptChapter(text, finalKey);
 }
 
-String decryptChapter(String text, String key) {
+Future<String> decryptChapter(String text, String key) async {
   // 2. MD5 от userKey, hex-строкой (32 символа)
-  String hashedKey = md5.convert(utf8.encode(key)).toString().toUpperCase();
+  final hashedKey = md5.convert(utf8.encode(key)).toString().toUpperCase();
 
   // 3. Берём первые 16 байт от hex-строки (в оригинале hex, но в Java брали getBytes, т.е. ASCII-коды символов hex-строки)
-  List<int> keyBytes = utf8.encode(hashedKey.substring(0, 16));
+  final keyBytes = utf8.encode(hashedKey.substring(0, 16));
   // В оригинале IV = keyBytes
   final iv = keyBytes;
 
   // 4. Декодируем base64
   final encrypted = base64.decode(text);
 
-  // 5. Расшифровываем AES/CBC/PKCS7Padding
-  final cipher = PaddedBlockCipher('AES/CBC/PKCS7')
-    ..init(
-      false,
-      PaddedBlockCipherParameters(
-        ParametersWithIV(
-          KeyParameter(Uint8List.fromList(keyBytes)),
-          Uint8List.fromList(iv),
-        ),
-        null,
-      ),
-    );
+  // 5. Расшифровываем AES/CBC/PKCS7
+  final secretBox = SecretBox(encrypted, nonce: iv, mac: Mac.empty);
 
-  final decrypted = cipher.process(Uint8List.fromList(encrypted));
+  final decrypted = await _aesCbc.decrypt(
+    secretBox,
+    secretKey: SecretKey(keyBytes),
+  );
+
   return utf8.decode(decrypted);
 }
 

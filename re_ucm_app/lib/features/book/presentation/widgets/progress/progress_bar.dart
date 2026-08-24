@@ -22,10 +22,9 @@ class ProgressBar extends StatelessWidget {
           duration: Durations.short4,
           alignment: Alignment.topCenter,
           child: switch (progress.stage) {
-            Stages.downloading => _buildChapterDownloadingPanel(
-              context,
-              progress,
-            ),
+            Stages.downloading ||
+            Stages.decrypting ||
+            Stages.parsing => _buildChapterDownloadingPanel(context, progress),
             Stages.imageDownloading => _buildImageDownloadingPanel(
               context,
               progress,
@@ -55,7 +54,11 @@ class ProgressBar extends StatelessWidget {
     final theme = Theme.of(context);
 
     return ProgressCard<ChapterDownloadTask>(
-      title: 'Загрузка глав:',
+      title: switch (progress.stage) {
+        Stages.decrypting => 'Расшифровка глав:',
+        Stages.parsing => 'Построение структуры:',
+        _ => 'Загрузка глав:',
+      },
       current: progress.current,
       total: progress.total,
       message: progress.message,

@@ -195,17 +195,19 @@ class AuthorTodayService implements PortalService<ATSettings> {
       Progress(stage: Stages.downloading, message: 'Загрузка текста...'),
     );
     final res = await api.getManyTexts(id);
+
     final successfulEntries = res.data
         .where((entry) => entry.isSuccessful)
         .toList();
+    final totalCount = successfulEntries.length;
+
     onProgress?.call(
       Progress(
         stage: Stages.decrypting,
-        current: 0,
-        total: successfulEntries.length,
-        message: 'Расшифровка глав...',
+        message: 'Расшифровка $totalCount глав...',
       ),
     );
+
     final rawChapters = successfulEntries
         .map((e) => (text: e.text, key: e.key, title: e.title))
         .toList(growable: false);
@@ -218,25 +220,22 @@ class AuthorTodayService implements PortalService<ATSettings> {
     return BookContent(blocks: sections);
   }
 
-  static List<BookSection> _decryptAndParseChapters(
+  static Future<List<BookSection>> _decryptAndParseChapters(
     ({
       List<({String? text, String? key, String? title})> chapters,
       String? userId,
     })
     params,
-  ) {
-    final results = <BookSection>[];
-    for (final chapter in params.chapters) {
+  ) async {
+    final decryptedChapters = <({String? text, String? title})>[];
+
+    for (var i = 0; i < params.chapters.length; i++) {
+      final chapter = params.chapters[i];
       final chapterText = chapter.text;
       final chapterKey = chapter.key;
       final chapterTitle = chapter.title;
       if (chapterText == null || chapterKey == null) {
-        results.add(
-          BookSection(
-            title: chapterTitle != null ? [BookText(chapterTitle)] : const [],
-            blocks: const [],
-          ),
-        );
+        decryptedChapters.add((text: null, title: chapterTitle));
         continue;
       }
       final key = generateUserKey(
@@ -244,20 +243,34 @@ class AuthorTodayService implements PortalService<ATSettings> {
         userId: params.userId,
         certHash: xATCertificate,
       );
-      final text = decryptChapter(chapterText, key);
-      final blocks = HtmlParser().parseFromString(text);
-
-      results.add(
-        BookSection(
-          title: chapterTitle != null ? [BookText(chapterTitle)] : const [],
-          blocks: blocks,
-        ),
-      );
+      final text = await decryptChapter(chapterText, key);
+      decryptedChapters.add((text: text, title: chapterTitle));
     }
+
+    final parser = HtmlParser();
+    final results = <BookSection>[];
+
+    for (var i = 0; i < decryptedChapters.length; i++) {
+      final chapter = decryptedChapters[i];
+      final chapterText = chapter.text;
+      final chapterTitle = chapter.title ?? 'Глава $i';
+      if (chapterText == null) {
+        results.add(
+          BookSection(title: [BookText(chapterTitle)], blocks: const []),
+        );
+        continue;
+      }
+      final blocks = parser.parseFromString(chapterText);
+      results.add(BookSection(title: [BookText(chapterTitle)], blocks: blocks));
+    }
+
     return results;
   }
 
-  static Future<T> _runIsolated<A, T>(T Function(A) computation, A message) {
+  static Future<T> _runIsolated<A, T>(
+    Future<T> Function(A) computation,
+    A message,
+  ) {
     return Isolate.run(() => computation(message));
   }
 

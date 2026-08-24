@@ -2,6 +2,7 @@ enum Stages {
   none,
   downloading,
   decrypting,
+  parsing,
   analyzing,
   imageDownloading,
   building,

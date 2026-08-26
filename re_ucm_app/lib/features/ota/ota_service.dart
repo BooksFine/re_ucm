@@ -77,10 +77,13 @@ class OTAService {
   String? getPlatformDownloadUrl() {
     if (Platform.isAndroid) {
       final apkAsset = assets.cast<ReleaseAsset?>().firstWhere(
-            (a) => a?.name == 'ReUCM_android.apk',
+            (a) => a?.name == 'ReUCM_android_arm64-v8a.apk',
             orElse: () => assets.cast<ReleaseAsset?>().firstWhere(
-                  (a) => a?.name.toLowerCase().endsWith('.apk') ?? false,
-                  orElse: () => null,
+                  (a) => a?.name == 'ReUCM_android.apk',
+                  orElse: () => assets.cast<ReleaseAsset?>().firstWhere(
+                        (a) => a?.name.toLowerCase().endsWith('.apk') ?? false,
+                        orElse: () => null,
+                      ),
                 ),
           );
       return apkAsset?.downloadUrl ?? otaHost;

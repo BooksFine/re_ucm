@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../../../core/constants.dart';
@@ -58,7 +59,15 @@ class UpdateController {
     onUpdate();
 
     try {
-      final tempDir = await getTemporaryDirectory();
+      final Directory tempDir;
+      if (Platform.isAndroid) {
+        final extDirs = await getExternalCacheDirectories();
+        tempDir = (extDirs != null && extDirs.isNotEmpty)
+            ? extDirs.first
+            : await getTemporaryDirectory();
+      } else {
+        tempDir = await getTemporaryDirectory();
+      }
       final uri = Uri.parse(downloadUrl);
       final rawFileName = uri.pathSegments.isNotEmpty
           ? uri.pathSegments.last
@@ -101,7 +110,21 @@ class UpdateController {
         }
       }
 
-      final openResult = await OpenFile.open(filePath);
+      if (Platform.isAndroid) {
+        try {
+          final status = await Permission.requestInstallPackages.status;
+          if (!status.isGranted) {
+            await Permission.requestInstallPackages.request();
+          }
+        } catch (e) {
+          logger.w('Failed to request install packages permission: $e');
+        }
+      }
+
+      final openResult = await OpenFile.open(
+        filePath,
+        type: Platform.isAndroid ? 'application/vnd.android.package-archive' : null,
+      );
       if (openResult.type != ResultType.done) {
         logger.w('OpenFile result: ${openResult.message} (${openResult.type})');
         errorMessage = openResult.message;

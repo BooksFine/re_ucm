@@ -183,12 +183,12 @@ jobs:
             --hide-extension "ReUCM.app" \
             --app-drop-link 425 190 \
             --no-internet-enable \
-            "../../../../../re_ucm_app/app-build/ReUCM_macos.dmg" \
+            "$GITHUB_WORKSPACE/re_ucm_app/app-build/ReUCM_macos.dmg" \
             "ReUCM.app" || true
 
-          if [ ! -f "../../../../../re_ucm_app/app-build/ReUCM_macos.dmg" ]; then
+          if [ ! -f "$GITHUB_WORKSPACE/re_ucm_app/app-build/ReUCM_macos.dmg" ]; then
             echo "Fallback: creating DMG with hdiutil"
-            hdiutil create -volname "ReUCM" -srcfolder "ReUCM.app" -ov -format UDZO "../../../../../re_ucm_app/app-build/ReUCM_macos.dmg"
+            hdiutil create -volname "ReUCM" -srcfolder "ReUCM.app" -ov -format UDZO "$GITHUB_WORKSPACE/re_ucm_app/app-build/ReUCM_macos.dmg"
           fi
 
       - name: Upload macOS DMG

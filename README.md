@@ -33,11 +33,11 @@
 
 ## Платформы и требования
 
-- **Android**: 7.0 и выше.
+- **Android**: 7.0 (API 24) и выше.
 - **Windows**: Windows 10 (1803) и выше, WebView2 (Microsoft Edge).
 - **Linux**: Ubuntu 20.04+ / Debian 11+ (WebKitGTK, GTK 3).
-- **macOS**: macOS 10.15 (Catalina) и выше.
-- **iOS**: iOS 14.0 и выше (Sideloading).
+- **macOS**: macOS 12.0 (Monterey) и выше.
+- **iOS**: iOS 15.6 и выше (Sideloading).
 
 ## Установка <a id="installation"></a>
 

@@ -32,6 +32,15 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      - name: Cache .dart_tool
+        uses: actions/cache@v4
+        with:
+          path: |
+            **/.dart_tool
+          key: dart-tool-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            dart-tool-${{ runner.os }}-
+
       - name: BuildRunner
         run: dart run build_runner build --delete-conflicting-outputs --workspace
 
@@ -192,6 +201,15 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      - name: Cache .dart_tool
+        uses: actions/cache@v4
+        with:
+          path: |
+            **/.dart_tool
+          key: dart-tool-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            dart-tool-${{ runner.os }}-
+
       - name: BuildRunner
         run: dart run build_runner build --delete-conflicting-outputs --workspace
 
@@ -246,6 +264,15 @@ jobs:
 
       - name: Get dependencies
         run: flutter pub get
+
+      - name: Cache .dart_tool
+        uses: actions/cache@v4
+        with:
+          path: |
+            **/.dart_tool
+          key: dart-tool-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            dart-tool-${{ runner.os }}-
 
       - name: BuildRunner
         run: dart run build_runner build --delete-conflicting-outputs --workspace

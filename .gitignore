@@ -9,3 +9,5 @@ build/
 .fvm/
 # Widget Preview related
 .widget_preview/
+
+pubspec.lock

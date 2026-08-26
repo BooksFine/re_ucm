@@ -1,5 +1,5 @@
 icons_launcher:
-  image_path: "lib/assets/icon/icon.png"
+  image_path: "lib/assets/icon/android_adaptive_icon.png"
   platforms:
     android:
       enable: true
@@ -8,3 +8,11 @@ icons_launcher:
       adaptive_monochrome_image: "lib/assets/icon/android_monochrome_icon.png"
     windows:
       enable: true
+      image_path: "lib/assets/icon/android_adaptive_icon.png"
+    macos:
+      enable: true
+      image_path: "lib/assets/icon/android_adaptive_icon.png"
+    linux:
+      enable: true
+      image_path: "lib/assets/icon/android_adaptive_icon.png"
+

@@ -432,7 +432,7 @@ packages:
     source: hosted
     version: "2.3.0"
   flutter_native_splash:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: flutter_native_splash
       sha256: "9db4b80b044e9af17cc4b1272137fc7ace0054d879ef8210a76adc34aaf4cdff"
@@ -546,7 +546,7 @@ packages:
     source: hosted
     version: "4.1.2"
   icons_launcher:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: icons_launcher
       sha256: b42b2f9b10e58d6a973f71293f00a1f0572595e5e50d676c53048e464f78cb7d
@@ -1607,12 +1607,11 @@ packages:
     source: hosted
     version: "1.0.1"
   zikzak_share_handler_windows:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: zikzak_share_handler_windows
-      sha256: "0187315bd48625898d6c53d3e63dfd545a675921e54f1c593ff955bb05442a11"
-      url: "https://pub.dev"
-    source: hosted
+      path: "re_ucm_app/packages/zikzak_share_handler_windows"
+      relative: true
+    source: path
     version: "1.0.1"
 sdks:
   dart: ">=3.12.0 <4.0.0"

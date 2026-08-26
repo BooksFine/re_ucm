@@ -58,6 +58,10 @@ dev_dependencies:
   json_serializable: ^6.9.4
   mobx_codegen: ^2.7.1
   bumper: ^0.1.4
+
+dependency_overrides:
+  zikzak_share_handler_windows:
+    path: ./packages/zikzak_share_handler_windows
   icons_launcher: ^3.0.0
   flutter_native_splash: ^2.4.1
 

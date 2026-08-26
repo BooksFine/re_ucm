@@ -173,15 +173,15 @@ abstract class BookPageControllerBase with Store {
         },
       );
 
-      var tempDir = (await getTemporaryDirectory()).path;
-      final filePath = path.join(tempDir, '$name$ext');
-      final file = File(filePath);
-      await file.writeAsBytes(bytes);
-
       try {
-        final xfile = XFile(filePath, name: '$name$ext', mimeType: mimeType);
-
         if (share) {
+          final tempDir = (await getTemporaryDirectory()).path;
+          final filePath = path.join(tempDir, '$name$ext');
+          final tempFile = File(filePath);
+          await tempFile.writeAsBytes(bytes);
+
+          final xfile = XFile(filePath, name: '$name$ext', mimeType: mimeType);
+
           final authors = data.contributors
               .map((e) => e.name.toDisplayString())
               .join(', ');
@@ -229,9 +229,9 @@ abstract class BookPageControllerBase with Store {
 
         if (saveDirectory != null && saveDirectory.isNotEmpty) {
           finalPath = path.join(saveDirectory, '$templateFileName$ext');
-          final file = File(finalPath);
-          await file.parent.create(recursive: true);
-          await file.writeAsBytes(bytes);
+          final destFile = File(finalPath);
+          await destFile.parent.create(recursive: true);
+          await destFile.writeAsBytes(bytes);
         } else {
           final cleanExt = ext.startsWith('.') ? ext.substring(1) : ext;
           final savedUri = await FilePicker.saveFile(
@@ -259,12 +259,6 @@ abstract class BookPageControllerBase with Store {
       } catch (e, trace) {
         overlaySnackMessage(scaffoldKey.currentContext!, 'Произошла ошибка');
         logger.e('Error saving book', error: e, stackTrace: trace);
-      } finally {
-        if (!share) {
-          try {
-            await file.delete();
-          } catch (_) {}
-        }
       }
     } catch (e, trace) {
       logger.e('Book encoding error', error: e, stackTrace: trace);

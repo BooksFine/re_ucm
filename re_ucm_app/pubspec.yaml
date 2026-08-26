@@ -61,9 +61,9 @@ dev_dependencies:
 
 dependency_overrides:
   zikzak_share_handler_windows:
-    path: ./packages/zikzak_share_handler_windows
+    path: ../plugins/zikzak_share_handler_windows
   zikzak_share_handler_linux:
-    path: ./packages/zikzak_share_handler_linux
+    path: ../plugins/zikzak_share_handler_linux
   icons_launcher: ^3.0.0
   flutter_native_splash: ^2.4.1
 

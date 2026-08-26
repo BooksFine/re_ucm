@@ -1577,7 +1577,7 @@ packages:
   zikzak_share_handler_linux:
     dependency: "direct overridden"
     description:
-      path: "re_ucm_app/packages/zikzak_share_handler_linux"
+      path: "plugins/zikzak_share_handler_linux"
       relative: true
     source: path
     version: "1.0.1"
@@ -1608,7 +1608,7 @@ packages:
   zikzak_share_handler_windows:
     dependency: "direct overridden"
     description:
-      path: "re_ucm_app/packages/zikzak_share_handler_windows"
+      path: "plugins/zikzak_share_handler_windows"
       relative: true
     source: path
     version: "1.0.1"

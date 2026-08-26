@@ -70,14 +70,48 @@ class _UpdateWidgetState extends State<UpdateWidget> {
                 ),
               ),
             ],
-            if (isBusy) ...[
-              Container(
+            AnimatedCrossFade(
+              duration: Durations.medium3,
+              firstCurve: Curves.easeInOut,
+              secondCurve: Curves.easeInOut,
+              sizeCurve: Curves.easeInOut,
+              crossFadeState: isBusy
+                  ? CrossFadeState.showSecond
+                  : CrossFadeState.showFirst,
+              firstChild: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ElevatedButton1(
+                    func: () =>
+                        controller.downloadAndInstall(() => setState(() {})),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.download_rounded, size: 20),
+                        SizedBox(width: 8),
+                        Text('Скачать и установить'),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: appPadding * 1.5),
+                  OutlinedButton1(
+                    text: 'Открыть в браузере',
+                    func: () => controller.openInBrowser(),
+                  ),
+                ],
+              ),
+              secondChild: Container(
                 padding: const EdgeInsets.all(appPadding * 2),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(cardBorderRadius),
+                  border: Border.all(
+                    color: theme.colorScheme.primary,
+                    width: 0.5,
+                  ),
                 ),
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -86,13 +120,11 @@ class _UpdateWidgetState extends State<UpdateWidget> {
                           controller.state == UpdateState.installing
                               ? 'Запуск установщика...'
                               : 'Скачивание обновления...',
-                          style: theme.textTheme.bodyMedium,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         Text(
                           '${(controller.progress * 100).toInt()}%',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: theme.textTheme.bodyMedium,
                         ),
                       ],
                     ),
@@ -110,7 +142,7 @@ class _UpdateWidgetState extends State<UpdateWidget> {
                           value: controller.state == UpdateState.installing
                               ? null
                               : value,
-                          minHeight: 8,
+                          minHeight: 4,
                         );
                       },
                     ),
@@ -128,25 +160,7 @@ class _UpdateWidgetState extends State<UpdateWidget> {
                   ],
                 ),
               ),
-            ] else ...[
-              ElevatedButton1(
-                func: () =>
-                    controller.downloadAndInstall(() => setState(() {})),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.download_rounded, size: 20),
-                    SizedBox(width: 8),
-                    Text('Скачать и установить'),
-                  ],
-                ),
-              ),
-              const SizedBox(height: appPadding * 1.5),
-              OutlinedButton1(
-                text: 'Открыть в браузере',
-                func: () => controller.openInBrowser(),
-              ),
-            ],
+            ),
             const SizedBox(height: appPadding * 2),
           ],
         ),

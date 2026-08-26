@@ -29,6 +29,8 @@ class _UpdateWidgetState extends State<UpdateWidget> {
     final theme = Theme.of(context);
     final isBusy =
         controller.isDownloading || controller.state == UpdateState.installing;
+    final hasDirectDownload =
+        controller.service.getPlatformDownloadUrl() != null;
 
     return SafeArea(
       child: Padding(
@@ -68,60 +70,58 @@ class _UpdateWidgetState extends State<UpdateWidget> {
                 ),
               ),
             ],
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ElevatedButton1(
-                  isLoading: isBusy,
-                  func: () =>
-                      controller.downloadAndInstall(() => setState(() {})),
-                  child: Text('Скачать и установить'),
-                ),
-                AnimatedSize(
-                  duration: Durations.medium2,
-                  curve: Curves.easeInOut,
-                  alignment: Alignment.topCenter,
-                  child: isBusy
-                      ? Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ProgressCard<void>(
-                              title: controller.state == UpdateState.installing
-                                  ? 'Запуск установщика:'
-                                  : 'Загрузка обновления:',
-                              current: controller.recievedBytes,
-                              total: controller.totalBytes,
-                              items: const [],
-                              itemBuilder: (_, _) => const SizedBox.shrink(),
-                            ),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: FilledButton(
-                                onPressed: () => controller.cancelDownload(
-                                  () => setState(() {}),
-                                ),
-                                child: const Text('Отмена'),
-                              ),
-                            ),
-                          ],
-                        )
-                      : SizedBox.shrink(),
-                ),
-                const SizedBox(height: appPadding * 1.5),
-                AnimatedSize(
-                  duration: Durations.medium2,
-                  curve: Curves.easeInOut,
-                  alignment: Alignment.topCenter,
-                  child: isBusy
-                      ? SizedBox.shrink()
-                      : OutlinedButton1(
-                          text: 'Открыть в браузере',
-                          func: () => controller.openInBrowser(),
-                        ),
-                ),
-              ],
+            ElevatedButton1(
+              isLoading: isBusy,
+              func: () {
+                if (hasDirectDownload) {
+                  controller.downloadAndInstall(() => setState(() {}));
+                } else {
+                  controller.openInBrowser();
+                }
+              },
+              child: Text(
+                hasDirectDownload
+                    ? 'Скачать и установить'
+                    : 'Открыть в браузере',
+              ),
             ),
-
+            AnimatedSize(
+              duration: Durations.medium2,
+              curve: Curves.easeInOut,
+              alignment: Alignment.topCenter,
+              child: isBusy
+                  ? Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ProgressCard<void>(
+                          title: controller.state == UpdateState.installing
+                              ? 'Запуск установщика:'
+                              : 'Загрузка обновления:',
+                          current: controller.recievedBytes,
+                          total: controller.totalBytes,
+                          items: const [],
+                          itemBuilder: (_, _) => const SizedBox.shrink(),
+                        ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: FilledButton(
+                            onPressed: () => controller.cancelDownload(
+                              () => setState(() {}),
+                            ),
+                            child: const Text('Отмена'),
+                          ),
+                        ),
+                      ],
+                    )
+                  : const SizedBox.shrink(),
+            ),
+            if (hasDirectDownload && !isBusy) ...[
+              const SizedBox(height: appPadding * 1.5),
+              OutlinedButton1(
+                text: 'Открыть в браузере',
+                func: () => controller.openInBrowser(),
+              ),
+            ],
             const SizedBox(height: appPadding * 2),
           ],
         ),

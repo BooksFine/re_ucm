@@ -97,14 +97,35 @@ class OTAService {
           );
       return exeAsset?.downloadUrl ?? windowsOTAHost;
     } else if (Platform.isLinux) {
-      final linuxAsset = assets.cast<ReleaseAsset?>().firstWhere(
-            (a) {
-              final name = a?.name.toLowerCase() ?? '';
-              return name.endsWith('.deb') ||
-                  name.endsWith('.appimage') ||
-                  name.endsWith('.tar.gz');
-            },
-            orElse: () => null,
+      final isAppImage = Platform.environment['APPIMAGE'] != null ||
+          Platform.environment['APPDIR'] != null;
+      final isDebInstalled = Platform.resolvedExecutable.contains('/usr/');
+
+      ReleaseAsset? linuxAsset;
+      if (isAppImage) {
+        linuxAsset = assets.cast<ReleaseAsset?>().firstWhere(
+              (a) => a?.name.toLowerCase().endsWith('.appimage') ?? false,
+              orElse: () => null,
+            );
+      } else if (isDebInstalled) {
+        linuxAsset = assets.cast<ReleaseAsset?>().firstWhere(
+              (a) => a?.name.toLowerCase().endsWith('.deb') ?? false,
+              orElse: () => null,
+            );
+      }
+
+      linuxAsset ??= assets.cast<ReleaseAsset?>().firstWhere(
+            (a) => a?.name == 'ReUCM_linux_amd64.deb',
+            orElse: () => assets.cast<ReleaseAsset?>().firstWhere(
+                  (a) => a?.name.toLowerCase().endsWith('.deb') ?? false,
+                  orElse: () => assets.cast<ReleaseAsset?>().firstWhere(
+                        (a) => a?.name.toLowerCase().endsWith('.appimage') ?? false,
+                        orElse: () => assets.cast<ReleaseAsset?>().firstWhere(
+                              (a) => a?.name.toLowerCase().endsWith('.tar.gz') ?? false,
+                              orElse: () => null,
+                            ),
+                      ),
+                ),
           );
       return linuxAsset?.downloadUrl;
     } else if (Platform.isMacOS) {

@@ -60,6 +60,72 @@ jobs:
           flutter build linux --release
           tar -czvf "./app-build/ReUCM_linux.tar.gz" -C "./build/linux/x64/release/bundle" .
 
+          # Build .deb installer
+          VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
+          mkdir -p deb-dir/DEBIAN
+          mkdir -p deb-dir/usr/lib/re_ucm
+          mkdir -p deb-dir/usr/bin
+          mkdir -p deb-dir/usr/share/applications
+          mkdir -p deb-dir/usr/share/icons/hicolor/512x512/apps
+
+          cat << EOF > deb-dir/DEBIAN/control
+          Package: re-ucm
+          Version: ${VERSION}
+          Architecture: amd64
+          Maintainer: BooksFine
+          Description: ReUCM Reader Application
+          Depends: libgtk-3-0, libwebkit2gtk-4.1-0
+          EOF
+
+          cp -r ./build/linux/x64/release/bundle/* deb-dir/usr/lib/re_ucm/
+          ln -sf /usr/lib/re_ucm/re_ucm deb-dir/usr/bin/re_ucm
+
+          cat << 'EOF' > deb-dir/usr/share/applications/dev.pages.reucm.app.desktop
+          [Desktop Entry]
+          Name=ReUCM
+          Exec=/usr/bin/re_ucm
+          Icon=re_ucm
+          Type=Application
+          Categories=Utility;
+          EOF
+
+          cp ./snap/gui/re_ucm.png deb-dir/usr/share/icons/hicolor/512x512/apps/re_ucm.png
+
+          dpkg-deb --build deb-dir "./app-build/ReUCM_linux_amd64.deb"
+
+          # Build AppImage
+          wget -q https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-x86_64.AppImage -O appimagetool
+          chmod +x appimagetool
+
+          mkdir -p AppDir/usr/bin
+          mkdir -p AppDir/usr/lib
+          mkdir -p AppDir/usr/share/icons/hicolor/512x512/apps
+
+          cp -r ./build/linux/x64/release/bundle/* AppDir/usr/bin/
+          cp ./snap/gui/re_ucm.png AppDir/re_ucm.png
+          cp ./snap/gui/re_ucm.png AppDir/.DirIcon
+          cp ./snap/gui/re_ucm.png AppDir/usr/share/icons/hicolor/512x512/apps/re_ucm.png
+
+          cat << 'EOF' > AppDir/re_ucm.desktop
+          [Desktop Entry]
+          Name=ReUCM
+          Exec=re_ucm
+          Icon=re_ucm
+          Type=Application
+          Categories=Utility;
+          EOF
+
+          cat << 'EOF' > AppDir/AppRun
+          #!/bin/sh
+          HERE="$(dirname "$(readlink -f "${0}")")"
+          export PATH="${HERE}/usr/bin:${PATH}"
+          export LD_LIBRARY_PATH="${HERE}/usr/bin/lib:${LD_LIBRARY_PATH}"
+          exec "${HERE}/usr/bin/re_ucm" "$@"
+          EOF
+          chmod +x AppDir/AppRun
+
+          ./appimagetool --appimage-extract-and-run AppDir "./app-build/ReUCM_linux.AppImage"
+
       - name: Upload Android APK
         uses: actions/upload-artifact@v4
         with:
@@ -93,6 +159,20 @@ jobs:
         with:
           name: ReUCM_linux.tar.gz
           path: re_ucm_app/app-build/ReUCM_linux.tar.gz
+          retention-days: 3
+
+      - name: Upload Linux .deb package
+        uses: actions/upload-artifact@v4
+        with:
+          name: ReUCM_linux_amd64.deb
+          path: re_ucm_app/app-build/ReUCM_linux_amd64.deb
+          retention-days: 3
+
+      - name: Upload Linux AppImage
+        uses: actions/upload-artifact@v4
+        with:
+          name: ReUCM_linux.AppImage
+          path: re_ucm_app/app-build/ReUCM_linux.AppImage
           retention-days: 3
 
   build_windows:

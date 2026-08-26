@@ -1575,12 +1575,11 @@ packages:
     source: hosted
     version: "1.0.1"
   zikzak_share_handler_linux:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: zikzak_share_handler_linux
-      sha256: fa06cca4dd60d9ec61681f46480b63789284a744b338fbe3d745aa65995583e6
-      url: "https://pub.dev"
-    source: hosted
+      path: "re_ucm_app/packages/zikzak_share_handler_linux"
+      relative: true
+    source: path
     version: "1.0.1"
   zikzak_share_handler_macos:
     dependency: transitive

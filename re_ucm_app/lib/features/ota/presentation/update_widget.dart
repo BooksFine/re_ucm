@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../core/constants.dart';
 import '../../../core/di.dart';
 import '../../../core/ui/constants.dart';
+import '../../common/widgets/btn.dart';
+import '../../common/widgets/outlined_btn.dart';
 import 'update_controller.dart';
 
 class UpdateWidget extends StatefulWidget {
@@ -23,78 +25,131 @@ class _UpdateWidgetState extends State<UpdateWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      heightFactor: 1,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: appPadding * 4),
-          Text(
-            'Доступно обновление',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: appPadding * 2),
-          Text(
-            '$appVersion => ${controller.actualVersion}',
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
-          const SizedBox(height: appPadding),
-          Card(
-            margin: const EdgeInsets.all(appPadding * 3),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(cardBorderRadius),
+    final theme = Theme.of(context);
+    final isBusy = controller.isDownloading ||
+        controller.state == UpdateState.installing;
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: appPadding * 3,
+          vertical: appPadding * 2,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(height: appPadding * 2),
+            Text(
+              'Доступно обновление',
+              style: theme.textTheme.headlineSmall,
             ),
-            color: Theme.of(context).colorScheme.primary,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(cardBorderRadius),
-              onTap: controller.progressStream == null
-                  ? () => controller.updateApp(() => setState(() {}))
-                  : null,
-              child: AnimatedSize(
-                duration: Durations.short4,
-                child: Container(
-                  padding: const EdgeInsets.all(appPadding),
-                  width: double.infinity,
-                  child: controller.progressStream == null
-                      ? Text(
-                          'Установить',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onPrimaryContainer,
-                            fontSize: 16,
-                          ),
-                        )
-                      : StreamBuilder(
-                          stream: controller.progressStream,
-                          builder: (_, progress) {
-                            return TweenAnimationBuilder(
-                              duration: Durations.short4,
-                              curve: Curves.easeInOut,
-                              tween: Tween<double>(
-                                begin: 0,
-                                end: progress.data ?? 0,
-                              ),
-                              builder: (context, value, _) {
-                                return LinearProgressIndicator(
-                                  borderRadius: BorderRadius.circular(90),
-                                  value: value / 100,
-                                  color: Colors.white,
-                                  backgroundColor: Theme.of(
-                                    context,
-                                  ).colorScheme.surface.withValues(alpha: 0.5),
-                                );
-                              },
-                            );
-                          },
-                        ),
-                ),
+            const SizedBox(height: appPadding),
+            Text(
+              '$appVersion => ${controller.actualVersion ?? "—"}',
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-          ),
-          SizedBox(height: MediaQuery.paddingOf(context).bottom),
-        ],
+            const SizedBox(height: appPadding * 3),
+            if (controller.errorMessage != null) ...[
+              Container(
+                padding: const EdgeInsets.all(appPadding),
+                margin: const EdgeInsets.only(bottom: appPadding * 2),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.errorContainer,
+                  borderRadius: BorderRadius.circular(cardBorderRadius),
+                ),
+                child: Text(
+                  controller.errorMessage!,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: theme.colorScheme.onErrorContainer,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ],
+            if (isBusy) ...[
+              Container(
+                padding: const EdgeInsets.all(appPadding * 2),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(cardBorderRadius),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          controller.state == UpdateState.installing
+                              ? 'Запуск установщика...'
+                              : 'Скачивание обновления...',
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                        Text(
+                          '${(controller.progress * 100).toInt()}%',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: appPadding),
+                    TweenAnimationBuilder<double>(
+                      duration: Durations.short4,
+                      curve: Curves.easeInOut,
+                      tween: Tween<double>(
+                        begin: 0,
+                        end: controller.progress,
+                      ),
+                      builder: (context, value, _) {
+                        return LinearProgressIndicator(
+                          borderRadius: BorderRadius.circular(90),
+                          value: controller.state == UpdateState.installing
+                              ? null
+                              : value,
+                          minHeight: 8,
+                        );
+                      },
+                    ),
+                    if (controller.isDownloading) ...[
+                      const SizedBox(height: appPadding),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () =>
+                              controller.cancelDownload(() => setState(() {})),
+                          child: const Text('Отмена'),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ] else ...[
+              ElevatedButton1(
+                func: () =>
+                    controller.downloadAndInstall(() => setState(() {})),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.download_rounded, size: 20),
+                    SizedBox(width: 8),
+                    Text('Скачать и установить'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: appPadding * 1.5),
+              OutlinedButton1(
+                text: 'Открыть в браузере',
+                func: () => controller.openInBrowser(),
+              ),
+            ],
+            const SizedBox(height: appPadding * 2),
+          ],
+        ),
       ),
     );
   }

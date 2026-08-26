@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/constants.dart';
 import '../../../core/di.dart';
 import '../../../core/ui/constants.dart';
+import '../../book/presentation/widgets/progress/progress_card.dart';
 import '../../common/widgets/btn.dart';
 import '../../common/widgets/outlined_btn.dart';
 import 'update_controller.dart';
@@ -70,96 +71,56 @@ class _UpdateWidgetState extends State<UpdateWidget> {
                 ),
               ),
             ],
-            AnimatedCrossFade(
-              duration: Durations.medium3,
-              firstCurve: Curves.easeInOut,
-              secondCurve: Curves.easeInOut,
-              sizeCurve: Curves.easeInOut,
-              crossFadeState: isBusy
-                  ? CrossFadeState.showSecond
-                  : CrossFadeState.showFirst,
-              firstChild: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ElevatedButton1(
-                    func: () =>
-                        controller.downloadAndInstall(() => setState(() {})),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+            AnimatedSize(
+              duration: Durations.medium2,
+              curve: Curves.easeInOut,
+              alignment: Alignment.topCenter,
+              child: isBusy
+                  ? Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.download_rounded, size: 20),
-                        SizedBox(width: 8),
-                        Text('Скачать и установить'),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: appPadding * 1.5),
-                  OutlinedButton1(
-                    text: 'Открыть в браузере',
-                    func: () => controller.openInBrowser(),
-                  ),
-                ],
-              ),
-              secondChild: Container(
-                padding: const EdgeInsets.all(appPadding * 2),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(cardBorderRadius),
-                  border: Border.all(
-                    color: theme.colorScheme.primary,
-                    width: 0.5,
-                  ),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          controller.state == UpdateState.installing
-                              ? 'Запуск установщика...'
-                              : 'Скачивание обновления...',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ProgressCard<void>(
+                          title: controller.state == UpdateState.installing
+                              ? 'Запуск установщика:'
+                              : 'Загрузка обновления:',
+                          current: (controller.progress * 100).toInt(),
+                          total: 100,
+                          items: const [],
+                          itemBuilder: (_, _) => const SizedBox.shrink(),
                         ),
-                        Text(
-                          '${(controller.progress * 100).toInt()}%',
-                          style: theme.textTheme.bodyMedium,
+                        if (controller.isDownloading)
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: () => controller
+                                  .cancelDownload(() => setState(() {})),
+                              child: const Text('Отмена'),
+                            ),
+                          ),
+                      ],
+                    )
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ElevatedButton1(
+                          func: () => controller
+                              .downloadAndInstall(() => setState(() {})),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.download_rounded, size: 20),
+                              SizedBox(width: 8),
+                              Text('Скачать и установить'),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: appPadding * 1.5),
+                        OutlinedButton1(
+                          text: 'Открыть в браузере',
+                          func: () => controller.openInBrowser(),
                         ),
                       ],
                     ),
-                    const SizedBox(height: appPadding),
-                    TweenAnimationBuilder<double>(
-                      duration: Durations.short4,
-                      curve: Curves.easeInOut,
-                      tween: Tween<double>(
-                        begin: 0,
-                        end: controller.progress,
-                      ),
-                      builder: (context, value, _) {
-                        return LinearProgressIndicator(
-                          borderRadius: BorderRadius.circular(90),
-                          value: controller.state == UpdateState.installing
-                              ? null
-                              : value,
-                          minHeight: 4,
-                        );
-                      },
-                    ),
-                    if (controller.isDownloading) ...[
-                      const SizedBox(height: appPadding),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () =>
-                              controller.cancelDownload(() => setState(() {})),
-                          child: const Text('Отмена'),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
             ),
             const SizedBox(height: appPadding * 2),
           ],

@@ -37,6 +37,25 @@
 - **Windows**: Windows 10 (1803) и выше, WebView2 (Microsoft Edge).
 - **Linux**: Ubuntu 20.04+ / Debian 11+ (WebKitGTK, GTK 3).
 - **macOS**: macOS 10.15 (Catalina) и выше.
+- **iOS**: iOS 14.0 и выше (Sideloading).
+
+## Установка <a id="installation"></a>
+
+<details>
+<summary><b>🍏 macOS — Инструкция по установке</b></summary>
+
+При первом запуске неподписанного приложения на macOS Gatekeeper может заблокировать открытие.
+1. Кликните правой кнопкой мыши (или двумя пальцами по тачпаду) по `ReUCM.app` $\rightarrow$ выберите **Открыть** (*Open*) $\rightarrow$ нажмите **Открыть** в диалоговом окне.
+2. Либо перейдите в **Системные настройки** $\rightarrow$ **Конфиденциальность и безопасность** $\rightarrow$ прокрутите вниз до блока **Безопасность** $\rightarrow$ нажмите **Всё равно открыть** (*Open Anyway*).
+3. Также можно снять атрибут карантина через Терминал: `xattr -cr /Applications/ReUCM.app`
+</details>
+
+<details>
+<summary><b>📱 iOS — Инструкция по установке</b></summary>
+
+Файл `.ipa` поставляется для установки методом Sideloading (без подписи Apple Developer):
+- Устанавливайте через [AltStore](https://altstore.io), [SideStore](https://sidestore.io), [TrollStore](https://trollstore.app), Scarlet или [Sideloadly](https://sideloadly.io).
+</details>
 
 ## Разработка
 

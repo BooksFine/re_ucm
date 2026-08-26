@@ -330,11 +330,30 @@ jobs:
         shell: bash
         working-directory: re_ucm_app
         run: |
+          TAG="${{ steps.read-version.outputs.version }}"
+
+          cat << EOF > HEADER.md
+          ### 📦 Скачать / Downloads
+
+          | Платформа | Скачать | Другие форматы / Инструкции |
+          | :--- | :--- | :--- |
+          | **🤖 Android** | [![Android arm64-v8a](https://img.shields.io/badge/Android-arm64--v8a.apk-3DDC84?logo=android&logoColor=white)](https://github.com/BooksFine/re_ucm/releases/download/${TAG}/ReUCM_android_arm64-v8a.apk) | — |
+          | **🪟 Windows** | [![Windows Setup](https://img.shields.io/badge/Windows-Setup.exe-0078D4?logo=windows&logoColor=white)](https://github.com/BooksFine/re_ucm/releases/download/${TAG}/ReUCM_windows.exe) | [Portable .7z](https://github.com/BooksFine/re_ucm/releases/download/${TAG}/ReUCM_windows_portable.7z) |
+          | **🍏 macOS** | [![macOS DMG](https://img.shields.io/badge/macOS-DMG-000000?logo=apple&logoColor=white)](https://github.com/BooksFine/re_ucm/releases/download/${TAG}/ReUCM_macos.dmg) | [Инструкция](https://github.com/BooksFine/re_ucm#installation) |
+          | **🐧 Linux** | [![Linux DEB](https://img.shields.io/badge/Linux-.deb-E95420?logo=ubuntu&logoColor=white)](https://github.com/BooksFine/re_ucm/releases/download/${TAG}/ReUCM_linux_amd64.deb) | [AppImage](https://github.com/BooksFine/re_ucm/releases/download/${TAG}/ReUCM_linux.AppImage) • [tar.gz](https://github.com/BooksFine/re_ucm/releases/download/${TAG}/ReUCM_linux.tar.gz) |
+          | **📱 iOS** | [![iOS IPA](https://img.shields.io/badge/iOS-IPA-000000?logo=apple&logoColor=white)](https://github.com/BooksFine/re_ucm/releases/download/${TAG}/ReUCM_ios.ipa) | [Инструкция](https://github.com/BooksFine/re_ucm#installation) |
+
+          ---
+
+          EOF
+
           # Extract everything from the first ### header until the second one appears
-          awk '/^### /{if (n++ == 1) exit} n' CHANGELOG.md > RELEASE_NOTES.md
-          
-          # Fallback: if RELEASE_NOTES.md is empty, just use the whole file
-          if [ ! -s RELEASE_NOTES.md ]; then cp CHANGELOG.md RELEASE_NOTES.md; fi
+          awk '/^### /{if (n++ == 1) exit} n' CHANGELOG.md > CHANGELOG_EXTRACT.md
+
+          # Fallback: if CHANGELOG_EXTRACT.md is empty, just use CHANGELOG.md
+          if [ ! -s CHANGELOG_EXTRACT.md ]; then cp CHANGELOG.md CHANGELOG_EXTRACT.md; fi
+
+          cat HEADER.md CHANGELOG_EXTRACT.md > RELEASE_NOTES.md
 
       - uses: ncipollo/release-action@v1
         with:

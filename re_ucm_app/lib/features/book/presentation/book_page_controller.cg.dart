@@ -260,7 +260,7 @@ abstract class BookPageControllerBase with Store {
         overlaySnackMessage(scaffoldKey.currentContext!, 'Произошла ошибка');
         logger.e('Error saving book', error: e, stackTrace: trace);
       } finally {
-        if (!Platform.isWindows) {
+        if (!share && !Platform.isWindows) {
           try {
             await file.delete();
           } catch (_) {}

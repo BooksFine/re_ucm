@@ -63,9 +63,11 @@
 
 - [re_ucm_core](re_ucm_core/) — pure-Dart ядро (интерфейсы `Portal`, схемы настроек, модели прогресса).
 - [re_ucm_lib](re_ucm_lib/) — pure-Dart библиотека бизнес-логики (хранилище Sembast, экспорт в изолятах, шаблонизатор путей).
-- [re_ucm_author_today](re_ucm_author_today/) — модуль поддержки Author.Today.
-- [re_ucm_ficbook](re_ucm_ficbook/) — модуль поддержки Ficbook (Книга Фанфиков).
-- [re_ucm_app](re_ucm_app/) — основное Flutter-приложение (Android, Windows, Linux, macOS).
+- [portals/](portals/) — модули поддержки внешних ресурсов:
+  - [re_ucm_author_today](portals/re_ucm_author_today/) — модуль Author.Today.
+  - [re_ucm_ficbook](portals/re_ucm_ficbook/) — модуль Ficbook (Книга Фанфиков).
+- [plugins/](plugins/) — вспомогательные локальные плагины и стабы для платформ (`zikzak_share_handler_windows`, `zikzak_share_handler_linux`).
+- [re_ucm_app](re_ucm_app/) — основное Flutter-приложение (Android, Windows, Linux, macOS, iOS).
 
 ### Сборка и запуск
 
@@ -74,7 +76,7 @@
 flutter pub get
 
 # Генерация кода (MobX, Freezed, Retrofit)
-dart run build_runner build -d
+dart run build_runner build -d --workspace
 
 # Запуск приложения
 cd re_ucm_app
@@ -87,5 +89,7 @@ flutter run
 
 Для добавления модуля сервиса необходимо:
 
-1. Реализовать интерфейсы `Portal` и `PortalService` из `re_ucm_core`, используя `dart_book`.
-2. Зарегистрировать портал в `PortalFactory.registerAll([...])` в [re_ucm_app/lib/core/di.dart](re_ucm_app/lib/core/di.dart).
+1. Создать новый Dart-пакет в директории `portals/` (например, `portals/re_ucm_myportal`).
+2. Добавить новый пакет в секцию `workspace:` в корневом `pubspec.yaml` и в зависимости [re_ucm_app/pubspec.yaml](re_ucm_app/pubspec.yaml).
+3. Реализовать интерфейсы `Portal` и `PortalService` из `re_ucm_core`, используя `dart_book`.
+4. Зарегистрировать портал в `PortalFactory.registerAll([...])` в [re_ucm_app/lib/core/di.dart](re_ucm_app/lib/core/di.dart).

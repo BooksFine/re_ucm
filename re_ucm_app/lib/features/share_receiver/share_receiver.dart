@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
-import 'package:share_handler/share_handler.dart';
+import 'package:zikzak_share_handler/zikzak_share_handler.dart';
 
 import '../../core/logger.dart';
 import '../../core/navigation/router_delegate.dart';

@@ -10,13 +10,7 @@ import '../../../core/constants.dart';
 import '../../../core/logger.dart';
 import '../ota_service.dart';
 
-enum UpdateState {
-  idle,
-  downloading,
-  installing,
-  completed,
-  error,
-}
+enum UpdateState { idle, downloading, installing, completed, error }
 
 class UpdateController {
   final OTAService service;
@@ -27,6 +21,8 @@ class UpdateController {
 
   UpdateState state = UpdateState.idle;
   double progress = 0.0;
+  int recievedBytes = 0;
+  int totalBytes = 0;
   String? errorMessage;
   CancelToken? _cancelToken;
 
@@ -55,6 +51,8 @@ class UpdateController {
 
     state = UpdateState.downloading;
     progress = 0.0;
+    recievedBytes = 0;
+    totalBytes = 0;
     errorMessage = null;
     _cancelToken = CancelToken();
     onUpdate();
@@ -62,8 +60,9 @@ class UpdateController {
     try {
       final tempDir = await getTemporaryDirectory();
       final uri = Uri.parse(downloadUrl);
-      final rawFileName =
-          uri.pathSegments.isNotEmpty ? uri.pathSegments.last : 'update';
+      final rawFileName = uri.pathSegments.isNotEmpty
+          ? uri.pathSegments.last
+          : 'update';
       final fileName = 'ReUCM_${actualVersion ?? "latest"}_$rawFileName';
       final filePath = '${tempDir.path}/$fileName';
 
@@ -80,6 +79,8 @@ class UpdateController {
         filePath,
         cancelToken: _cancelToken,
         onReceiveProgress: (received, total) {
+          recievedBytes = received;
+          totalBytes = total;
           if (total > 0) {
             progress = (received / total).clamp(0.0, 1.0);
           } else {

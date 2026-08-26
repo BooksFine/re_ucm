@@ -50,7 +50,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: ".\build\windows\x64\runner\Release\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\build\windows\x64\runner\Release\flutter_inappwebview_windows_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: ".\build\windows\x64\runner\Release\webview_all_windows_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: ".\build\windows\x64\runner\Release\flutter_windows.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: ".\build\windows\x64\runner\Release\permission_handler_windows_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: ".\build\windows\x64\runner\Release\share_plus_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion

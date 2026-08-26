@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:re_ucm_core/models/portal.dart';
+import 'package:webview_all/webview_all.dart';
 
 import '../../../../core/navigation/router_delegate.dart';
 import '../../../common/widgets/appbar.dart';
@@ -21,24 +21,24 @@ class WebAuthPage extends StatelessWidget {
         ),
       ),
       body: AppWebView(
-        initialUrl: WebUri(field.startUrl),
+        initialUrl: Uri.parse(field.startUrl),
         userAgent: field.userAgent,
-        shouldOverrideUrlLoading: (controller, navigationAction) async {
-          final uri = navigationAction.request.url!;
-          final url = uri.toString();
+        shouldOverrideUrlLoading: (controller, request) async {
+          final url = request.url;
 
           if (url.startsWith(field.successUrl)) {
-            final cookies = await CookieManager.instance().getCookies(url: uri);
-            final target = cookies
-                .where((c) => c.name == field.cookieName)
-                .firstOrNull;
+            final uri = Uri.parse(url);
+            final cookies =
+                await WebViewCookieManager().getCookies(domain: uri);
+            final target =
+                cookies.where((c) => c.name == field.cookieName).firstOrNull;
             if (target != null && context.mounted) {
-              Nav.back(target.value.toString());
-              return NavigationActionPolicy.CANCEL;
+              Nav.back(target.value);
+              return NavigationDecision.prevent;
             }
           }
 
-          return NavigationActionPolicy.ALLOW;
+          return NavigationDecision.navigate;
         },
       ),
     );

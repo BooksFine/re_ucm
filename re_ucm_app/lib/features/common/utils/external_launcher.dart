@@ -1,13 +1,12 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../widgets/overlay_snack.dart';
 
-Future<void> launchExternalUrl(BuildContext context, WebUri uri) async {
+Future<void> launchExternalUrl(BuildContext context, Uri uri) async {
   try {
-    var urlToLaunch = uri.uriValue;
+    var urlToLaunch = uri;
 
     if (uri.scheme == 'intent') {
       final intentUrl = uri.toString();

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:re_ucm_core/models/portal.dart';
+import 'package:webview_all/webview_all.dart';
 
 import '../../core/logger.dart';
 import '../../core/navigation/router_delegate.dart';
@@ -18,7 +18,7 @@ class Browser extends StatefulWidget {
 }
 
 class _BrowserState extends State<Browser> {
-  InAppWebViewController? _webViewController;
+  WebViewController? _webViewController;
   bool canGoBack = false;
   bool canGoForward = false;
 
@@ -64,7 +64,7 @@ class _BrowserState extends State<Browser> {
         ),
       ),
       body: AppWebView(
-        initialUrl: WebUri(widget.portal.url),
+        initialUrl: Uri.parse(widget.portal.url),
         userAgent:
             'Mozilla/5.0 (Linux; Android 13; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
         onWebViewCreated: (controller) => _webViewController = controller,
@@ -77,31 +77,25 @@ class _BrowserState extends State<Browser> {
             child: const SizedBox.shrink(),
           ),
         ],
-        onPermissionRequest: (controller, request) async {
-          return PermissionResponse(
-            resources: request.resources,
-            action: PermissionResponseAction.GRANT,
-          );
-        },
-        shouldOverrideUrlLoading: (controller, navigationAction) async {
-          var uri = navigationAction.request.url!;
+        shouldOverrideUrlLoading: (controller, request) async {
+          final uri = Uri.parse(request.url);
           try {
             final bookId = widget.portal.service.getIdFromUrl(uri);
             Nav.bookFromBrowser(widget.portal.code, bookId);
-            return NavigationActionPolicy.CANCEL;
+            return NavigationDecision.prevent;
           } catch (e) {
             logger.d('Navigated URL is not a book: $uri');
-            return NavigationActionPolicy.ALLOW;
+            return NavigationDecision.navigate;
           }
         },
-        onUpdateVisitedHistory: (controller, url, isReload) {
+        onUpdateVisitedHistory: (controller, url) {
           _updateNavButtons();
-          if (isReload == true) return;
+          if (url == null) return;
           try {
-            final bookId = widget.portal.service.getIdFromUrl(url!.uriValue);
+            final bookId = widget.portal.service.getIdFromUrl(url);
             Nav.bookFromBrowser(widget.portal.code, bookId);
           } catch (e) {
-            logger.d('History URL is not a book: ${url?.uriValue}');
+            logger.d('History URL is not a book: $url');
           }
         },
       ),

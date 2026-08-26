@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:re_ucm_core/models/portal.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
+import 'package:webview_all/webview_all.dart';
 
 import '../../../../core/navigation/router_delegate.dart';
 import '../../../../core/ui/constants.dart';
@@ -97,8 +97,7 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
     await widget.session.updateSettings(newSettings);
 
     if (wasAuthorized && !widget.session.isAuthorized) {
-      final cookieManager = CookieManager.instance();
-      cookieManager.deleteCookies(url: WebUri(widget.session.url));
+      await WebViewCookieManager().clearCookies();
     }
   }
 

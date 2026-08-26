@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 
-const appVersion = '3.0.0';
+const appVersion = '3.0.2';
 const isAlphaFlavor = appFlavor == 'alpha';
 const appName = isAlphaFlavor ? 'α ReUCM' : 'ReUCM';
 

@@ -1,4 +1,4 @@
-name: Multi-platform release
+name: Test Multi-platform build
 
 on:
   workflow_dispatch:
@@ -197,50 +197,3 @@ jobs:
           name: ReUCM_macos.dmg
           path: re_ucm_app/app-build/ReUCM_macos.dmg
           retention-days: 3
-
-  publish:
-    runs-on: ubuntu-latest
-    needs: [build_android_and_linux, build_windows, build_macos]
-
-    permissions:
-      contents: write
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - id: read-version
-        shell: bash
-        run: echo "version=$(grep '^version:' re_ucm_app/pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)" >> $GITHUB_OUTPUT
-
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: build/
-          merge-multiple: true
-
-      - name: Create a GitHub release
-        id: tag_version
-        uses: mathieudutour/github-tag-action@v6.1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          tag_prefix: ""
-          custom_tag: ${{ steps.read-version.outputs.version }}
-
-      - name: Extract latest changelog
-        shell: bash
-        working-directory: re_ucm_app
-        run: |
-          # Extract everything from the first ### header until the second one appears
-          awk '/^### /{if (n++ == 1) exit} n' CHANGELOG.md > RELEASE_NOTES.md
-          
-          # Fallback: if RELEASE_NOTES.md is empty, just use the whole file
-          if [ ! -s RELEASE_NOTES.md ]; then cp CHANGELOG.md RELEASE_NOTES.md; fi
-
-      - uses: ncipollo/release-action@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ steps.tag_version.outputs.new_tag }}
-          name: ReUCM v${{ steps.tag_version.outputs.new_tag }}
-          bodyFile: re_ucm_app/RELEASE_NOTES.md
-          artifacts: "build/*.*"

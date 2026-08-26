@@ -22,6 +22,26 @@
 			"group": "build"
 		},
 		{
+			"label": "[Build] Linux",
+			"type": "shell",
+			"command": "dart run bumper build && flutter build linux",
+			"options": {
+				"cwd": "${workspaceFolder}/re_ucm_app"
+			},
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "[Build] macOS",
+			"type": "shell",
+			"command": "dart run bumper build && flutter build macos",
+			"options": {
+				"cwd": "${workspaceFolder}/re_ucm_app"
+			},
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
 			"label": "[Build] Android APK (prod, split-per-abi)",
 			"type": "shell",
 			"command": "dart run bumper build && flutter build apk --split-per-abi && dart run ../.vscode/export_apk.dart --flavor prod",

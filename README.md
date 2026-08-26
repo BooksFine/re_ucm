@@ -35,6 +35,8 @@
 
 - **Android**: 7.0 и выше.
 - **Windows**: Windows 10 (1803) и выше, WebView2 (Microsoft Edge).
+- **Linux**: Ubuntu 20.04+ / Debian 11+ (WebKitGTK, GTK 3).
+- **macOS**: macOS 10.15 (Catalina) и выше.
 
 ## Разработка
 
@@ -44,7 +46,7 @@
 - [re_ucm_lib](re_ucm_lib/) — pure-Dart библиотека бизнес-логики (хранилище Sembast, экспорт в изолятах, шаблонизатор путей).
 - [re_ucm_author_today](re_ucm_author_today/) — модуль поддержки Author.Today.
 - [re_ucm_ficbook](re_ucm_ficbook/) — модуль поддержки Ficbook (Книга Фанфиков).
-- [re_ucm_app](re_ucm_app/) — основное Flutter-приложение (Android, Windows).
+- [re_ucm_app](re_ucm_app/) — основное Flutter-приложение (Android, Windows, Linux, macOS).
 
 ### Сборка и запуск
 

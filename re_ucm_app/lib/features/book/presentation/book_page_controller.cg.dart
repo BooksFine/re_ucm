@@ -216,10 +216,12 @@ abstract class BookPageControllerBase with Store {
           return;
         }
 
-        bool isGranted = await Permission.manageExternalStorage
-            .request()
-            .isGranted;
-        if (!isGranted) openAppSettings();
+        if (Platform.isAndroid) {
+          bool isGranted = await Permission.manageExternalStorage
+              .request()
+              .isGranted;
+          if (!isGranted) openAppSettings();
+        }
 
         final saveDirectory = settings.saveDirectory;
 
@@ -258,7 +260,11 @@ abstract class BookPageControllerBase with Store {
         overlaySnackMessage(scaffoldKey.currentContext!, 'Произошла ошибка');
         logger.e('Error saving book', error: e, stackTrace: trace);
       } finally {
-        if (!Platform.isWindows) await file.delete();
+        if (!Platform.isWindows) {
+          try {
+            await file.delete();
+          } catch (_) {}
+        }
       }
     } catch (e, trace) {
       logger.e('Book encoding error', error: e, stackTrace: trace);

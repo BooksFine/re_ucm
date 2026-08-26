@@ -92,6 +92,14 @@ class UpdateController {
       state = UpdateState.installing;
       onUpdate();
 
+      if (Platform.isLinux) {
+        try {
+          await Process.run('chmod', ['+x', filePath]);
+        } catch (e) {
+          logger.w('Failed to set executable permissions: $e');
+        }
+      }
+
       final openResult = await OpenFile.open(filePath);
       if (openResult.type != ResultType.done) {
         logger.w('OpenFile result: ${openResult.message} (${openResult.type})');

@@ -16,6 +16,7 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
     return SafeArea(
       right: false,
       left: false,
+      bottom: false,
       child: DefaultTextStyle(
         style: Theme.of(context).textTheme.titleLarge!,
         child: Container(

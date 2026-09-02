@@ -13,6 +13,7 @@ class AppWebView extends StatefulWidget {
     this.onUpdateVisitedHistory,
     this.onLoadStart,
     this.onLoadStop,
+    this.onProgress,
     this.extraChildren = const [],
   });
 
@@ -33,6 +34,7 @@ class AppWebView extends StatefulWidget {
   onUpdateVisitedHistory;
   final void Function(WebViewController controller, Uri? url)? onLoadStart;
   final void Function(WebViewController controller, Uri? url)? onLoadStop;
+  final void Function(WebViewController controller, int progress)? onProgress;
 
   @override
   State<AppWebView> createState() => _AppWebViewState();
@@ -53,7 +55,12 @@ class _AppWebViewState extends State<AppWebView> {
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (url) {
-            if (mounted) setState(() => isLoading = true);
+            if (mounted) {
+              setState(() {
+                isLoading = true;
+                progress = 0;
+              });
+            }
             widget.onLoadStart?.call(controller, Uri.tryParse(url));
           },
           onPageFinished: (url) {
@@ -66,6 +73,7 @@ class _AppWebViewState extends State<AppWebView> {
             if (mounted) {
               setState(() => this.progress = progress / 100);
             }
+            widget.onProgress?.call(controller, progress);
           },
           onUrlChange: (change) {
             if (change.url != null) {
@@ -123,16 +131,13 @@ class _AppWebViewState extends State<AppWebView> {
       children: [
         ...widget.extraChildren,
         if (isPageOpened) WebViewWidget(controller: controller),
-        AnimatedOpacity(
-          duration: Durations.medium2,
-          opacity: isLoading ? 1 : 0,
-          child: TweenAnimationBuilder(
+        if (isLoading)
+          TweenAnimationBuilder<double>(
             tween: Tween<double>(begin: 0, end: progress),
             duration: Durations.short4,
             builder: (_, v, _) =>
                 LinearProgressIndicator(value: v == 0 ? null : v, minHeight: 3),
           ),
-        ),
       ],
     );
   }

@@ -1082,20 +1082,22 @@ packages:
     source: hosted
     version: "3.8.9+1"
   share_plus:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: share_plus
-      sha256: "34f00f9becd2743c1fb05363d624f9f70d37f7ccdcdda47450bc0b8c9d327b8c"
-      url: "https://pub.dev"
-    source: hosted
+      path: "packages/share_plus/share_plus"
+      ref: "feat/android-new-task"
+      resolved-ref: "14e72ce3784cdf67e76fb7872b0c59eaa9919b50"
+      url: "https://github.com/InvisibleRunBot/plus_plugins.git"
+    source: git
     version: "13.3.0"
   share_plus_platform_interface:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: share_plus_platform_interface
-      sha256: "365ef7379fc22507256adda3385152942ffce08935452bc972c2e52a0bebae41"
-      url: "https://pub.dev"
-    source: hosted
+      path: "packages/share_plus/share_plus_platform_interface"
+      ref: "feat/android-new-task"
+      resolved-ref: "14e72ce3784cdf67e76fb7872b0c59eaa9919b50"
+      url: "https://github.com/InvisibleRunBot/plus_plugins.git"
+    source: git
     version: "7.2.0"
   shelf:
     dependency: transitive

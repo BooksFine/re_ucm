@@ -43,9 +43,20 @@ class _MainAppState extends State<MainApp> {
   late final router = createRouter(AppDependencies.of(context));
 
   @override
+  void initState() {
+    super.initState();
+    ShareReceiverService.init();
+  }
+
+  @override
+  void dispose() {
+    ShareReceiverService.dispose();
+    super.dispose();
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    shareHandler(context);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       OTAService.firstLaunch(AppDependencies.of(context).otaService);
     });

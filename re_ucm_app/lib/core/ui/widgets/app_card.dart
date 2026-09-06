@@ -3,15 +3,67 @@ import 'package:material_ui/material_ui.dart';
 import '../tokens.dart';
 import 'app_icon_container.dart';
 
+/// Канонический билдер заголовков для [AppCard]/[AppProgressCard].
+///
+/// Новый код передаёт виджеты (`title: AppCardTitle.text('...')`),
+/// строки напрямую больше не принимаются.
+class AppCardTitle extends StatelessWidget {
+  /// Заголовок в стиле карточки (titleMedium, bold).
+  const AppCardTitle.text(
+    this.data, {
+    super.key,
+    this.style,
+    this.maxLines,
+    this.overflow,
+    this.textAlign,
+  });
+
+  final String data;
+  final TextStyle? style;
+  final int? maxLines;
+  final TextOverflow? overflow;
+  final TextAlign? textAlign;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Text(
+      data,
+      style:
+          style ??
+          theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+      maxLines: maxLines,
+      overflow: overflow,
+      textAlign: textAlign,
+    );
+  }
+}
+
+class AppCardSubtitle extends StatelessWidget {
+  const AppCardSubtitle({super.key, required this.text});
+  final String text;
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Text(
+      text,
+      style: theme.textTheme.bodySmall?.copyWith(
+        color: theme.colorScheme.onSurfaceVariant,
+      ),
+    );
+  }
+}
+
 class AppCard extends StatelessWidget {
+  /// Канонический конструктор: заголовки — виджеты
+  /// (`titleWidget`/`subtitleWidget`/`statusWidget`, например `AppCardTitle.text('...')`).
   const AppCard({
     super.key,
     this.icon,
     this.leading,
-    this.title,
     this.titleWidget,
-    this.subtitle,
     this.subtitleWidget,
+    this.statusWidget,
     this.trailing,
     this.crossAxisAlignment = CrossAxisAlignment.start,
     this.padding = const EdgeInsets.all(AppSpacing.lg),
@@ -24,10 +76,11 @@ class AppCard extends StatelessWidget {
 
   final IconData? icon;
   final Widget? leading;
-  final String? title;
   final Widget? titleWidget;
-  final String? subtitle;
   final Widget? subtitleWidget;
+
+  /// Статусная строка под subtitle. Новый слот, по умолчанию отсутствует.
+  final Widget? statusWidget;
   final Widget? trailing;
   final CrossAxisAlignment crossAxisAlignment;
   final EdgeInsetsGeometry padding;
@@ -36,17 +89,14 @@ class AppCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     final resolvedLeading =
         leading ?? (icon != null ? AppIconContainer(icon: icon!) : null);
 
     final hasHeader =
         resolvedLeading != null ||
-        title != null ||
         titleWidget != null ||
-        subtitle != null ||
         subtitleWidget != null ||
+        statusWidget != null ||
         trailing != null;
 
     return Card(
@@ -67,32 +117,20 @@ class AppCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (titleWidget != null)
-                          titleWidget!
-                        else if (title != null)
-                          Text(
-                            title!,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        if (subtitleWidget != null)
-                          subtitleWidget!
-                        else if (subtitle != null) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            subtitle!,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
+                        ?titleWidget,
+                        ?subtitleWidget,
                       ],
                     ),
                   ),
                   ?trailing,
                 ],
               ),
+              if (statusWidget != null) ...[
+                Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.xs),
+                  child: statusWidget!,
+                ),
+              ],
               SizedBox(height: headerSpacing),
             ],
             ...children,

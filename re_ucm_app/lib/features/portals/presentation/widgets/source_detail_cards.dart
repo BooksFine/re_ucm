@@ -3,14 +3,13 @@ import 'package:m3e_core/m3e_core.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_core/models/portal.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
-import '../../../../core/navigation/router_delegate.dart';
+import '../../../../core/navigation/nav.dart';
 import '../../../../core/ui/tokens.dart';
 import '../../../../core/ui/widgets/widgets.dart';
 import '../../../common/utils/external_launcher.dart';
 import '../settings/portal_settings_frame.dart';
 import 'portal_badges.dart';
 import 'portal_domain_extension.dart';
-import 'portal_logo_icon.dart';
 
 class SourceHeroCard extends StatelessWidget {
   const SourceHeroCard({
@@ -38,23 +37,10 @@ class SourceHeroCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                // Logo
-                Container(
-                  width: 58,
-                  height: 58,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: cs.surfaceContainerHighest.withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(AppRadii.lg),
-                    border: Border.all(
-                      color: cs.outlineVariant.withValues(alpha: 0.35),
-                      width: 0.8,
-                    ),
-                  ),
-                  child: PortalLogoIcon(
-                    portal: portal,
-                    color: cs.onSurface,
-                  ),
+                PortalLogoContainer(
+                  portal: portal,
+                  size: 58,
+                  padding: 12,
                 ),
                 const SizedBox(width: AppSpacing.lg),
 
@@ -99,7 +85,7 @@ class SourceHeroCard extends StatelessWidget {
                               ],
                             ),
                           ),
-                          if (portal.hasAuth) ...[
+                          if (portal.supportsAuth) ...[
                             const SizedBox(width: 10),
                             PortalAuthBadge(isAuthorized: isAuth),
                           ],
@@ -195,7 +181,9 @@ class SourceAccountCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppCard(
       icon: isAuth ? Icons.account_circle_rounded : Icons.lock_outline_rounded,
-      title: isAuth ? 'Управление аккаунтом' : 'Авторизация',
+      titleWidget: AppCardTitle.text(
+        isAuth ? 'Управление аккаунтом' : 'Авторизация',
+      ),
       children: [
         PortalSettingsFrame(
           key: ValueKey('detail_auth_${portal.code}'),
@@ -220,7 +208,7 @@ class SourceSettingsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppCard(
       icon: Icons.tune_rounded,
-      title: 'Параметры источника',
+      titleWidget: AppCardTitle.text('Параметры источника'),
       children: [
         PortalSettingsFrame(
           key: ValueKey('detail_settings_${portal.code}'),

@@ -2,9 +2,8 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../core/ui/centered_flexible_space_bar.dart';
 import '../../core/ui/tokens.dart';
-import '../recent_books/presentation/recent_books_list.dart';
-import '../recent_books/presentation/widgets/recent_books_header.dart';
 import 'widgets/home_action_hub.dart';
+import 'widgets/recent_books_section.dart';
 
 class HomePagePortrait extends StatefulWidget {
   const HomePagePortrait({super.key});
@@ -14,7 +13,7 @@ class HomePagePortrait extends StatefulWidget {
 }
 
 class _HomePagePortraitState extends State<HomePagePortrait> {
-  late final ScrollController _scrollController = ScrollController();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void dispose() {
@@ -69,29 +68,19 @@ class _HomePagePortraitState extends State<HomePagePortrait> {
                   ),
                 ),
 
-                // Recent Books Section Header
-                const SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      AppSpacing.lg,
-                      AppSpacing.xl,
-                      AppSpacing.lg,
-                      AppSpacing.xs,
-                    ),
-                    child: RecentBooksHeader(padding: EdgeInsets.zero),
+                // Recent Books Section (header + list, unboxed)
+                RecentBooksSection(
+                  headerOuterPadding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg,
+                    AppSpacing.xl,
+                    AppSpacing.lg,
+                    AppSpacing.xs,
                   ),
-                ),
-
-                // Recent Books List (unboxed, breathing freely on page background)
-                SliverPadding(
-                  padding: EdgeInsets.fromLTRB(
+                  listPadding: EdgeInsets.fromLTRB(
                     AppSpacing.lg,
                     AppSpacing.xs,
                     AppSpacing.lg,
                     bottomInset,
-                  ),
-                  sliver: const SliverToBoxAdapter(
-                    child: RecentBooksList(),
                   ),
                 ),
               ],

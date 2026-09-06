@@ -6,6 +6,8 @@ class PortalFactory {
 
   static List<Portal> get portals => _portalsByCode.values.toList();
 
+  static Portal? findByCode(String code) => _portalsByCode[code];
+
   // Register a portal by passing the class type
   static void registerPortal(Portal portal) {
     _portalsByUrl[portal.url] = portal;

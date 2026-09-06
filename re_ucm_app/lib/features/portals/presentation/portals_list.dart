@@ -4,7 +4,7 @@ import 'package:re_ucm_core/models/portal.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 import '../../../core/di.dart';
-import '../../../core/navigation/router_delegate.dart';
+import '../../../core/navigation/nav.dart';
 import '../../../core/ui/tokens.dart';
 import 'portal_card.dart';
 class PortalsList extends StatelessWidget {
@@ -15,6 +15,9 @@ class PortalsList extends StatelessWidget {
     this.isAuthorizedResolver,
   });
 
+  /// Фолбэк витрины при пустых пинах (бывший магический take(4)).
+  static const int kFallbackPortalCount = 4;
+
   final Function(Portal portal)? onTap;
   final bool? authIndication;
   final bool Function(Portal portal)? isAuthorizedResolver;
@@ -22,13 +25,17 @@ class PortalsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final deps = AppDependencies.of(context);
-    final pinnedCodes = deps.settingsService.pinnedPortalCodes;
-    final allPortals = PortalFactory.portals;
+    // Один Observer сверху: пины из SettingsService читаются реактивно
+    // вместе с auth-бейджами, без N Observer на карточку.
+    return Observer(
+      builder: (_) {
+        final pinnedCodes = deps.settingsService.pinnedPortalCodes;
+        final allPortals = PortalFactory.portals;
 
     // Show pinned portals on home; if none are pinned, fallback to top portals
     final displayPortals = pinnedCodes.isNotEmpty
         ? allPortals.where((p) => pinnedCodes.contains(p.code)).toList()
-        : allPortals.take(4).toList();
+        : allPortals.take(kFallbackPortalCount).toList();
 
     final itemCount = displayPortals.length + 1; // + 1 for "All sources" button
 
@@ -46,8 +53,7 @@ class PortalsList extends StatelessWidget {
           }
 
           final portal = displayPortals[index];
-
-          Widget buildCard() => PortalCard(
+          return PortalCard(
             portal: portal,
             authIndication: authIndication ?? false,
             isAuthorized: isAuthorizedResolver != null
@@ -55,12 +61,10 @@ class PortalsList extends StatelessWidget {
                 : false,
             onTap: onTap != null ? () => onTap!(portal) : null,
           );
-
-          if (isAuthorizedResolver == null) return buildCard();
-
-          return Observer(builder: (context) => buildCard());
         },
       ),
+    );
+      },
     );
   }
 }

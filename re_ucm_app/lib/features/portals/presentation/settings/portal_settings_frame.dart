@@ -2,16 +2,15 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_core/models/portal.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
-import 'package:webview_all/webview_all.dart';
 
-import '../../../../core/navigation/router_delegate.dart';
 import '../../../../core/ui/tokens.dart';
 import '../../../../core/ui/widgets/app_counter_row.dart';
+import '../../../../core/ui/widgets/app_section_header.dart';
 import '../../../../core/ui/widgets/app_tile.dart';
-import '../../../common/widgets/overlay_snack.dart';
+import '../../../common/widgets/snack.dart';
+import 'portal_settings_manager.dart';
 import 'widgets/portal_animated_switcher.dart';
 import 'widgets/portal_settings_text_field.dart';
-
 
 class PortalSettingsFrame extends StatefulWidget {
   const PortalSettingsFrame({super.key, required this.session});
@@ -26,10 +25,28 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
   final Map<String, ({TextEditingController controller, bool isLoading})>
   _textFieldsData = {};
 
+  static const double _kFieldHPadding = 12;
+  static const double _kFieldVPaddingCounter = 8;
+  static const double _kFieldVPaddingTile = 10;
+
+  late final PortalSettingsManager _manager = PortalSettingsManager(
+    session: widget.session,
+    onNotify: (message, {kind = AppSnackKind.info}) {
+      if (!mounted) return;
+      AppSnack.show(context, message, kind: kind);
+    },
+  );
+
+  @override
+  void didUpdateWidget(covariant PortalSettingsFrame oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.session, widget.session)) {
+      _pruneStaleFieldControllers();
+    }
+  }
+
   @override
   void dispose() {
-    // Временные флаги сессии живут ровно пока открыт фрейм настроек —
-    // сброс здесь, а не в lifecycle сессии, осознанно.
     widget.session.resetTempFlags();
     for (final data in _textFieldsData.values) {
       data.controller.dispose();
@@ -39,10 +56,11 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
 
   void onTextFieldSubmit(PortalSettingTextField field, String value) async {
     updateFieldData(field, isLoading: true);
-
-    await updateSettings(await field.onSubmit!(widget.session.settings, value));
-
-    updateFieldData(field, isLoading: false);
+    try {
+      await _manager.onTextFieldSubmit(field, value, null);
+    } finally {
+      if (mounted) updateFieldData(field, isLoading: false);
+    }
   }
 
   void updateFieldData(PortalSettingTextField field, {bool? isLoading}) {
@@ -70,41 +88,44 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
     );
   }
 
-  void onActionButtonTap(PortalSettingActionButton field) async {
-    await updateSettings(await field.onTap(widget.session.settings));
+  void onActionButtonTap(PortalSettingActionButton field) {
+    _manager.onActionButtonTap(field);
   }
 
-  void onNumberFieldChanged(PortalSettingNumberField field, int value) async {
-    await updateSettings(await field.onChanged(widget.session.settings, value));
+  void onNumberFieldChanged(PortalSettingNumberField field, int value) {
+    _manager.onNumberFieldChanged(field, value);
   }
 
   void onWebAuthButtonTap(PortalSettingWebAuthButton field) async {
-    final result = await Nav.pushWebAuth(field);
-    final cookie = result as String?;
-    if (cookie == null || cookie.isEmpty) {
-      if (!mounted) return;
-      overlaySnackMessage(context, 'Авторизация отменена');
-      return;
-    }
-    try {
-      await updateSettings(
-        await field.onCookieObtained(widget.session.settings, cookie),
-      );
-      if (!mounted) return;
-      overlaySnackMessage(context, 'Вы успешно авторизовались');
-    } catch (e) {
-      if (!mounted) return;
-      overlaySnackMessage(context, 'Ошибка: $e');
-    }
+    await _manager.onWebAuthButtonTap(field, mounted);
   }
 
-  Future<void> updateSettings(PortalSettings newSettings) async {
-    final wasAuthorized = widget.session.isAuthorized;
+  void _pruneStaleFieldControllers() {
+    final alive = <String>{};
+    for (final field in widget.session.schema) {
+      _collectTextFieldIds(field, alive);
+    }
+    final stale = _textFieldsData.keys.where((k) => !alive.contains(k)).toList();
+    for (final key in stale) {
+      _textFieldsData.remove(key)?.controller.dispose();
+    }
+    if (stale.isNotEmpty && mounted) setState(() {});
+  }
 
-    await widget.session.updateSettings(newSettings);
-
-    if (wasAuthorized && !widget.session.isAuthorized) {
-      await WebViewCookieManager().clearCookies();
+  void _collectTextFieldIds(PortalSettingItem field, Set<String> out) {
+    switch (field) {
+      case PortalSettingTextField():
+        out.add(field.actionId);
+      case PortalSettingGroup():
+        for (final child in field.children) {
+          _collectTextFieldIds(child, out);
+        }
+      case PortalSettingStateSwitcher():
+        for (final child in field.states.values) {
+          _collectTextFieldIds(child, out);
+        }
+      case _:
+        break;
     }
   }
 
@@ -119,8 +140,6 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
     );
   }
 
-  /// Вынесено из switch-expression: `_getOrInitFieldData` вызывается
-  /// один раз за build (раньше — дважды, с побочным эффектом в геттере).
   Widget _textFieldWidget(PortalSettingTextField field) {
     final fieldData = _getOrInitFieldData(field);
     return PortalSettingsTextField(
@@ -136,7 +155,8 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
   }
 
   Widget renderField(PortalSettingItem field) {
-    return switch (field) {      PortalSettingGroup() => Column(
+    return switch (field) {
+      PortalSettingGroup() => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [for (final child in field.children) renderField(child)],
       ),
@@ -148,36 +168,54 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
               )
             : const SizedBox.shrink(),
       ),
-      PortalSettingSectionTitle() => const SizedBox.shrink(),
+      PortalSettingSectionTitle() => AppSectionHeader(field.title),
       PortalSettingTextField() => _textFieldWidget(field),
-      PortalSettingNumberField() => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: AppCounterRow(
-          title: field.title,
-          subtitle: field.subtitle,
-          value: field.value,
-          min: field.min,
-          max: field.max,
-          onChanged: (v) => onNumberFieldChanged(field, v),
-        ),
-      ),
-      PortalSettingActionButton() => AppTile(
-        title: field.title,
-        subtitle: field.subtitle,
-        isDestructive: field.actionId == 'logout',
-        onTap: () => onActionButtonTap(field),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        borderRadius: AppRadii.lg,
-      ),
-      PortalSettingWebAuthButton() => AppTile(
-        title: field.title,
-        onTap: () => onWebAuthButtonTap(field),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        borderRadius: AppRadii.lg,
-      ),
+      PortalSettingNumberField() => _numberFieldWidget(field),
+      PortalSettingActionButton() => _actionButtonWidget(field),
+      PortalSettingWebAuthButton() => _webAuthButtonWidget(field),
     };
   }
-}
 
+  Widget _numberFieldWidget(PortalSettingNumberField field) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: _kFieldHPadding,
+        vertical: _kFieldVPaddingCounter,
+      ),
+      child: AppCounterRow(
+        title: field.title,
+        subtitle: field.subtitle,
+        value: field.value,
+        min: field.min,
+        max: field.max,
+        onChanged: (v) => onNumberFieldChanged(field, v),
+      ),
+    );
+  }
+
+  Widget _actionButtonWidget(PortalSettingActionButton field) {
+    return AppTile(
+      title: field.title,
+      subtitle: field.subtitle,
+      isDestructive: field.actionId == 'logout',
+      onTap: () => onActionButtonTap(field),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: _kFieldHPadding,
+        vertical: _kFieldVPaddingTile,
+      ),
+      borderRadiusGeometry: AppRadii.lgRadius,
+    );
+  }
+
+  Widget _webAuthButtonWidget(PortalSettingWebAuthButton field) {
+    return AppTile(
+      title: field.title,
+      onTap: () => onWebAuthButtonTap(field),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: _kFieldHPadding,
+        vertical: _kFieldVPaddingTile,
+      ),
+      borderRadiusGeometry: AppRadii.lgRadius,
+    );
+  }
+}

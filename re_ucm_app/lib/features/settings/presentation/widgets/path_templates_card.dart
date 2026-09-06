@@ -15,8 +15,10 @@ class PathTemplatesCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppCard(
       icon: Icons.text_fields_rounded,
-      title: 'Именование файлов',
-      subtitle: 'Шаблоны структуры папок и имён файлов',
+      titleWidget: AppCardTitle.text('Именование файлов'),
+      subtitleWidget: const AppCardSubtitle(
+        text: 'Шаблоны структуры папок и имён файлов',
+      ),
       children: [
         Observer(
           builder: (_) => PathTemplateField(

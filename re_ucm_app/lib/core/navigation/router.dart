@@ -10,33 +10,81 @@ import '../../features/portals/presentation/settings/web_auth_page.dart';
 import '../../features/portals/presentation/source_detail_page.dart';
 import '../../features/portals/presentation/sources_page.dart';
 import '../../features/settings/presentation/settings_page.dart';
-import '../di.dart';
 import 'dialog_page.dart';
+import 'error_page.dart';
 import 'modal_bottom_sheet_page.dart';
 import 'shell_route/navigator_container.dart';
 
 final rootNavigationKey = GlobalKey<NavigatorState>();
 
-GoRouter createRouter(AppDependencies deps) => GoRouter(
+/// Имена роутов — вместо строковых литералов по коду.
+abstract final class RouteNames {
+  static const settings = 'Settings';
+  static const changelog = 'Changelog';
+  static const browser = 'Browser';
+  static const sourceDetail = 'SourceDetail';
+  static const notFound = 'NotFound';
+}
+
+/// Пути роутов верхнего уровня.
+abstract final class RoutePaths {
+  static const dialog = '/dialog';
+  static const webAuth = '/webauth';
+  static const bottomSheet = '/bottomsheet';
+  static const settingsModal = '/settings_modal';
+  static const sources = '/sources';
+  static const notFound = '/404';
+}
+
+GoRouter createRouter() => GoRouter(
   navigatorKey: rootNavigationKey,
   initialLocation: '/',
+  errorPageBuilder: (context, state) => MaterialPage(
+    key: state.pageKey,
+    child: ErrorPage(
+      message: state.error?.toString() ?? state.uri.toString(),
+    ),
+  ),
   routes: [
     GoRoute(
-      path: '/dialog',
+      path: RoutePaths.notFound,
+      name: RouteNames.notFound,
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: ErrorPage(
+          code: state.uri.queryParameters['code'] ?? '404',
+          message: state.uri.queryParameters['message'],
+        ),
+      ),
+    ),
+    GoRoute(
+      path: RoutePaths.dialog,
       pageBuilder: (context, state) {
         final builder = state.extra;
         if (builder is! RoutePageBuilder) {
-          return const MaterialPage(child: SizedBox.shrink());
+          return MaterialPage(
+            key: state.pageKey,
+            child: const ErrorPage(
+              code: '400',
+              message: 'Некорректные данные диалога',
+            ),
+          );
         }
         return DialogPage(builder: builder);
       },
     ),
     GoRoute(
-      path: '/webauth',
+      path: RoutePaths.webAuth,
       pageBuilder: (context, state) {
         final extra = state.extra;
         if (extra is! PortalSettingWebAuthButton) {
-          return const MaterialPage(child: SizedBox.shrink());
+          return MaterialPage(
+            key: state.pageKey,
+            child: const ErrorPage(
+              code: '400',
+              message: 'Некорректные данные веб-авторизации',
+            ),
+          );
         }
         return MaterialPage(
           key: state.pageKey,
@@ -45,11 +93,17 @@ GoRouter createRouter(AppDependencies deps) => GoRouter(
       },
     ),
     GoRoute(
-      path: '/bottomsheet',
+      path: RoutePaths.bottomSheet,
       pageBuilder: (context, state) {
         final child = state.extra;
         if (child is! Widget) {
-          return const MaterialPage(child: SizedBox.shrink());
+          return MaterialPage(
+            key: state.pageKey,
+            child: const ErrorPage(
+              code: '400',
+              message: 'Некорректные данные bottom sheet',
+            ),
+          );
         }
         return ModalBottomSheetPage(
           child: child,
@@ -58,8 +112,8 @@ GoRouter createRouter(AppDependencies deps) => GoRouter(
       },
     ),
     GoRoute(
-      path: '/settings_modal',
-      name: "Settings",
+      path: RoutePaths.settingsModal,
+      name: RouteNames.settings,
       pageBuilder: (context, state) {
         return MaterialPage(
           key: state.pageKey,
@@ -85,7 +139,7 @@ GoRouter createRouter(AppDependencies deps) => GoRouter(
               routes: [
                 GoRoute(
                   path: 'changelog',
-                  name: 'Changelog',
+                  name: RouteNames.changelog,
                   pageBuilder: (context, state) {
                     return MaterialPage(
                       key: state.pageKey,
@@ -95,19 +149,25 @@ GoRouter createRouter(AppDependencies deps) => GoRouter(
                 ),
                 GoRoute(
                   parentNavigatorKey: rootNavigationKey,
-                  name: 'Browser',
+                  name: RouteNames.browser,
                   path: 'browser/:portalCode',
-                  pageBuilder: (context, state) {
+                  redirect: (context, state) {
                     final code = state.pathParameters['portalCode'];
-                    final portal = code != null
-                        ? PortalFactory.portals.cast<Portal?>().firstWhere(
-                              (p) => p!.code == code,
-                              orElse: () => null,
-                            )
-                        : null;
-                    if (portal == null) {
-                      return const MaterialPage(child: SizedBox.shrink());
+                    if (code == null || PortalFactory.findByCode(code) == null) {
+                      return Uri(
+                        path: RoutePaths.notFound,
+                        queryParameters: {
+                          'code': '404',
+                          'message': 'Неизвестный портал: $code',
+                        },
+                      ).toString();
                     }
+                    return null;
+                  },
+                  pageBuilder: (context, state) {
+                    final portal = PortalFactory.findByCode(
+                      state.pathParameters['portalCode']!,
+                    )!;
                     return MaterialPage(
                       key: state.pageKey,
                       child: Browser(portal: portal),
@@ -126,7 +186,7 @@ GoRouter createRouter(AppDependencies deps) => GoRouter(
                   const MaterialPage(child: SourcesPage()),
               routes: [
                 GoRoute(
-                  name: 'SourceDetail',
+                  name: RouteNames.sourceDetail,
                   path: ':portalCode',
                   pageBuilder: (context, state) {
                     return MaterialPage(
@@ -146,6 +206,7 @@ GoRouter createRouter(AppDependencies deps) => GoRouter(
             GoRoute(
               path: '/settings',
               pageBuilder: (context, state) => MaterialPage(
+                key: state.pageKey,
                 child: SettingsPage(
                   isEmbedded: true,
                 ),

@@ -1,6 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
-import '../../core/navigation/router_delegate.dart';
+import '../../core/navigation/nav.dart';
 import '../../core/ui/tokens.dart';
 import '../common/widgets/appbar.dart';
 import 'changelog.dart';

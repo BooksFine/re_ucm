@@ -1,14 +1,12 @@
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:m3e_core/m3e_core.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:re_ucm_core/re_ucm_core.dart';
 
 import '../../../core/di.dart';
 import '../../../core/ui/responsive_modal.dart';
-import '../../../core/ui/tokens.dart';
-import '../../recent_books/presentation/recent_book_shared.dart';
 import '../domain/download_task.cg.dart';
 import 'download_modal.dart';
+import 'widgets/download_list_tile.dart';
 
 Future<void> showDownloadsListModal(BuildContext context) async {
   await showResponsiveAppModal(
@@ -39,13 +37,16 @@ class DownloadsListContent extends StatelessWidget {
     final theme = Theme.of(context);
     final downloadsService = AppDependencies.of(context).downloadsService;
 
+    // Внешний Observer — только ids/counts. Ряды — per-item Observer
+    // внутри DownloadListTile, прогресс не ребилдит весь список.
     return Observer(
       builder: (context) {
+        final taskKeys = downloadsService.tasks.keys.toList();
         final activeTasks = downloadsService.activeTasks;
         final completedTasks = downloadsService.completedTasks;
-        final allTasks = downloadsService.allTasks;
+        final total = downloadsService.totalCount;
 
-        if (allTasks.isEmpty) {
+        if (taskKeys.isEmpty) {
           return Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 40),
@@ -97,7 +98,7 @@ class DownloadsListContent extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    '${allTasks.length}',
+                    '$total',
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: theme.colorScheme.onSecondaryContainer,
                       fontWeight: FontWeight.bold,
@@ -124,34 +125,26 @@ class DownloadsListContent extends StatelessWidget {
                 shrinkWrap: true,
                 padding: EdgeInsets.zero,
                 children: [
-                  if (activeTasks.isNotEmpty) ...[
-                    _SectionTitle(title: 'АКТИВНЫЕ (${activeTasks.length})'),
-                    const SizedBox(height: 8),
-                    for (final task in activeTasks)
-                      _TaskListItem(
-                        task: task,
-                        onTap: () {
-                          onClose();
-                          showDownloadModalForTask(context, task);
-                        },
-                      ),
-                  ],
+                  if (activeTasks.isNotEmpty)
+                    _TaskSection(
+                      title: 'АКТИВНЫЕ (${activeTasks.length})',
+                      tasks: activeTasks,
+                      onTap: (task) {
+                        onClose();
+                        showDownloadModalForTask(context, task);
+                      },
+                    ),
                   if (activeTasks.isNotEmpty && completedTasks.isNotEmpty)
                     const SizedBox(height: 16),
-                  if (completedTasks.isNotEmpty) ...[
-                    _SectionTitle(
+                  if (completedTasks.isNotEmpty)
+                    _TaskSection(
                       title: 'ЗАВЕРШЁННЫЕ (${completedTasks.length})',
+                      tasks: completedTasks,
+                      onTap: (task) {
+                        onClose();
+                        showDownloadModalForTask(context, task);
+                      },
                     ),
-                    const SizedBox(height: 8),
-                    for (final task in completedTasks)
-                      _TaskListItem(
-                        task: task,
-                        onTap: () {
-                          onClose();
-                          showDownloadModalForTask(context, task);
-                        },
-                      ),
-                  ],
                 ],
               ),
             ),
@@ -162,186 +155,43 @@ class DownloadsListContent extends StatelessWidget {
   }
 }
 
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({required this.title});
+class _TaskSection extends StatelessWidget {
+  const _TaskSection({
+    required this.title,
+    required this.tasks,
+    required this.onTap,
+  });
 
   final String title;
+  final List<DownloadTask> tasks;
+  final void Function(DownloadTask task) onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: Text(
-        title,
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: theme.colorScheme.primary,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.8,
-        ),
-      ),
-    );
-  }
-}
-
-class _TaskListItem extends StatelessWidget {
-  const _TaskListItem({required this.task, required this.onTap});
-
-  final DownloadTask task;
-  final VoidCallback onTap;
-
-  String _getStageTitle(DownloadTask task) => task.progress.stage.title;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Observer(
-      builder: (_) {
-        final meta = task.metadata;
-        final title = meta?.title ?? 'Загрузка книги #${task.bookId}...';
-        final coverUrl = meta?.cover?.ref.id;
-        final isCompleted = task.isCompleted;
-        final isActive = task.isActive;
-        final isFailed = task.isFailed;
-
-        final tot = task.progress.total ?? 0;
-        final progressVal = task.normalizedProgress;
-        final stageTitle = _getStageTitle(task);
-
-        return Card(
-          margin: const EdgeInsets.only(bottom: 8),
-          elevation: 0,
-          color: theme.colorScheme.surfaceContainerHigh.withValues(alpha: 0.45),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadii.lg),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: onTap,
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                children: [
-                  // Book Cover — единый виджет.
-                  BookCoverImage(
-                    coverUrl: (coverUrl != null && coverUrl.isNotEmpty)
-                        ? coverUrl
-                        : null,
-                    width: 44,
-                    height: 60,
-                    iconSize: 22,
-                    borderRadius: BorderRadius.circular(AppRadii.sm),
-                  ),
-                  const SizedBox(width: 14),
-
-                  // Title and status/progress
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          title,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            height: 1.25,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 6),
-
-                        if (isActive) ...[
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  stageTitle,
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              if (tot > 0 && progressVal != null) ...[
-                                const SizedBox(width: 6),
-                                Text(
-                                  '${(progressVal * 100).toInt()}%',
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: theme.colorScheme.primary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                          const SizedBox(height: 5),
-                          M3ELinearWavyProgressIndicator(
-                            value: progressVal,
-                            height: 6,
-                            strokeWidth: 3,
-                            backgroundColor: theme.colorScheme.primary
-                                .withValues(alpha: 0.15),
-                          ),
-                        ] else if (isCompleted) ...[
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.check_circle_rounded,
-                                size: 15,
-                                color: theme.colorScheme.primary,
-                              ),
-                              const SizedBox(width: 5),
-                              Text(
-                                task.savedFilePath != null
-                                    ? 'Сохранено'
-                                    : 'Готово к сохранению',
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: theme.colorScheme.primary,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ] else if (isFailed) ...[
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.error_rounded,
-                                size: 15,
-                                color: theme.colorScheme.error,
-                              ),
-                              const SizedBox(width: 5),
-                              Text(
-                                'Ошибка загрузки',
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: theme.colorScheme.error,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(width: 10),
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    size: 22,
-                    color: theme.colorScheme.onSurfaceVariant.withValues(
-                      alpha: 0.4,
-                    ),
-                  ),
-                ],
-              ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Text(
+            title,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.primary,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.8,
             ),
           ),
-        );
-      },
+        ),
+        const SizedBox(height: 8),
+        for (final task in tasks)
+          DownloadListTile(
+            key: downloadTileKey(task),
+            task: task,
+            onTap: () => onTap(task),
+          ),
+      ],
     );
   }
 }

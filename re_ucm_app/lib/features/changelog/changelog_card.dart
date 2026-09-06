@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import '../../core/ui/tokens.dart';
+import '../../core/ui/widgets/app_card.dart';
 
 import 'changelog.dart';
 
@@ -10,80 +11,54 @@ class ChangelogCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadii.card),
-        side: BorderSide(
-          color: Theme.of(
-            context,
-          ).colorScheme.outlineVariant.withValues(alpha: 0.4),
-          width: 0.8,
+    final theme = Theme.of(context);
+    return AppCard(
+      titleWidget: AppCardTitle.text(model.title),
+      subtitleWidget: Text(
+        model.date,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
         ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: AppSpacing.lg),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  model.title,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                Text(
-                  model.date,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
+      children: [
+        Text(
+          model.content,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        if (model.technicalDetails != null) ...[
+          const SizedBox(height: AppSpacing.sm),
+          ExpansionTile(
+            collapsedShape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppRadii.lg),
             ),
-            const SizedBox(height: AppSpacing.sm),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-              child: Text(
-                model.content,
-                style: Theme.of(context).textTheme.titleMedium,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppRadii.lg),
+            ),
+            title: Text(
+              'Технические подробности',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Theme.of(context).colorScheme.secondary,
               ),
             ),
-            if (model.technicalDetails != null)
-              ExpansionTile(
-                collapsedShape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppRadii.lg),
+            tilePadding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+            childrenPadding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+            ),
+            expandedAlignment: Alignment.centerLeft,
+            children: [
+              Text(
+                model.technicalDetails!,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontFamily: 'monospace',
+                  fontSize: 12,
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppRadii.lg),
-                ),
-                title: Text(
-                  'Технические подробности',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.secondary,
-                  ),
-                ),
-                tilePadding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-                childrenPadding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm,
-                ),
-                expandedAlignment: Alignment.centerLeft,
-                children: [
-                  Text(
-                    model.technicalDetails!,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontFamily: 'monospace',
-                      fontSize: 12,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                ],
               ),
-
-            if (model.technicalDetails == null)
               const SizedBox(height: AppSpacing.lg),
-          ],
-        ),
-      ),
+            ],
+          ),
+        ] else
+          const SizedBox(height: AppSpacing.lg),
+      ],
     );
   }
 }

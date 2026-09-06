@@ -23,15 +23,22 @@ PersonName personNameFromFio(String fio) {
 /// Единая точка отображения авторов. Раньше строка
 /// `contributors.map(toDisplayString).join(', ')` была скопирована
 /// в `download_book_header`, `live_download_card` и `book_sharer`.
+/// TODO: прокинуть [SettingsService.authorsPathSeparator] на call-сайтах
+/// (downloads/recent — вне владения core) вместо дефолта ', '.
 extension BookMetadataDisplay on BookMetadata {
-  String get authorsDisplay =>
-      contributors.map((e) => e.name.toDisplayString()).join(', ');
+  String get authorsDisplay => authorsText();
+
+  String authorsText([String separator = ', ']) =>
+      contributors.map((e) => e.name.toDisplayString()).join(separator);
 }
 
 /// Группировка разрядов «1234567 → 1 234 567».
-/// Заменяет приватный `_formatNumber` из `download_book_header`.
+/// Раньше приватный `_formatNumber` из `download_book_header`.
+/// Без intl-зависимости: разделитель — обычный пробел (NumberFormat под
+/// локалью ru отдал бы nbsp и потянул новую зависимость в core).
 String formatGrouped(int n) {
-  final s = n.toString();
+  final isNegative = n < 0;
+  final s = n.abs().toString();
   final buf = StringBuffer();
   var count = 0;
   for (var i = s.length - 1; i >= 0; i--) {
@@ -39,32 +46,29 @@ String formatGrouped(int n) {
     count++;
     if (count % 3 == 0 && i != 0) buf.write(' ');
   }
-  return buf.toString().split('').reversed.join();
+  final grouped = buf.toString().split('').reversed.join();
+  return isNegative ? '-$grouped' : grouped;
 }
 
 /// Рендер инлайнов книги в plain text. Раньше жил приватным методом
 /// в `BookSharer` — это утилита текста, а не шаринга.
+/// Ветки-контейнеры схлопнуты в один or-паттерн: все они рекурсивно
+/// рендерят детей; остальное (картинки, разрывы, сноски) игнорируется.
 String bookInlinesToPlainText(List<BookInline> inlines) {
   final buffer = StringBuffer();
   for (final inline in inlines) {
     switch (inline) {
-      case BookText t:
-        buffer.write(t.text);
-      case BookEmphasis e:
-        buffer.write(bookInlinesToPlainText(e.children));
-      case BookStrong s:
-        buffer.write(bookInlinesToPlainText(s.children));
-      case BookStrike st:
-        buffer.write(bookInlinesToPlainText(st.children));
-      case BookNamedStyle n:
-        buffer.write(bookInlinesToPlainText(n.inlines));
-      case BookLink l:
-        buffer.write(bookInlinesToPlainText(l.children));
-      case BookSuperscript sup:
-        buffer.write(bookInlinesToPlainText(sup.children));
-      case BookSubscript sub:
-        buffer.write(bookInlinesToPlainText(sub.children));
-      default:
+      case BookText(text: final text):
+        buffer.write(text);
+      case BookEmphasis(children: final children) ||
+          BookStrong(children: final children) ||
+          BookStrike(children: final children) ||
+          BookLink(children: final children) ||
+          BookSuperscript(children: final children) ||
+          BookSubscript(children: final children) ||
+          BookNamedStyle(inlines: final children):
+        buffer.write(bookInlinesToPlainText(children));
+      case _:
         break;
     }
   }

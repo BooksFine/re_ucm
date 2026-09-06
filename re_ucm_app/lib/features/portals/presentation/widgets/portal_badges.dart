@@ -4,18 +4,17 @@ import 'package:material_ui/material_ui.dart';
 import '../../../../core/ui/app_colors_extension.dart';
 
 /// Бейдж статуса авторизации: точка + «Подключен»/«Без входа».
-/// Раньше кластер был скопирован 1-в-1 в hero-карточку
-/// (`source_detail_cards`) и в tile списка (`source_item_tile`)
-/// с дрейфом размера точки 6 vs 5.
+/// Размер точки унифицирован (6) — раньше дрейфовал 6 vs 5
+/// между hero-карточкой и tile списка.
 class PortalAuthBadge extends StatelessWidget {
   const PortalAuthBadge({
     super.key,
     required this.isAuthorized,
-    this.dotSize = 6,
   });
 
   final bool isAuthorized;
-  final double dotSize;
+
+  static const double dotSize = 6;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +31,7 @@ class PortalAuthBadge extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: isAuthorized
-                ? appColors.statusOnline
+                ? appColors.success
                 : appColors.statusOffline,
           ),
         ),
@@ -44,7 +43,7 @@ class PortalAuthBadge extends StatelessWidget {
             key: ValueKey(isAuthorized),
             style: theme.textTheme.labelSmall?.copyWith(
               color: isAuthorized
-                  ? appColors.statusOnline
+                  ? appColors.success
                   : cs.onSurfaceVariant,
               fontWeight: isAuthorized ? FontWeight.w600 : FontWeight.w500,
             ),
@@ -57,6 +56,7 @@ class PortalAuthBadge extends StatelessWidget {
 
 /// Общий scale+fade transition для переключения пина.
 /// Раньше был скопирован в AppBar, tile и hero-кнопку.
+/// TODO: переезд в common/widgets — common вне владения, пока локально.
 class PortalPinScaleTransition extends StatelessWidget {
   const PortalPinScaleTransition({
     super.key,

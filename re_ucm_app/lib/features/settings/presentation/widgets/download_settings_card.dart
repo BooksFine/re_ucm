@@ -14,8 +14,10 @@ class DownloadSettingsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppCard(
       icon: Icons.download_for_offline_rounded,
-      title: 'Скачивание',
-      subtitle: 'Формат книг и количество одновременных загрузок',
+      titleWidget: AppCardTitle.text('Скачивание'),
+      subtitleWidget: const AppCardSubtitle(
+        text: 'Формат книг и количество одновременных загрузок',
+      ),
       children: [
         const AppSectionHeader('Формат по умолчанию'),
         const SizedBox(height: 8),
@@ -24,19 +26,12 @@ class DownloadSettingsCard extends StatelessWidget {
           child: Observer(
             builder: (_) => SegmentedButton<SaveFormat>(
               showSelectedIcon: false,
-              segments: const [
-                ButtonSegment<SaveFormat>(
-                  value: SaveFormat.fb2,
-                  label: Text('fb2'),
-                ),
-                ButtonSegment<SaveFormat>(
-                  value: SaveFormat.fb2Zip,
-                  label: Text('fb2.zip'),
-                ),
-                ButtonSegment<SaveFormat>(
-                  value: SaveFormat.epub,
-                  label: Text('epub'),
-                ),
+              segments: [
+                for (final fmt in SaveFormat.displayValues)
+                  ButtonSegment<SaveFormat>(
+                    value: fmt,
+                    label: Text(fmt.label),
+                  ),
               ],
               selected: {controller.saveFormat},
               onSelectionChanged: (newSelection) {

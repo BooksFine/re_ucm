@@ -27,10 +27,21 @@ abstract class _RecentBooksService with Store {
 
   final recentBooks = <RecentBook>[].asObservable();
 
-  static String _bookKey(String portalCode, String id) => '$portalCode:$id';
+  static String _bookKey(String portalCode, String id) =>
+      RecentBook.keyFor(portalCode, id);
 
   bool _matchesBook(RecentBook e, String portalCode, String id) =>
       _bookKey(e.portal.code, e.id) == _bookKey(portalCode, id);
+
+  /// Хронология по возрастанию `added`; список (`recent_books_list.dart`)
+  /// инвертирует её при отрисовке (новые сверху) — порядок не менять.
+  void _sortByAdded() =>
+      recentBooks.sort((a, b) => a.added.compareTo(b.added));
+
+  void _insertSorted(RecentBook book) {
+    recentBooks.add(book);
+    _sortByAdded();
+  }
 
   Future<void> addRecentBook(BookMetadata metadata, Portal portal) async {
     final key = _bookKey(portal.code, metadata.id);
@@ -58,9 +69,9 @@ abstract class _RecentBooksService with Store {
       downloadedAt: existing?.downloadedAt,
       saveFormat: existing?.saveFormat,
     );
-    recentBooks.add(recentBook);
+    _insertSorted(recentBook);
 
-    _repo.setRecentBook(recentBook);
+    await _repo.setRecentBook(recentBook);
   }
 
   Future<void> updateRecentBookFile({
@@ -71,7 +82,7 @@ abstract class _RecentBooksService with Store {
     DateTime? downloadedAt,
   }) async {
     final index = recentBooks.indexWhere(
-      (e) => e.portal.code == portalCode && e.id == bookId,
+      (e) => _matchesBook(e, portalCode, bookId),
     );
     if (index != -1) {
       final existing = recentBooks[index];
@@ -89,21 +100,18 @@ abstract class _RecentBooksService with Store {
     recentBooks.removeWhere(
       (e) => _matchesBook(e, book.portal.code, book.id),
     );
-    _repo.removeRecentBook(book);
+    await _repo.removeRecentBook(book);
   }
 
   Future<void> restoreRecentBook(RecentBook book) async {
-    recentBooks.add(book);
-    recentBooks.sort(
-      (RecentBook a, RecentBook b) => a.added.compareTo(b.added),
-    );
-    _repo.setRecentBook(book);
+    _insertSorted(book);
+    await _repo.setRecentBook(book);
   }
 
-  Future _fetchRecentBooks() async {
+  Future<void> _fetchRecentBooks() async {
     final recent = await _repo.getRecentBooks();
-    recent.sort((RecentBook a, RecentBook b) => a.added.compareTo(b.added));
     recentBooks.clear();
     recentBooks.addAll(recent);
+    _sortByAdded();
   }
 }

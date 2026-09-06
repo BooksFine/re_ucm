@@ -28,7 +28,7 @@ class DownloadOptionsCard extends StatelessWidget {
           ),
           clipBehavior: Clip.antiAlias,
           child: AnimatedSize(
-            duration: const Duration(milliseconds: 250),
+            duration: AppDurations.expand,
             curve: Curves.easeOutCubic,
             alignment: Alignment.topCenter,
             child: Column(

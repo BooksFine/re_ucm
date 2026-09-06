@@ -32,7 +32,9 @@ class AppCounterRow extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadii.sm),
         side: BorderSide(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.8),
+          color: theme.colorScheme.outlineVariant.withValues(
+            alpha: AppOpacity.strong,
+          ),
         ),
       ),
       child: Row(
@@ -104,7 +106,7 @@ class _StepButton extends StatelessWidget {
           size: 18,
           color: enabled
               ? cs.onSurface
-              : cs.onSurface.withValues(alpha: 0.38),
+              : cs.onSurface.withValues(alpha: AppOpacity.disabled),
         ),
       ),
     );

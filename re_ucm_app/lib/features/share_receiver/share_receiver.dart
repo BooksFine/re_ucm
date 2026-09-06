@@ -2,15 +2,15 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:material_ui/material_ui.dart';
-import 'package:re_ucm_lib/re_ucm_lib.dart';
 import 'package:zikzak_share_handler/zikzak_share_handler.dart';
 
 import '../../core/di.dart';
 import '../../core/logger.dart';
 import '../../core/navigation/router.dart';
-import '../common/utils/uri_from_url.dart';
+import '../../core/ui/tokens.dart';
 import '../common/widgets/snack.dart';
 import '../downloads/presentation/download_modal.dart';
+import '../home/widgets/link_parser.dart';
 
 class ShareReceiverService {
   static StreamSubscription<SharedMedia>? _subscription;
@@ -57,28 +57,46 @@ class ShareReceiverService {
     // Schedule navigation after the current frame to ensure Navigator is ready
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _openSharedContent(content);
+      // Reset dedup after processing so the same link can be re-shared later.
+      if (_lastHandledContent == content) _lastHandledContent = null;
     });
   }
 
   static void _openSharedContent(String content) {
+    // Единый парсинг через tryParseBookLink (trim/empty-bookId внутри).
+    final link = tryParseBookLink(content);
+    final ctx = rootNavigationKey.currentContext;
+    if (ctx == null || !ctx.mounted) return;
+    if (link == null) {
+      AppSnack.show(
+        ctx,
+        'Неподдерживаемая ссылка',
+        margin: EdgeInsets.symmetric(
+          vertical: AppSpacing.sm * 2 + MediaQuery.paddingOf(ctx).bottom,
+          horizontal: AppSpacing.sm * 2,
+        ),
+      );
+      return;
+    }
+
     try {
-      final uri = uriFromUrl(content);
-      final portal = PortalFactory.fromUrl(uri);
-      final bookId = portal.service.getIdFromUrl(uri);
-
-      final ctx = rootNavigationKey.currentContext;
-      if (ctx == null || !ctx.mounted) return;
-
       final session = AppDependencies.of(
         ctx,
-      ).settingsService.sessionByCode(portal.code);
-      showDownloadModal(ctx, session: session, bookId: bookId);
+      ).settingsService.sessionByCode(link.portal.code);
+      showDownloadModal(ctx, session: session, bookId: link.bookId);
     } catch (e) {
       logger.e('Failed to open shared book: $content', error: e);
 
-      final ctx = rootNavigationKey.currentContext;
-      if (ctx != null && ctx.mounted) {
-        snackMessage(ctx, 'Ошибка при открытии книги: $e');
+      final ctx2 = rootNavigationKey.currentContext;
+      if (ctx2 != null && ctx2.mounted) {
+        AppSnack.show(
+          ctx2,
+          'Не удалось открыть книгу',
+          margin: EdgeInsets.symmetric(
+            vertical: AppSpacing.sm * 2 + MediaQuery.paddingOf(ctx2).bottom,
+            horizontal: AppSpacing.sm * 2,
+          ),
+        );
       }
     }
   }

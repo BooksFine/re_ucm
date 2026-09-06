@@ -1,6 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
-import '../../../core/navigation/router_delegate.dart';
+import '../../../core/navigation/nav.dart';
 import '../../../core/ui/tokens.dart';
 
 class UnauthorizedAlert extends StatelessWidget {
@@ -24,7 +24,7 @@ class UnauthorizedAlert extends StatelessWidget {
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
               color: ColorScheme.of(
                 context,
-              ).onPrimaryContainer.withValues(alpha: 0.8),
+              ).onPrimaryContainer.withValues(alpha: AppOpacity.strong),
             ),
             children: [
               const TextSpan(

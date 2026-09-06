@@ -4,7 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_lib/settings/domain/save_format.dart';
 
 import '../../../../core/ui/tokens.dart';
-import '../../../common/widgets/overlay_snack.dart';
+import '../../../common/widgets/snack.dart';
 import '../../domain/download_task.cg.dart';
 import 'exporting_indicator.dart';
 
@@ -16,35 +16,31 @@ class DownloadActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Observer(
       builder: (context) {
-        final Widget content = task.isCompleted
-            ? KeyedSubtree(
-                key: ValueKey('completed_${task.savedFilePath != null}'),
-                child: _buildCompleted(context, theme),
-              )
-            : (task.isFailed
-                  ? KeyedSubtree(
-                      key: const ValueKey('failed'),
-                      child: _buildFailed(context, theme),
-                    )
-                  : KeyedSubtree(
-                      key: const ValueKey('active'),
-                      child: _buildActive(context, theme),
-                    ));
-
-        return AnimatedSize(
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeInOutCubic,
-          alignment: Alignment.topCenter,
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            switchInCurve: Curves.easeOutCubic,
-            switchOutCurve: Curves.easeInCubic,
-            child: content,
-          ),
+        // Одна анимация: AnimatedSwitcher + switch по статусу.
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 200),
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
+          child: switch ((
+            task.isCompleted,
+            task.isFailed,
+            task.savedFilePath != null,
+          )) {
+            (true, _, bool saved) => KeyedSubtree(
+              key: ValueKey('completed_$saved'),
+              child: _buildCompleted(context, Theme.of(context)),
+            ),
+            (_, true, _) => KeyedSubtree(
+              key: const ValueKey('failed'),
+              child: _buildFailed(context, Theme.of(context)),
+            ),
+            _ => KeyedSubtree(
+              key: const ValueKey('active'),
+              child: _buildActive(context, Theme.of(context)),
+            ),
+          },
         );
       },
     );
@@ -218,11 +214,15 @@ Future<void> _saveWithFeedback(
   if (!context.mounted) return;
   switch (outcome) {
     case ExportSaved():
-      overlaySnackMessage(context, 'Успешно сохранено');
+      AppSnack.show(context, 'Успешно сохранено', kind: AppSnackKind.success);
     case ExportCancelled():
-      overlaySnackMessage(context, 'Сохранение отменено');
+      AppSnack.show(context, 'Сохранение отменено', kind: AppSnackKind.info);
     case ExportFailed():
-      overlaySnackMessage(context, 'Произошла ошибка при сохранении');
+      AppSnack.show(
+        context,
+        'Произошла ошибка при сохранении',
+        kind: AppSnackKind.error,
+      );
   }
 }
 
@@ -268,19 +268,12 @@ class _FormatSelector extends StatelessWidget {
               visualDensity: VisualDensity.compact,
             ),
             showSelectedIcon: false,
-            segments: const [
-              ButtonSegment<SaveFormat>(
-                value: SaveFormat.fb2,
-                label: Text('fb2', style: TextStyle(fontSize: 13)),
-              ),
-              ButtonSegment<SaveFormat>(
-                value: SaveFormat.fb2Zip,
-                label: Text('fb2.zip', style: TextStyle(fontSize: 13)),
-              ),
-              ButtonSegment<SaveFormat>(
-                value: SaveFormat.epub,
-                label: Text('epub', style: TextStyle(fontSize: 13)),
-              ),
+            segments: [
+              for (final fmt in SaveFormat.displayValues)
+                ButtonSegment<SaveFormat>(
+                  value: fmt,
+                  label: Text(fmt.label, style: const TextStyle(fontSize: 13)),
+                ),
             ],
             selected: {task.saveFormat},
             onSelectionChanged: task.isExporting

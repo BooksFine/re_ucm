@@ -2,6 +2,18 @@ import 'package:material_ui/material_ui.dart';
 
 import '../tokens.dart';
 
+/// Режим отображения chevron в [AppTile].
+enum AppTileChevron {
+  /// Легаси-поведение: показать, если tile интерактивен и нет [AppTile.trailing].
+  auto,
+
+  /// Принудительно показать (когда нет [AppTile.trailing]).
+  show,
+
+  /// Никогда не показывать.
+  hide,
+}
+
 class AppTile extends StatelessWidget {
   const AppTile({
     super.key,
@@ -12,12 +24,12 @@ class AppTile extends StatelessWidget {
     this.onTap,
     this.enabled = true,
     this.isDestructive = false,
-    this.showChevron,
+    this.chevron = AppTileChevron.auto,
     this.contentPadding = const EdgeInsets.symmetric(
       horizontal: AppSpacing.xs,
       vertical: 6,
     ),
-    this.borderRadius,
+    this.borderRadiusGeometry,
   });
 
   final String title;
@@ -27,9 +39,14 @@ class AppTile extends StatelessWidget {
   final VoidCallback? onTap;
   final bool enabled;
   final bool isDestructive;
-  final bool? showChevron;
+
+  /// Канонический режим chevron. [AppTileChevron.auto] показывает chevron
+  /// для интерактивного tile без [trailing].
+  final AppTileChevron chevron;
   final EdgeInsetsGeometry contentPadding;
-  final double? borderRadius;
+
+  /// Канонический радиус.
+  final BorderRadius? borderRadiusGeometry;
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +56,7 @@ class AppTile extends StatelessWidget {
 
     final Color titleColor;
     if (!enabled) {
-      titleColor = cs.onSurface.withValues(alpha: 0.38);
+      titleColor = cs.onSurface.withValues(alpha: AppOpacity.disabled);
     } else if (isDestructive) {
       titleColor = cs.error;
     } else {
@@ -48,15 +65,20 @@ class AppTile extends StatelessWidget {
 
     final Color subtitleColor;
     if (!enabled) {
-      subtitleColor = cs.onSurfaceVariant.withValues(alpha: 0.38);
+      subtitleColor = cs.onSurfaceVariant.withValues(
+        alpha: AppOpacity.disabled,
+      );
     } else if (isDestructive) {
-      subtitleColor = cs.error.withValues(alpha: 0.8);
+      subtitleColor = cs.error.withValues(alpha: AppOpacity.strong);
     } else {
       subtitleColor = cs.onSurfaceVariant;
     }
 
-    final effectiveShowChevron =
-        showChevron ?? (isInteractive && trailing == null);
+    final bool effectiveShowChevron = switch (chevron) {
+      AppTileChevron.show => trailing == null,
+      AppTileChevron.hide => false,
+      AppTileChevron.auto => isInteractive && trailing == null,
+    };
 
     final titleColumn = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,7 +111,7 @@ class AppTile extends StatelessWidget {
                 Icons.chevron_right_rounded,
                 size: 20,
                 color: isDestructive
-                    ? cs.error.withValues(alpha: 0.7)
+                    ? cs.error.withValues(alpha: AppOpacity.emphasized)
                     : cs.onSurfaceVariant,
               )
             : null);
@@ -108,9 +130,11 @@ class AppTile extends StatelessWidget {
       ],
     );
 
+    final resolvedBorderRadius = borderRadiusGeometry ?? AppRadii.mdRadius;
+
     return InkWell(
       onTap: isInteractive ? onTap : null,
-      borderRadius: BorderRadius.circular(borderRadius ?? AppRadii.md),
+      borderRadius: resolvedBorderRadius,
       child: Padding(
         padding: contentPadding,
         child: content,

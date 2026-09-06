@@ -3,6 +3,13 @@ import 'dart:ui' as ui;
 
 import 'package:material_ui/material_ui.dart';
 
+import 'tokens.dart';
+
+/// Дистанции/подъёмы оптического центрирования заголовка.
+const double _kScrollUnderFadeDistance = 40.0;
+const double _kCollapsedLift = 4.0;
+const double _kExpandedShift = 10.0;
+
 /// A flexible space bar that centers the title both horizontally and vertically
 /// when expanded, and smoothly morphs (scales and translates) into the pinned
 /// toolbar center when collapsed.
@@ -77,7 +84,12 @@ class _CenteredFlexibleSpaceBarState extends State<CenteredFlexibleSpaceBar> {
             : 0.0;
         final double overScroll = math.max(0.0, scrollOffset - deltaExtent);
         final double scrollUnderFade =
-            1.0 - ui.clampDouble(overScroll / 40.0, 0.0, 1.0);
+            1.0 -
+            ui.clampDouble(
+              overScroll / _kScrollUnderFadeDistance,
+              0.0,
+              1.0,
+            );
 
         final double effectiveOpacity = opacity * scrollUnderFade;
 
@@ -97,17 +109,21 @@ class _CenteredFlexibleSpaceBarState extends State<CenteredFlexibleSpaceBar> {
         final double topInset = MediaQuery.paddingOf(context).top;
         // Balance optical distance between window top and the cards below
         final double collapsedCenterY =
-            topInset + (settings.minExtent - topInset) / 2.0 + 4.0;
+            topInset +
+            (settings.minExtent - topInset) / 2.0 +
+            _kCollapsedLift;
         // Shift expanded center slightly down for optical balance
         final double expandedCenterY =
-            topInset + (settings.currentExtent - topInset) / 2.0 + 10.0;
+            topInset +
+            (settings.currentExtent - topInset) / 2.0 +
+            _kExpandedShift;
         final double currentCenterY = ui.lerpDouble(
           expandedCenterY,
           collapsedCenterY,
           t,
         )!;
 
-        final double bgAlpha = 0.85 * t;
+        final double bgAlpha = AppOpacity.scrimPeak * t;
 
         return ClipRect(
           child: Stack(

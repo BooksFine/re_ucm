@@ -1,17 +1,25 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:dart_book/dart_book.dart' show BookMetadata, Book, BookResource, BookContent, BookEncodingOptions, BookResourceNamingPolicy;
+import 'package:dart_book/dart_book.dart'
+    show
+        BookMetadata,
+        Book,
+        BookResource,
+        BookContent,
+        BookEncodingOptions,
+        BookResourceNamingPolicy;
 import 'package:mobx/mobx.dart';
-import 'package:open_file/open_file.dart';
 import 'package:re_ucm_core/re_ucm_core.dart' hide logger;
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 import '../../../core/constants.dart';
 import '../../../core/logger.dart';
-import 'book_encoder.dart';
+import '../presentation/widgets/book_share_text_builder.dart';
 import 'book_saver.dart';
 import 'book_sharer.dart';
+import 'download_opener.dart';
+import 'download_status_viewmodel.dart';
 
 part '../../../.gen/features/downloads/domain/download_task.cg.g.dart';
 
@@ -52,9 +60,14 @@ abstract class DownloadTaskBase with Store {
   final SettingsService settings;
   final RecentBooksService recentBooksService;
   final void Function(DownloadTask task)? onTaskCompleted;
-  final BookEncoder _encoder;
+
+  /// DI для тестов (saver/sharer/opener). Явно прокидываются из
+  /// [DownloadsService.getOrCreateTask]; по умолчанию — реальные
+  /// реализации. Encoder инлайнен ([BookExporter.encode] напрямую),
+  /// т.к. бывший `BookEncoder` был passthrough без своей логики.
   final BookSaver _saver;
   final BookSharer _sharer;
+  final DownloadOpener _opener;
 
   DownloadTaskBase({
     required this.bookId,
@@ -63,14 +76,14 @@ abstract class DownloadTaskBase with Store {
     required this.recentBooksService,
     this.onTaskCompleted,
     BookMetadata? initialMetadata,
-    BookEncoder? encoder,
     BookSaver? saver,
     BookSharer? sharer,
-  })  : metadata = initialMetadata,
-        saveFormat = settings.saveFormat,
-        _encoder = encoder ?? BookEncoder(),
-        _saver = saver ?? BookSaver(),
-        _sharer = sharer ?? BookSharer();
+    DownloadOpener? opener,
+  }) : metadata = initialMetadata,
+       saveFormat = settings.saveFormat,
+       _saver = saver ?? BookSaver(),
+       _sharer = sharer ?? BookSharer(),
+       _opener = opener ?? const DefaultDownloadOpener();
 
   @observable
   BookMetadata? metadata;
@@ -106,8 +119,9 @@ abstract class DownloadTaskBase with Store {
   String? savedFilePath;
 
   Future<void> open() async {
-    if (savedFilePath != null) {
-      await OpenFile.open(savedFilePath);
+    final path = savedFilePath;
+    if (path != null) {
+      await _opener.openFile(path);
     }
   }
 
@@ -117,6 +131,14 @@ abstract class DownloadTaskBase with Store {
   SaveFormat? _encodedFormat;
   List<BookResource> _resolvedResources = [];
   BookContent? _contentCache;
+  Future<void>? _runningStart;
+
+  /// Поколение фоновой конвертации для [updateSaveFormat].
+  /// Устаревшие encode игнорируются, ошибка пишется в [errorMessage].
+  int _convertGeneration = 0;
+
+  /// Ключ задачи — та же формула, что и `DownloadsService.taskKey`.
+  String get taskKey => '${session.portal.code}_$bookId';
 
   @computed
   bool get isActive =>
@@ -129,6 +151,29 @@ abstract class DownloadTaskBase with Store {
   @computed
   bool get isFailed => status == DownloadTaskStatus.failed;
 
+  /// Единая формула заголовка для live/progress/list.
+  String get displayTitle => metadata?.title ?? 'Книга #$bookId';
+
+  /// Единая формула статуса: «Этап: cur / tot (pct)» либо message/этап.
+  String get displayStatus {
+    final p = progress;
+    final tot = p.total ?? 0;
+    if (tot > 0) {
+      return '${p.stage.title}: ${p.counterText}';
+    }
+    return p.message ?? p.stage.title;
+  }
+
+  /// Единая формула прогресса 0..1.
+  double? get progressValue => progress.normalized;
+
+  /// Единая view-модель для live/progress/list.
+  DownloadStatusViewModel get viewModel => (
+    title: displayTitle,
+    statusText: displayStatus,
+    progress: progressValue,
+  );
+
   /// Смена формата + персист в настройки + фоновая переконвертация,
   /// если книга уже скачана. Сайд-эффект осознанный (см. имя) —
   /// вызывается только из UI выбора формата.
@@ -138,7 +183,9 @@ abstract class DownloadTaskBase with Store {
     saveFormat = format;
     settings.updateSaveFormat(format);
     if (isCompleted && resolvedBook != null) {
-      unawaited(_convertBook());
+      _convertGeneration++;
+      final generation = _convertGeneration;
+      unawaited(_convertBook(generation));
     }
   }
 
@@ -167,69 +214,39 @@ abstract class DownloadTaskBase with Store {
   @action
   Future<void> start() async {
     if (isActive) return;
+    if (_runningStart != null) return;
 
     _isCancelled = false;
     _cancelToken = CancellationToken();
     errorMessage = null;
 
+    final completer = Completer<void>();
+    _runningStart = completer.future;
     try {
-      if (metadata == null) {
-        status = DownloadTaskStatus.fetchingMetadata;
-        logger.i('Fetching metadata for book [${session.code}-$bookId]');
-        final meta = await session.getBookMetadata(bookId);
-        if (_isCancelled) return;
-        metadata = meta;
-      }
+      await fetchMetadata();
+      if (_isCancelled) return;
 
-      if (addToRecent && metadata != null) {
-        recentBooksService.addRecentBook(metadata!, session.portal);
-      }
+      _trackRecent();
 
-      status = DownloadTaskStatus.downloading;
+      runInAction(() => status = DownloadTaskStatus.downloading);
       logger.i('Downloading content for book [${session.code}-$bookId]');
 
       final throttled = _throttledProgress();
-      final content = _contentCache ??= await session.getBookContent(
-        bookId,
-        onProgress: throttled,
-        cancelToken: _cancelToken,
-      );
+      await fetchContent(throttled);
       if (_isCancelled) return;
 
-      final result = await BookExporter.resolveBook(
-        metadata: metadata!,
-        content: content,
-        resourceResolver: session.getResourceResolver(),
-        initialResources: _resolvedResources,
-        maxConcurrentDownloads: settings.parallelImageDownloads,
-        onProgress: throttled,
-        cancelToken: _cancelToken,
-      );
+      await resolveBook(throttled);
       if (_isCancelled) return;
-
-      resolvedBook = result.book;
-      _resolvedResources = result.book.resources;
-      failedTasks = result.failedTasks;
 
       await _convertBook();
       if (_isCancelled) return;
 
-      progress = Progress(stage: Stages.done);
-      status = DownloadTaskStatus.completed;
-
-      logger.i('Download completed for book [${session.code}-$bookId]');
-      onTaskCompleted?.call(this as DownloadTask);
+      finalizeSuccess();
     } catch (e, trace) {
-      if (_isCancelled) return;
-      logger.e(
-        'Error downloading book [${session.code}-$bookId]',
-        error: e,
-        stackTrace: trace,
-      );
-      errorMessage = e.toString();
-      progress = Progress(stage: Stages.error, message: e.toString());
-      failedTasks = const [];
-      status = DownloadTaskStatus.failed;
+      handleFailure(e, trace, 'Error downloading book [${session.code}-$bookId]');
+    } finally {
+      _runningStart = null;
+      if (!completer.isCompleted) completer.complete();
     }
   }
 
@@ -237,6 +254,7 @@ abstract class DownloadTaskBase with Store {
   void cancel() {
     _isCancelled = true;
     _cancelToken?.cancel();
+    _convertGeneration++;
     status = DownloadTaskStatus.cancelled;
     progress = Progress(stage: Stages.none);
   }
@@ -258,33 +276,86 @@ abstract class DownloadTaskBase with Store {
     if (metadata == null || _contentCache == null) return;
     _isCancelled = false;
     _cancelToken = CancellationToken();
-    status = DownloadTaskStatus.downloading;
-    failedTasks = [];
+    errorMessage = null;
+    runInAction(() => status = DownloadTaskStatus.downloading);
+    runInAction(() => failedTasks = []);
     try {
-      final result = await BookExporter.resolveBook(
-        metadata: metadata!,
-        content: _contentCache!,
-        resourceResolver: session.getResourceResolver(),
-        initialResources: _resolvedResources,
-        maxConcurrentDownloads: settings.parallelImageDownloads,
-        cancelToken: _cancelToken,
-        onProgress: _throttledProgress(minIntervalMs: 50),
-      );
+      await resolveBook(_throttledProgress(minIntervalMs: 50));
       if (_isCancelled) return;
+      await _convertBook();
+      if (_isCancelled) return;
+      finalizeSuccess();
+    } catch (e, trace) {
+      handleFailure(e, trace, 'Error retrying failed images');
+    }
+  }
 
+  /// Этап 1: метаданные (no-op если уже есть).
+  Future<void> fetchMetadata() async {
+    if (metadata != null) return;
+    runInAction(() => status = DownloadTaskStatus.fetchingMetadata);
+    logger.i('Fetching metadata for book [${session.code}-$bookId]');
+    final meta = await session.getBookMetadata(bookId);
+    if (_isCancelled) return;
+    runInAction(() {
+      if (_isCancelled) return;
+      metadata = meta;
+    });
+  }
+
+  void _trackRecent() {
+    if (addToRecent && metadata != null) {
+      recentBooksService.addRecentBook(metadata!, session.portal);
+    }
+  }
+
+  /// Этап 2: контент глав (кэш [_contentCache]).
+  Future<void> fetchContent(void Function(Progress) onProgress) async {
+    _contentCache ??= await session.getBookContent(
+      bookId,
+      onProgress: onProgress,
+      cancelToken: _cancelToken,
+    );
+  }
+
+  /// Этап 3: резолв ресурсов/книги. Переиспользуется в [retryFailedImages].
+  Future<void> resolveBook(void Function(Progress) onProgress) async {
+    final result = await BookExporter.resolveBook(
+      metadata: metadata!,
+      content: _contentCache!,
+      resourceResolver: session.getResourceResolver(),
+      initialResources: _resolvedResources,
+      maxConcurrentDownloads: settings.parallelImageDownloads,
+      onProgress: onProgress,
+      cancelToken: _cancelToken,
+    );
+    if (_isCancelled) return;
+    runInAction(() {
       resolvedBook = result.book;
       _resolvedResources = result.book.resources;
       failedTasks = result.failedTasks;
-      await _convertBook();
-      if (_isCancelled) return;
+    });
+  }
+
+  /// Этап 4: успех.
+  void finalizeSuccess() {
+    runInAction(() {
       progress = Progress(stage: Stages.done);
       status = DownloadTaskStatus.completed;
-    } catch (e, trace) {
-      if (_isCancelled) return;
-      logger.e('Error retrying failed images', error: e, stackTrace: trace);
+    });
+    logger.i('Download completed for book [${session.code}-$bookId]');
+    onTaskCompleted?.call(this as DownloadTask);
+  }
+
+  void handleFailure(Object e, StackTrace trace, String logMessage) {
+    if (_isCancelled) return;
+    logger.e(logMessage, error: e, stackTrace: trace);
+    runInAction(() {
       errorMessage = e.toString();
+      progress = Progress(stage: Stages.error, message: e.toString());
+      failedTasks = const [];
       status = DownloadTaskStatus.failed;
-    }
+    });
   }
 
   /// Единый throttling прогресса для start/retry.
@@ -312,19 +383,25 @@ abstract class DownloadTaskBase with Store {
     };
   }
 
+  /// Шарит готовые fileName/text из [BookShareTextBuilder].
   Future<void> share() async {
     if (resolvedBook == null || metadata == null) return;
     runInAction(() => isExporting = true);
     try {
       final bytes = await _encodeCurrentBook();
-      await _sharer.shareBook(
-        bytes: bytes,
-        metadata: metadata!,
-        format: saveFormat,
-        portal: session.portal,
-        resolvedBook: resolvedBook,
+      final meta = metadata!;
+      final fileName = BookShareTextBuilder.buildFileName(
+        meta,
+        session.portal,
         downloadPathTemplate: settings.downloadPathTemplate,
         authorsPathSeparator: settings.authorsPathSeparator,
+      );
+      final text = BookShareTextBuilder.buildText(meta, resolvedBook);
+      await _sharer.shareBook(
+        bytes: bytes,
+        fileName: fileName,
+        text: text,
+        format: saveFormat,
       );
     } finally {
       runInAction(() => isExporting = false);
@@ -339,28 +416,9 @@ abstract class DownloadTaskBase with Store {
     }
     runInAction(() => isExporting = true);
     try {
-      final templateFileName = _templateFileName();
-      final bytes = await _encodeCurrentBook(
-        templateFileName: templateFileName,
-      );
-      final finalPath = await _saver.saveToFile(
-        bytes: bytes,
-        templateFileName: templateFileName,
-        format: saveFormat,
-        saveDirectory: settings.saveDirectory,
-      );
-      if (finalPath == null) return const ExportCancelled();
-      runInAction(() => savedFilePath = finalPath);
-      unawaited(
-        recentBooksService.updateRecentBookFile(
-          portalCode: session.portal.code,
-          bookId: bookId,
-          savedFilePath: finalPath,
-          saveFormat: saveFormat,
-          downloadedAt: DateTime.now(),
-        ),
-      );
-      return ExportSaved(finalPath);
+      final result = await _encodeAndSave();
+      if (result == null) return const ExportCancelled();
+      return ExportSaved(result);
     } catch (e, trace) {
       logger.e('Book export error', error: e, stackTrace: trace);
       return ExportFailed(e);
@@ -369,50 +427,81 @@ abstract class DownloadTaskBase with Store {
     }
   }
 
-  Future<void> _convertBook() async {
+  Future<void> _convertBook([int? generation]) async {
     if (resolvedBook == null) return;
     runInAction(() => isExporting = true);
 
+    bool isStale() => generation != null && generation != _convertGeneration;
+
     try {
-      final templateFileName = _templateFileName();
-      final bytes = await _encodeCurrentBook(
-        templateFileName: templateFileName,
-      );
+      final savedPath = await _encodeAndSave(updateRecent: false);
 
-      if (_isCancelled) return;
+      if (_isCancelled || isStale()) return;
 
-      final saveDirectory = settings.saveDirectory;
-      if ((settings.autoSaveOnComplete || savedFilePath != null) &&
-          saveDirectory != null &&
-          saveDirectory.isNotEmpty) {
-        final finalPath = await _saver.saveToFile(
-          bytes: bytes,
-          templateFileName: templateFileName,
-          format: saveFormat,
-          saveDirectory: saveDirectory,
+      if (savedPath != null) {
+        runInAction(() => savedFilePath = savedPath);
+        unawaited(
+          recentBooksService.updateRecentBookFile(
+            portalCode: session.portal.code,
+            bookId: bookId,
+            savedFilePath: savedPath,
+            saveFormat: saveFormat,
+            downloadedAt: DateTime.now(),
+          ),
         );
-
-        if (finalPath != null) {
-          runInAction(() => savedFilePath = finalPath);
-          unawaited(
-            recentBooksService.updateRecentBookFile(
-              portalCode: session.portal.code,
-              bookId: bookId,
-              savedFilePath: finalPath,
-              saveFormat: saveFormat,
-              downloadedAt: DateTime.now(),
-            ),
-          );
-          logger.i('Saved book to $finalPath');
-        }
+        logger.i('Saved book to $savedPath');
       } else if (!settings.autoSaveOnComplete && savedFilePath != null) {
         runInAction(() => savedFilePath = null);
       }
     } catch (e, trace) {
+      if (isStale()) return;
       logger.e('Book conversion error', error: e, stackTrace: trace);
+      runInAction(() => errorMessage = e.toString());
     } finally {
-      runInAction(() => isExporting = false);
+      if (!isStale()) {
+        runInAction(() => isExporting = false);
+      }
     }
+  }
+
+  /// Общий путь: encode → saveToFile → (опционально) updateRecentBookFile.
+  /// Возвращает путь сохранённого файла или null (отмена/нет данных).
+  Future<String?> _encodeAndSave({bool updateRecent = true}) async {
+    final templateFileName = _templateFileName();
+    final bytes = await _encodeCurrentBook(
+      templateFileName: templateFileName,
+    );
+
+    final saveDirectory = settings.saveDirectory;
+    if (saveDirectory == null || saveDirectory.isEmpty) {
+      if (savedFilePath == null) return null;
+    }
+
+    if ((updateRecent || settings.autoSaveOnComplete || savedFilePath != null) &&
+        saveDirectory != null &&
+        saveDirectory.isNotEmpty) {
+      final saved = await _saver.saveToFile(
+        bytes: bytes,
+        templateFileName: templateFileName,
+        format: saveFormat,
+        saveDirectory: saveDirectory,
+      );
+      if (saved == null) return null;
+      runInAction(() => savedFilePath = saved.path);
+      if (updateRecent) {
+        unawaited(
+          recentBooksService.updateRecentBookFile(
+            portalCode: session.portal.code,
+            bookId: bookId,
+            savedFilePath: saved.path,
+            saveFormat: saveFormat,
+            downloadedAt: DateTime.now(),
+          ),
+        );
+      }
+      return saved.path;
+    }
+    return null;
   }
 
   String _templateFileName() {
@@ -435,8 +524,7 @@ abstract class DownloadTaskBase with Store {
     );
   }
 
-  /// Единая точка кодирования с кэшем. Раньше логика была
-  /// скопирована в `_export` и `_convertBook`.
+  /// Единая точка кодирования с кэшем.
   Future<Uint8List> _encodeCurrentBook({String? templateFileName}) async {
     final format = saveFormat;
     if (templateFileName == null &&
@@ -445,7 +533,7 @@ abstract class DownloadTaskBase with Store {
       return _encodedBytes!;
     }
     final name = templateFileName ?? _templateFileName();
-    final bytes = await _encoder.encode(
+    final bytes = await BookExporter.encode(
       book: resolvedBook!,
       format: format,
       options: _encodingOptions(name),
@@ -457,6 +545,4 @@ abstract class DownloadTaskBase with Store {
     _encodedFormat = format;
     return bytes;
   }
-
-  double? get normalizedProgress => progress.normalized;
 }

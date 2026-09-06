@@ -6,6 +6,7 @@ import '../../../core/constants.dart';
 import '../../../core/di.dart';
 import '../../../core/ui/formatters.dart';
 import '../../../core/ui/tokens.dart';
+import '../../../core/ui/widgets/app_card.dart';
 import '../../../core/ui/widgets/app_progress_card.dart';
 import '../../common/widgets/app_button.dart';
 import 'update_controller.dart';
@@ -110,16 +111,27 @@ class _UpdateWidgetState extends State<UpdateWidget> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               AppProgressCard(
-                                title:
-                                    controller.state == UpdateState.installing
-                                        ? 'Запуск установщика'
-                                        : 'Загрузка обновления',
-                                statusText: controller.totalBytes > 0
-                                    ? '${formatBytes(controller.recievedBytes)} / ${formatBytes(controller.totalBytes)}${controller.progress > 0 ? ' (${(controller.progress * 100).toInt()}%)' : ''}'
-                                    : (controller.state ==
-                                            UpdateState.installing
-                                        ? 'Установка...'
-                                        : 'Подготовка...'),
+                                titleWidget: AppCardTitle.text(
+                                  controller.state == UpdateState.installing
+                                      ? 'Запуск установщика'
+                                      : 'Загрузка обновления',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                statusWidget: Text(
+                                  controller.counterText(formatBytes) ??
+                                      (controller.state ==
+                                              UpdateState.installing
+                                          ? 'Установка...'
+                                          : 'Подготовка...'),
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    color: theme.colorScheme.primary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                                 progress: controller.totalBytes > 0
                                     ? controller.progress
                                     : null,
@@ -130,7 +142,6 @@ class _UpdateWidgetState extends State<UpdateWidget> {
                                 child: AppButton(
                                   style: M3EButtonStyle.tonal,
                                   size: M3EButtonSize.sm,
-                                  fullWidth: false,
                                   onPressed: () =>
                                       controller.cancelDownload(),
                                   child: const Text('Отмена'),

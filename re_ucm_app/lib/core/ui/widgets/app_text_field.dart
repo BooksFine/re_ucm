@@ -4,6 +4,10 @@ import '../tokens.dart';
 
 /// Единый визуал текстовых полей: поиск в источниках + ссылка на главной.
 /// Логика остается в вызывающем коде, здесь только decoration.
+///
+/// Визуал (бордеры, радиус, fill, contentPadding) полностью берётся из
+/// [ThemeData.inputDecorationTheme] (см. theme.dart) — инлайн
+/// [OutlineInputBorder]'ов здесь нет, чтобы не разъезжаться с темой.
 class AppTextField extends StatelessWidget {
   const AppTextField({
     super.key,
@@ -32,7 +36,6 @@ class AppTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final radius = BorderRadius.circular(AppRadii.card);
 
     return TextFormField(
       controller: controller,
@@ -48,36 +51,10 @@ class AppTextField extends StatelessWidget {
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: theme.textTheme.bodyMedium?.copyWith(
-          color: cs.onSurfaceVariant.withValues(alpha: 0.7),
+          color: cs.onSurfaceVariant.withValues(alpha: AppOpacity.emphasized),
         ),
         prefixIcon: prefixIcon,
         suffixIcon: suffixIcon,
-        filled: true,
-        fillColor: cs.surfaceContainerHigh,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: 14,
-        ),
-        border: OutlineInputBorder(borderRadius: radius, borderSide: BorderSide.none),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: radius,
-          borderSide: BorderSide(
-            color: cs.outlineVariant.withValues(alpha: 0.3),
-            width: 0.8,
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: radius,
-          borderSide: BorderSide(color: cs.primary, width: 1.5),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: radius,
-          borderSide: BorderSide(color: cs.error, width: 1.2),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: radius,
-          borderSide: BorderSide(color: cs.error, width: 1.5),
-        ),
       ),
     );
   }

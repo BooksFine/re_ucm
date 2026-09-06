@@ -8,8 +8,6 @@ class AppButton extends StatelessWidget {
     this.style = M3EButtonStyle.filled,
     this.size = M3EButtonSize.md,
     this.isLoading = false,
-    this.height,
-    this.fullWidth = true,
     required this.child,
   });
 
@@ -17,8 +15,6 @@ class AppButton extends StatelessWidget {
   final M3EButtonStyle style;
   final M3EButtonSize size;
   final bool isLoading;
-  final double? height;
-  final bool fullWidth;
   final Widget child;
 
   @override
@@ -28,7 +24,7 @@ class AppButton extends StatelessWidget {
         ? theme.colorScheme.onPrimary
         : theme.colorScheme.primary;
 
-    final button = M3EButton(
+    return M3EButton(
       onPressed: isLoading ? null : onPressed,
       style: style,
       size: size,
@@ -46,13 +42,6 @@ class AppButton extends StatelessWidget {
               ),
             )
           : child,
-    );
-
-    if (!fullWidth) return button;
-    return SizedBox(
-      height: height ?? 48,
-      width: double.infinity,
-      child: button,
     );
   }
 }

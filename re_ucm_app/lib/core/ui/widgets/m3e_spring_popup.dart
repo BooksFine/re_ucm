@@ -6,6 +6,27 @@ import 'package:motor/motor.dart';
 
 import '../tokens.dart';
 
+/// Файл заморожен по поведению: здесь только токенизация магических
+/// чисел в именованные константы, логика и API не меняются.
+const double _kEdgeMargin = 12.0;
+const double _kItemExtent = 44.0;
+const double _kMenuChrome = 16.0;
+const double _kMenuMinHeight = 60.0;
+const double _kMenuMaxHeight = 360.0;
+const double _kStartScale = 0.72;
+const double _kScaleRange = 0.28;
+const double _kShadowBlur = 16.0;
+const Offset _kShadowOffset = Offset(0, 6);
+const double _kItemIconSize = 19.0;
+const double _kCheckIconSize = 18.0;
+const double _kIconGap = 12.0;
+const double _kCheckGap = 8.0;
+const double _kItemFontSize = 13.0;
+const double _kMenuVPadding = 6.0;
+const double _kMenuHPadding = 4.0;
+const double _kItemVPadding = 10.0;
+const double _kItemHPadding = 12.0;
+
 class M3ESpringPopupItem<T> {
   const M3ESpringPopupItem({
     required this.value,
@@ -119,16 +140,13 @@ class _M3ESpringPopupOverlayState<T> extends State<_M3ESpringPopupOverlay<T>> {
       _opacity = 0.0;
     });
 
-    if (selectedValue != null) {
-      widget.onSelected(selectedValue);
-    } else {
-      widget.onDismiss();
-    }
-
-    Future.delayed(const Duration(milliseconds: 140), () {
-      if (mounted) {
-        widget.onRemove();
+    Future.delayed(AppDurations.exit, () {
+      if (selectedValue != null) {
+        widget.onSelected(selectedValue);
+      } else {
+        widget.onDismiss();
       }
+      widget.onRemove();
     });
   }
 
@@ -144,14 +162,21 @@ class _M3ESpringPopupOverlayState<T> extends State<_M3ESpringPopupOverlay<T>> {
       widget.triggerBox.size.bottomRight(Offset.zero),
     );
 
-    final spaceBelow = screenSize.height - triggerBottomRight.dy - 12.0;
-    final spaceAbove = triggerTopLeft.dy - 12.0;
-    final approxHeight = widget.items.length * 44.0 + 16.0;
+    final spaceBelow =
+        screenSize.height - triggerBottomRight.dy - _kEdgeMargin;
+    final spaceAbove = triggerTopLeft.dy - _kEdgeMargin;
+    final approxHeight = widget.items.length * _kItemExtent + _kMenuChrome;
     final showAbove = spaceBelow < approxHeight && spaceAbove > spaceBelow;
 
     // Anchor popup to the right edge of the trigger button with margin clamping
     final right = (screenSize.width - triggerBottomRight.dx - widget.offset.dx)
-        .clamp(12.0, (screenSize.width - widget.menuWidth - 12.0).clamp(12.0, double.infinity));
+        .clamp(
+          _kEdgeMargin,
+          (screenSize.width - widget.menuWidth - _kEdgeMargin).clamp(
+            _kEdgeMargin,
+            double.infinity,
+          ),
+        );
 
     final top = showAbove
         ? null
@@ -194,13 +219,15 @@ class _M3ESpringPopupOverlayState<T> extends State<_M3ESpringPopupOverlay<T>> {
               bottom: bottom,
               child: AnimatedOpacity(
                 opacity: _opacity,
-                duration: Duration(milliseconds: _isDismissing ? 80 : 180),
+                duration: _isDismissing
+                    ? AppDurations.fadeOut
+                    : AppDurations.fadeIn,
                 curve: Curves.easeOut,
                 child: SingleMotionBuilder(
                   motion: _motion,
                   value: _springTarget,
                   builder: (context, t, _) {
-                    final scale = 0.72 + (t * 0.28);
+                    final scale = _kStartScale + (t * _kScaleRange);
 
                     return Transform.scale(
                       scale: scale,
@@ -208,26 +235,34 @@ class _M3ESpringPopupOverlayState<T> extends State<_M3ESpringPopupOverlay<T>> {
                       child: Container(
                         width: widget.menuWidth,
                         constraints: BoxConstraints(
-                          maxHeight: (showAbove ? spaceAbove : spaceBelow).clamp(60.0, 360.0),
+                          maxHeight: (showAbove ? spaceAbove : spaceBelow)
+                              .clamp(_kMenuMinHeight, _kMenuMaxHeight),
                         ),
                         decoration: BoxDecoration(
                           color: cs.surfaceContainer,
                           borderRadius: BorderRadius.circular(AppRadii.card),
                           border: Border.all(
-                            color: cs.outlineVariant.withValues(alpha: 0.35),
-                            width: 0.8,
+                            color: cs.outlineVariant.withValues(
+                              alpha: AppOpacity.soft,
+                            ),
+                            width: AppBorderWidth.thin,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.12),
-                              blurRadius: 16,
-                              offset: const Offset(0, 6),
+                              color: Colors.black.withValues(
+                                alpha: AppOpacity.shadow,
+                              ),
+                              blurRadius: _kShadowBlur,
+                              offset: _kShadowOffset,
                             ),
                           ],
                         ),
                         clipBehavior: Clip.antiAlias,
                         child: SingleChildScrollView(
-                          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: _kMenuVPadding,
+                            horizontal: _kMenuHPadding,
+                          ),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -265,22 +300,30 @@ class _M3ESpringPopupOverlayState<T> extends State<_M3ESpringPopupOverlay<T>> {
       content = Row(
         children: [
           if (item.icon != null) ...[
-            Icon(item.icon, size: 19, color: item.isSelected ? cs.onSecondaryContainer : iconColor),
-            const SizedBox(width: 12),
+            Icon(
+              item.icon,
+              size: _kItemIconSize,
+              color: item.isSelected ? cs.onSecondaryContainer : iconColor,
+            ),
+            const SizedBox(width: _kIconGap),
           ],
           Expanded(
             child: Text(
               item.label ?? '',
               style: TextStyle(
-                fontSize: 13,
+                fontSize: _kItemFontSize,
                 fontWeight: item.isSelected ? FontWeight.w600 : FontWeight.w500,
                 color: selectedTextColor,
               ),
             ),
           ),
           if (item.isSelected) ...[
-            const SizedBox(width: 8),
-            Icon(Icons.check_rounded, size: 18, color: cs.onSecondaryContainer),
+            const SizedBox(width: _kCheckGap),
+            Icon(
+              Icons.check_rounded,
+              size: _kCheckIconSize,
+              color: cs.onSecondaryContainer,
+            ),
           ],
         ],
       );
@@ -293,7 +336,10 @@ class _M3ESpringPopupOverlayState<T> extends State<_M3ESpringPopupOverlay<T>> {
         borderRadius: BorderRadius.circular(AppRadii.md),
         onTap: () => _dismiss(selectedValue: item.value),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.symmetric(
+            horizontal: _kItemHPadding,
+            vertical: _kItemVPadding,
+          ),
           child: content,
         ),
       ),

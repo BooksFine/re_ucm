@@ -3,7 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../../../../core/constants.dart';
-import '../../../../core/navigation/router_delegate.dart';
+import '../../../../core/navigation/nav.dart';
 import '../../../../core/ui/tokens.dart';
 import '../../../../core/ui/widgets/widgets.dart';
 
@@ -91,7 +91,9 @@ class AboutAppCard extends StatelessWidget {
     return AppCard(
       leading: logoLeading,
       titleWidget: titleWidget,
-      subtitle: 'Загрузка книг с сетевых библиотек',
+      subtitleWidget: const AppCardSubtitle(
+        text: 'Загрузка книг с сетевых библиотек',
+      ),
       children: [
         LayoutBuilder(
           builder: (context, constraints) {

@@ -87,14 +87,14 @@ class ImageDownloadTask {
 }
 
 class Progress {
-  var stage = Stages.none;
-  int? current;
-  int? total;
-  List<ChapterDownloadTask> chapterTasks;
-  List<ImageDownloadTask> activeTasks;
-  String? message;
+  final Stages stage;
+  final int? current;
+  final int? total;
+  final List<ChapterDownloadTask> chapterTasks;
+  final List<ImageDownloadTask> activeTasks;
+  final String? message;
 
-  Progress({
+  const Progress({
     this.stage = Stages.none,
     this.current,
     this.total,
@@ -102,6 +102,24 @@ class Progress {
     this.activeTasks = const [],
     this.message,
   });
+
+  Progress copyWith({
+    Stages? stage,
+    int? Function()? current,
+    int? Function()? total,
+    List<ChapterDownloadTask>? chapterTasks,
+    List<ImageDownloadTask>? activeTasks,
+    String? Function()? message,
+  }) {
+    return Progress(
+      stage: stage ?? this.stage,
+      current: current != null ? current() : this.current,
+      total: total != null ? total() : this.total,
+      chapterTasks: chapterTasks ?? this.chapterTasks,
+      activeTasks: activeTasks ?? this.activeTasks,
+      message: message != null ? message() : this.message,
+    );
+  }
 
   @override
   String toString() {
@@ -135,5 +153,16 @@ extension ProgressDisplay on Progress {
     final pct = normalized;
     final pctStr = pct == null ? '' : ' (${(pct * 100).toInt()}%)';
     return '$cur / $tot$pctStr';
+  }
+
+  /// Байтовый вариант счётчика: значения через [format] (напр. formatBytes),
+  /// процент — через [normalized]. Единая точка для OTA/загрузок.
+  String byteCounterText(String Function(int bytes) format) {
+    final cur = current;
+    final tot = total;
+    if (cur == null || tot == null) return message ?? stage.title;
+    final pct = normalized;
+    final pctStr = pct == null ? '' : ' (${(pct * 100).toInt()}%)';
+    return '${format(cur)} / ${format(tot)}$pctStr';
   }
 }

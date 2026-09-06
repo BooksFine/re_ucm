@@ -2,7 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../widgets/overlay_snack.dart';
+import '../widgets/snack.dart';
 
 Future<void> launchExternalUrl(BuildContext context, Uri uri) async {
   try {
@@ -27,7 +27,7 @@ Future<void> launchExternalUrl(BuildContext context, Uri uri) async {
     );
 
     if (!launched && context.mounted) {
-      overlaySnackMessage(context, 'Не удалось открыть приложение');
+      AppSnack.show(context, 'Не удалось открыть приложение', kind: AppSnackKind.error);
     }
   } catch (e) {
     if (!context.mounted) return;
@@ -37,6 +37,6 @@ Future<void> launchExternalUrl(BuildContext context, Uri uri) async {
     } else {
       errorMessage = 'Ошибка при открытии ссылки: $e';
     }
-    overlaySnackMessage(context, errorMessage);
+    AppSnack.show(context, errorMessage, kind: AppSnackKind.error);
   }
 }

@@ -8,6 +8,7 @@ import 'package:text_balancer/text_balancer.dart';
 import '../../../core/di.dart';
 import '../../../core/ui/tokens.dart';
 import '../../settings/presentation/settings_controller.cg.dart';
+import '../domain/recent_book_item_state.dart';
 import 'animated_recent_book_card.dart';
 
 class RecentBooksList extends StatefulWidget {
@@ -114,10 +115,18 @@ class _RecentBooksListState extends State<RecentBooksList> {
                 children: List.generate(service.recentBooks.length, (index) {
                   final i = service.recentBooks.length - index - 1;
                   return AnimatedRecentBookCard(
-                    key: ValueKey(service.recentBooks[i].id + service.recentBooks[i].portal.code),
+                    key: ValueKey(
+                      RecentBook.keyFor(
+                        service.recentBooks[i].portal.code,
+                        service.recentBooks[i].id,
+                      ),
+                    ),
                     book: service.recentBooks[i],
                     viewMode: viewMode,
                     onDelete: (book) {
+                      RecentBookItemState.invalidateFileCache(
+                        book.savedFilePath,
+                      );
                       showUndoSnackBar(book);
                       service.removeRecentBook(book);
                     },

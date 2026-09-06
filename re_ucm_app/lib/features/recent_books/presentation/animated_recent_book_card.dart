@@ -26,6 +26,9 @@ class _AnimatedRecentBookCardState extends State<AnimatedRecentBookCard>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _sizeAnimation;
+  // Guard от двойного удаления: Dismissible и кнопка меню могут
+  // вызвать onDelete почти одновременно (свайп + тап).
+  bool _dismissed = false;
 
   @override
   void initState() {
@@ -45,18 +48,21 @@ class _AnimatedRecentBookCardState extends State<AnimatedRecentBookCard>
   }
 
   Future<void> deleteBook() async {
+    if (_dismissed) return;
     await _controller.reverse();
     onDismissed();
   }
 
   Future<void> onDismissed() async {
+    if (_dismissed) return;
+    _dismissed = true;
     widget.onDelete(widget.book);
   }
 
   @override
   Widget build(BuildContext context) {
     return Dismissible(
-      key: ValueKey(widget.book),
+      key: ValueKey(RecentBook.keyFor(widget.book.portal.code, widget.book.id)),
       onDismissed: (_) => onDismissed(),
       child: SizeTransition(
         sizeFactor: _sizeAnimation,

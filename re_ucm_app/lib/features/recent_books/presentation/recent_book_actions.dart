@@ -8,11 +8,12 @@ import 'package:re_ucm_lib/re_ucm_lib.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../core/di.dart';
-import '../../../core/navigation/router_delegate.dart';
-import '../../common/widgets/overlay_snack.dart';
+import '../../../core/navigation/nav.dart';
+import '../../common/widgets/snack.dart';
 import '../../downloads/domain/download_task.cg.dart';
 import '../../downloads/presentation/download_modal.dart';
 import '../../downloads/presentation/widgets/unauthorized_download_dialog.dart';
+import '../domain/recent_book_item_state.dart';
 
 Future<void> openDownloadedFile(
   BuildContext context,
@@ -21,10 +22,12 @@ Future<void> openDownloadedFile(
   HapticFeedback.lightImpact();
   final file = File(filePath);
   if (!file.existsSync()) {
+    RecentBookItemState.invalidateFileCache(filePath);
     if (context.mounted) {
-      overlaySnackMessage(
+      AppSnack.show(
         context,
         'Файл книги не найден на диске (возможно, перемещён или удалён)',
+        kind: AppSnackKind.error,
       );
     }
     return;
@@ -101,5 +104,13 @@ Future<void> openBook(
     task.open();
   } else if (effectiveFilePath != null) {
     await openDownloadedFile(context, effectiveFilePath);
+  } else {
+    if (context.mounted) {
+      AppSnack.show(
+        context,
+        'Файл ещё не скачан или не найден',
+        kind: AppSnackKind.info,
+      );
+    }
   }
 }

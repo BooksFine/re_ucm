@@ -1,21 +1,28 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:m3e_core/m3e_core.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 import '../../../core/di.dart';
-import '../../../core/navigation/router_delegate.dart';
+import '../../../core/navigation/nav.dart';
 import '../../../core/ui/tokens.dart';
 import '../../../core/ui/widgets/app_text_field.dart';
 import '../../downloads/presentation/download_modal.dart';
 import '../../downloads/presentation/widgets/download_book_header.dart';
 import '../../downloads/presentation/widgets/unauthorized_download_dialog.dart';
+import 'format_selector.dart';
 import 'link_forwarder_controller.dart';
 import 'link_parser.dart';
 
+/// Debounce автофетча: быстрый ввод не спамит сеть.
+const _autoFetchDebounce = Duration(milliseconds: 450);
+
 class LinkForwarder extends StatefulWidget {
-  const LinkForwarder({super.key});
+  const LinkForwarder({super.key, this.isWide = false});
+
+  final bool isWide;
 
   @override
   State<LinkForwarder> createState() => _LinkForwarderState();
@@ -26,9 +33,11 @@ class _LinkForwarderState extends State<LinkForwarder> {
   final _textController = TextEditingController();
   final _focusNode = FocusNode();
   final _controller = LinkForwarderController();
+  Timer? _debounce;
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _textController.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -36,22 +45,34 @@ class _LinkForwarderState extends State<LinkForwarder> {
 
   void _onChanged(String value) {
     _controller.onTextChanged(value);
-    final candidate = _controller.autoFetchCandidate(value);
-    if (candidate != null) {
-      _fetchBookInfo(candidate);
-    }
+    // Debounce: фетчим только устоявшийся ввод.
+    _debounce?.cancel();
+    _debounce = Timer(_autoFetchDebounce, () {
+      if (!mounted) return;
+      final current = _textController.text;
+      final candidate = _controller.autoFetchCandidate(current);
+      if (candidate != null) {
+        _fetchBookInfo(candidate);
+      }
+    });
   }
 
   void _reset() {
+    _debounce?.cancel();
     _textController.clear();
     _controller.reset();
   }
 
   Future<void> _pasteFromClipboard() async {
+    _debounce?.cancel();
     HapticFeedback.lightImpact();
     final text = await _controller.readClipboardText();
     if (text == null || !mounted) return;
-    _textController.text = text;
+    // Курсор — в конец вставленного текста.
+    _textController.value = TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
     _controller.onTextChanged(text);
     _focusNode.requestFocus();
     final candidate = tryParseBookLink(text);
@@ -68,7 +89,19 @@ class _LinkForwarderState extends State<LinkForwarder> {
     final session = AppDependencies.of(
       context,
     ).settingsService.sessionByCode(link.portal.code);
-    await _controller.fetchBookInfo(link: link, session: session);
+    final applied = await _controller.fetchBookInfo(
+      link: link,
+      session: session,
+      currentTextReader: () => _textController.text,
+    );
+    // Ответ устарел (текст уже другой) — повторяем фетч для
+    // актуального текста, чтобы быстрый ввод не терялся.
+    if (!applied && mounted) {
+      final retry = _controller.autoFetchCandidate(_textController.text);
+      if (retry != null && retry.bookId != link.bookId) {
+        await _fetchBookInfo(retry);
+      }
+    }
   }
 
   Future<void> _startDownload() async {
@@ -90,10 +123,15 @@ class _LinkForwarderState extends State<LinkForwarder> {
       downloadsService: deps.downloadsService,
     );
     if (task == null || !mounted) return;
-    _controller.reset();
-    _textController.clear();
+    // Старт — отдельно от pure-сборки таска.
+    unawaited(task.start());
     if (mounted) {
       await showDownloadModalForTask(context, task);
+    }
+    // Очищаем только после модала, а не до подтверждения.
+    if (mounted) {
+      _textController.clear();
+      _controller.reset();
     }
   }
 
@@ -117,65 +155,59 @@ class _LinkForwarderState extends State<LinkForwarder> {
         ),
         Observer(
           builder: (_) {
-            if (_controller.isLoadingBook.value) {
-              return const Padding(
-                padding: EdgeInsets.only(top: AppSpacing.md),
-                child: LinkPreviewCard(
-                  child: DownloadBookHeaderSkeleton(isWide: false),
-                ),
-              );
-            }
-            return const SizedBox.shrink();
-          },
-        ),
-        Observer(
-          builder: (_) {
-            final error = _controller.loadingError.value;
-            if (error == null) return const SizedBox.shrink();
-            final theme = Theme.of(context);
-            final cs = theme.colorScheme;
-            return Padding(
-              padding: const EdgeInsets.only(top: AppSpacing.sm),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.error_outline_rounded,
-                      size: 16,
-                      color: cs.error,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        error,
-                        style: theme.textTheme.bodySmall?.copyWith(
+            switch (_controller.viewState) {
+              case LinkForwarderViewState.loading:
+                return Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.md),
+                  child: LinkPreviewCard(
+                    child: DownloadBookHeaderSkeleton(isWide: widget.isWide),
+                  ),
+                );
+              case LinkForwarderViewState.error:
+                final error = _controller.loadingError.value;
+                if (error == null) return const SizedBox.shrink();
+                final theme = Theme.of(context);
+                final cs = theme.colorScheme;
+                return Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.sm, left: 4, right: 4),
+                  child: Row(
+                      children: [
+                        Icon(
+                          Icons.error_outline_rounded,
+                          size: 16,
                           color: cs.error,
                         ),
-                      ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            error,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: cs.error,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-        Observer(
-          builder: (_) {
-            final meta = _controller.loadedMetadata.value;
-            final portal = _controller.loadedPortal.value;
-            if (meta == null || portal == null) {
-              return const SizedBox.shrink();
+                );
+              case LinkForwarderViewState.loaded:
+                final meta = _controller.loadedMetadata.value;
+                final portal = _controller.loadedPortal.value;
+                if (meta == null || portal == null) {
+                  return const SizedBox.shrink();
+                }
+                return Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.md),
+                  child: LinkPreviewCard(
+                    child: _LoadedPreview(
+                      controller: _controller,
+                      isWide: widget.isWide,
+                      onDownload: _startDownload,
+                    ),
+                  ),
+                );
+              case LinkForwarderViewState.idle:
+                return const SizedBox.shrink();
             }
-            return Padding(
-              padding: const EdgeInsets.only(top: AppSpacing.md),
-              child: LinkPreviewCard(
-                child: _LoadedPreview(
-                  controller: _controller,
-                  onDownload: _startDownload,
-                ),
-              ),
-            );
           },
         ),
       ],
@@ -283,15 +315,21 @@ class LinkPreviewCard extends StatelessWidget {
 }
 
 class _LoadedPreview extends StatelessWidget {
-  const _LoadedPreview({required this.controller, required this.onDownload});
+  const _LoadedPreview({
+    required this.controller,
+    required this.onDownload,
+    this.isWide = false,
+  });
 
   final LinkForwarderController controller;
   final VoidCallback onDownload;
+  final bool isWide;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
+    final meta = controller.loadedMetadata.value;
+    final portal = controller.loadedPortal.value;
+    if (meta == null || portal == null) return const SizedBox.shrink();
     final deps = AppDependencies.of(context);
     return Observer(
       builder: (_) {
@@ -300,11 +338,7 @@ class _LoadedPreview extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            DownloadBookHeader(
-              book: controller.loadedMetadata.value!,
-              portal: controller.loadedPortal.value!,
-              isWide: false,
-            ),
+            DownloadBookHeader(book: meta, portal: portal, isWide: isWide),
             const SizedBox(height: AppSpacing.md),
             const Divider(height: 1),
             const SizedBox(height: AppSpacing.sm),
@@ -314,47 +348,9 @@ class _LoadedPreview extends StatelessWidget {
               alignment: WrapAlignment.spaceBetween,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Формат: ',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: cs.onSurfaceVariant,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    for (final fmt in [
-                      SaveFormat.epub,
-                      SaveFormat.fb2,
-                      SaveFormat.fb2Zip,
-                    ]) ...[
-                      Padding(
-                        padding: const EdgeInsets.only(right: 4),
-                        child: ChoiceChip(
-                          label: Text(fmt.label.toUpperCase()),
-                          labelStyle: TextStyle(
-                            fontSize: 11,
-                            fontWeight: fmt == currentFormat
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                          ),
-                          selected: fmt == currentFormat,
-                          visualDensity: VisualDensity.compact,
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppRadii.full),
-                          ),
-                          onSelected: (selected) {
-                            if (selected) {
-                              controller.setSelectedFormat(fmt);
-                            }
-                          },
-                        ),
-                      ),
-                    ],
-                  ],
+                FormatSelector(
+                  current: currentFormat,
+                  onSelected: controller.setSelectedFormat,
                 ),
                 M3EButton.icon(
                   onPressed: onDownload,

@@ -4,12 +4,13 @@ import 'package:re_ucm_core/models/portal.dart';
 import 'package:webview_all/webview_all.dart';
 
 import '../../core/di.dart';
-import '../../core/navigation/router_delegate.dart';
+import '../../core/navigation/nav.dart';
 import '../../core/ui/tokens.dart';
 import '../common/widgets/webview.dart';
 import '../downloads/presentation/download_modal.dart';
 import 'widgets/browser_app_bar.dart';
 import 'widgets/browser_bottom_toolbar.dart';
+import 'widgets/browser_nav_model.dart';
 import 'widgets/scroll_to_hide_bottom_bar.dart';
 
 class Browser extends StatefulWidget {
@@ -110,41 +111,36 @@ class _BrowserState extends State<Browser> {
     final bottomBarHeight =
         M3EFloatingToolbarDefaults.containerSize + 16.0 + bottomPadding;
 
+    // Один объект вместо 11/8 пропсов в AppBar/Toolbar.
+    final nav = BrowserNavModel(
+      title: widget.portal.name,
+      isWide: isWide,
+      canGoBack: canGoBack,
+      canGoForward: canGoForward,
+      isLoading: _isLoading,
+      hasBook: _currentBookId != null,
+      onBackToApp: Nav.back,
+      onWebBack: _webViewController?.goBack,
+      onWebForward: _webViewController?.goForward,
+      onReload: _reload,
+      onDownload: _onDownloadPressed,
+      onOpenSettings: Nav.pushSettings,
+    );
+
     return PopScope(
       canPop: !canGoBack,
-      onPopInvokedWithResult: (_, _) {
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
         _webViewController?.goBack();
       },
       child: Scaffold(
-        appBar: BrowserAppBar(
-          title: widget.portal.name,
-          isWide: isWide,
-          canGoBack: canGoBack,
-          canGoForward: canGoForward,
-          isLoading: _isLoading,
-          hasBook: _currentBookId != null,
-          onBackToApp: Nav.back,
-          onWebBack: _webViewController?.goBack,
-          onWebForward: _webViewController?.goForward,
-          onReload: _reload,
-          onDownload: _onDownloadPressed,
-          onOpenSettings: Nav.pushSettings,
-        ),
+        appBar: BrowserAppBar(nav: nav),
         body: isWide
             ? _buildWebView(isWide: true)
             : ScrollToHideBottomBar(
                 bottomBarHeight: bottomBarHeight,
                 bottomPadding: bottomPadding,
-                bottomBar: BrowserBottomToolbar(
-                  canGoBack: canGoBack,
-                  canGoForward: canGoForward,
-                  isLoading: _isLoading,
-                  hasBook: _currentBookId != null,
-                  onWebBack: _webViewController?.goBack,
-                  onWebForward: _webViewController?.goForward,
-                  onReload: _reload,
-                  onDownload: _onDownloadPressed,
-                ),
+                bottomBar: BrowserBottomToolbar(nav: nav),
                 child: _buildWebView(isWide: false),
               ),
       ),

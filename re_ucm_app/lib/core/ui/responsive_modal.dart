@@ -17,9 +17,9 @@ Future<void> showResponsiveAppModal(
   contentBuilder,
   double dialogMaxWidth = 480,
   double? dialogMaxHeight,
-  EdgeInsets dialogPadding = const EdgeInsets.fromLTRB(20, 20, 20, 20),
+  EdgeInsets dialogPadding = const EdgeInsets.all(AppSpacing.xl),
   bool dialogScrollable = true,
-  double sheetMaxHeightFraction = 0,
+  double? sheetMaxHeightFraction,
   bool sheetScrollable = true,
 }) async {
   final isWide =
@@ -28,7 +28,7 @@ Future<void> showResponsiveAppModal(
     await showDialog(
       context: context,
       builder: (dialogCtx) => Dialog(
-        backgroundColor: Theme.of(context).colorScheme.surface,
+        backgroundColor: Theme.of(dialogCtx).colorScheme.surface,
         elevation: 6,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadii.dialog),
@@ -94,11 +94,13 @@ Future<void> showResponsiveAppModal(
         if (sheetScrollable) {
           content = SingleChildScrollView(child: content);
         }
-        if (sheetMaxHeightFraction > 0) {
+        // null (и неположительные ради совместимости) — без ограничения.
+        final fraction = sheetMaxHeightFraction;
+        if (fraction != null && fraction > 0) {
           final screenHeight = MediaQuery.sizeOf(sheetCtx).height;
           content = ConstrainedBox(
             constraints: BoxConstraints(
-              maxHeight: screenHeight * sheetMaxHeightFraction,
+              maxHeight: screenHeight * fraction,
             ),
             child: content,
           );
@@ -106,10 +108,10 @@ Future<void> showResponsiveAppModal(
         return SafeArea(
           child: Padding(
             padding: EdgeInsets.fromLTRB(
-              16,
+              AppSpacing.lg,
               0,
-              16,
-              MediaQuery.viewInsetsOf(sheetCtx).bottom + 16,
+              AppSpacing.lg,
+              MediaQuery.viewInsetsOf(sheetCtx).bottom + AppSpacing.lg,
             ),
             child: content,
           ),

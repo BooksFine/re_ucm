@@ -1,7 +1,7 @@
 import 'package:m3e_core/m3e_core.dart';
 import 'package:material_ui/material_ui.dart';
 
-import '../../../core/navigation/router_delegate.dart';
+import '../../../core/navigation/nav.dart';
 import '../../../core/ui/tokens.dart';
 import '../../changelog/changelog.dart';
 import '../../common/widgets/app_button.dart';

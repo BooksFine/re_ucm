@@ -53,8 +53,10 @@ class _AuthorsSeparatorCardState extends State<AuthorsSeparatorCard> {
 
     return AppCard(
       icon: Icons.people_alt_rounded,
-      title: 'Разделитель авторов',
-      subtitle: 'Символ между несколькими авторами',
+      titleWidget: AppCardTitle.text('Разделитель авторов'),
+      subtitleWidget: const AppCardSubtitle(
+        text: 'Символ между несколькими авторами',
+      ),
       children: [
         Observer(
           builder: (_) {

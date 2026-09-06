@@ -135,8 +135,7 @@ class _DesktopRailItemState extends State<_DesktopRailItem> {
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: InkWell(
         onTap: widget.onTap,
         child: SizedBox(
           width: _itemWidth,

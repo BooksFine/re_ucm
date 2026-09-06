@@ -2,7 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_core/models/portal.dart';
 import 'package:webview_all/webview_all.dart';
 
-import '../../../../core/navigation/router_delegate.dart';
+import '../../../../core/navigation/nav.dart';
 import '../../../common/widgets/appbar.dart';
 import '../../../common/widgets/webview.dart';
 

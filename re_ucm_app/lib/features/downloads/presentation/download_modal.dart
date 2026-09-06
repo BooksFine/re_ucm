@@ -5,7 +5,9 @@ import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 import '../../../core/di.dart';
 import '../../../core/ui/responsive_modal.dart';
+import '../../../core/ui/tokens.dart';
 import '../domain/download_task.cg.dart';
+import '../domain/downloads_service.cg.dart';
 
 import 'widgets/download_actions.dart';
 import 'widgets/download_book_header.dart';
@@ -13,10 +15,16 @@ import 'widgets/download_options_card.dart';
 import 'widgets/download_progress_card.dart';
 import 'widgets/failed_tasks_card.dart';
 
-/// Реестр открытых модалок. Раньше флаг `isModalOpen` жил в domain-сторе —
-/// UI-состояние не должно храниться в [DownloadTask].
-final Set<DownloadTask> _openModals = {};
+/// Реестр открытых модалок по taskKey. Раньше флаг `isModalOpen` жил
+/// в domain-сторе, затем `Set<DownloadTask>` — UI-состояние не должно
+/// храниться в [DownloadTask] и держать ссылки на задачи.
+final Set<String> _openModals = {};
 
+/// Сброс реестра при hot-restart (хранилище topLevel переживает restart).
+void resetOpenModalsRegistry() => _openModals.clear();
+
+/// Start: запускает (или переиспользует) задачу в сервисе.
+/// Show: только UI — см. [showDownloadModalForTask].
 Future<void> showDownloadModal(
   BuildContext context, {
   required PortalSession session,
@@ -33,12 +41,14 @@ Future<void> showDownloadModal(
   await showDownloadModalForTask(context, task);
 }
 
+/// Show-only: никакого start внутри, только UI поверх готовой [task].
 Future<void> showDownloadModalForTask(
   BuildContext context,
   DownloadTask task,
 ) async {
-  if (_openModals.contains(task)) return;
-  _openModals.add(task);
+  final key = DownloadsServiceBase.taskKey(task.session.portal.code, task.bookId);
+  if (_openModals.contains(key)) return;
+  _openModals.add(key);
 
   try {
     await showResponsiveAppModal(
@@ -48,7 +58,7 @@ Future<void> showDownloadModalForTask(
           DownloadModalContent(task: task, isWide: isWide, onClose: close),
     );
   } finally {
-    _openModals.remove(task);
+    _openModals.remove(key);
   }
 }
 
@@ -67,7 +77,7 @@ class DownloadModalContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedSize(
-      duration: const Duration(milliseconds: 280),
+      duration: AppDurations.expand,
       curve: Curves.easeInOutCubic,
       alignment: Alignment.topCenter,
       child: Column(
@@ -116,7 +126,7 @@ class DownloadModalContent extends StatelessWidget {
           Observer(
             builder: (_) {
               return AnimatedSize(
-                duration: const Duration(milliseconds: 300),
+                duration: AppDurations.expand,
                 curve: Curves.easeInOutCubic,
                 alignment: Alignment.topCenter,
                 child: task.failedTasks.isNotEmpty

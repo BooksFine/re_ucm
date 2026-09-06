@@ -4,7 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_core/re_ucm_core.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
-import '../../../../core/navigation/router_delegate.dart';
+import '../../../../core/navigation/nav.dart';
 import '../../../../core/ui/tokens.dart';
 
 /// Показывает диалог-предупреждение, если пользователь не авторизован.
@@ -38,11 +38,13 @@ Future<bool> checkAndConfirmUnauthorizedDownload({
     ),
   );
 
-  if (dontAskAgain == true) {
+  if (result == null) return false;
+  // «Больше не спрашивать» персистим только при confirm (Скачать),
+  // а не при «Войти»/dismiss.
+  if (result && dontAskAgain == true) {
     settingsService.updateWarnUnauthorizedDownloads(false);
   }
 
-  if (result == null) return false;
   if (result) return true;
 
   // Пользователь нажал «Войти»: отдаём решение наружу.
@@ -77,6 +79,10 @@ class _UnauthorizedDownloadDialogState
     });
     widget.onDontAskAgainChanged(_dontAskAgain);
   }
+
+  /// Единый обработчик чекбокса — только [_toggleDontAskAgain].
+  /// Сам [Checkbox] под [IgnorePointer], чтобы не было двойного
+  /// срабатывания InkWell + Checkbox.
 
   @override
   Widget build(BuildContext context) {
@@ -135,15 +141,11 @@ class _UnauthorizedDownloadDialogState
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Checkbox(
-                          value: _dontAskAgain,
-                          onChanged: (value) {
-                            HapticFeedback.selectionClick();
-                            setState(() {
-                              _dontAskAgain = value ?? false;
-                            });
-                            widget.onDontAskAgainChanged(_dontAskAgain);
-                          },
+                        IgnorePointer(
+                          child: Checkbox(
+                            value: _dontAskAgain,
+                            onChanged: null,
+                          ),
                         ),
                         const SizedBox(width: AppSpacing.xs),
                         Text(

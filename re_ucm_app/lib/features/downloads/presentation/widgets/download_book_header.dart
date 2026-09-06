@@ -3,8 +3,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_core/re_ucm_core.dart';
 
 import '../../../../core/ui/tokens.dart';
+import '../../../common/widgets/book_cover_image.dart';
 import '../../../common/widgets/shimmer.dart';
-import '../../../recent_books/presentation/recent_book_shared.dart';
 
 class DownloadBookHeader extends StatelessWidget {
   const DownloadBookHeader({

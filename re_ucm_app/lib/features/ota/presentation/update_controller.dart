@@ -5,6 +5,7 @@ import 'package:mobx/mobx.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:re_ucm_core/models/progress.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../../../core/constants.dart';
@@ -38,6 +39,17 @@ class UpdateController {
   CancelToken? _cancelToken;
 
   bool get isDownloading => state == UpdateState.downloading;
+
+  /// Счётчик через единый Progress.byteCounterText (формат + процент
+  /// в одном месте, вместо ручной сборки строки в виджете).
+  /// Возвращает null, пока total неизвестен — виджет покажет fallback.
+  String? counterText(String Function(int bytes) format) {
+    if (totalBytes <= 0) return null;
+    return Progress(
+      current: recievedBytes,
+      total: totalBytes,
+    ).byteCounterText(format);
+  }
 
   Future<bool> openInBrowser() async {
     try {
@@ -147,7 +159,7 @@ class UpdateController {
         }
       });
     } catch (e, trace) {
-      if (CancelToken.isCancel(e as dynamic)) {
+      if (e is DioException && CancelToken.isCancel(e)) {
         runInAction(() => _state.value = UpdateState.idle);
         return;
       }

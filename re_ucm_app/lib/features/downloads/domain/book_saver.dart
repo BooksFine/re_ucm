@@ -5,8 +5,18 @@ import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as p;
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
+/// Единый результат сохранения. Раньше возвращался `String?`,
+/// где строка была то путём, то URI — теперь всегда [SavedFile].
+class SavedFile {
+  const SavedFile({required this.path, this.uri});
+
+  final String path;
+  final Uri? uri;
+}
+
 class BookSaver {
-  Future<String?> saveToFile({
+  /// Возвращает [SavedFile] или null при отмене диалога.
+  Future<SavedFile?> saveToFile({
     required Uint8List bytes,
     required String templateFileName,
     required SaveFormat format,
@@ -19,7 +29,7 @@ class BookSaver {
       final destFile = File(finalPath);
       await destFile.parent.create(recursive: true);
       await destFile.writeAsBytes(bytes);
-      return finalPath;
+      return SavedFile(path: finalPath);
     }
 
     final cleanExt = ext.startsWith('.') ? ext.substring(1) : ext;
@@ -31,9 +41,10 @@ class BookSaver {
       allowedExtensions: [cleanExt],
     );
     if (savedUri != null) {
-      return savedUri.isScheme('file')
+      final path = savedUri.isScheme('file')
           ? savedUri.toFilePath()
           : savedUri.toString();
+      return SavedFile(path: path, uri: savedUri);
     }
     return null;
   }

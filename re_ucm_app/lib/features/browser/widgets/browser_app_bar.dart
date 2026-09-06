@@ -2,6 +2,7 @@ import 'package:m3e_core/m3e_core.dart';
 import 'package:material_ui/material_ui.dart';
 import '../../common/widgets/appbar.dart';
 import '../../downloads/presentation/widgets/downloads_indicator_button.dart';
+import 'browser_nav_model.dart';
 import 'browser_refresh_button.dart';
 import 'browser_tooltips.dart';
 
@@ -9,34 +10,9 @@ class BrowserAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   final Size preferredSize = const Size.fromHeight(kToolbarHeight);
 
-  const BrowserAppBar({
-    super.key,
-    required this.title,
-    required this.isWide,
-    required this.canGoBack,
-    required this.canGoForward,
-    required this.isLoading,
-    required this.hasBook,
-    required this.onBackToApp,
-    required this.onWebBack,
-    required this.onWebForward,
-    required this.onReload,
-    required this.onDownload,
-    required this.onOpenSettings,
-  });
+  const BrowserAppBar({super.key, required this.nav});
 
-  final String title;
-  final bool isWide;
-  final bool canGoBack;
-  final bool canGoForward;
-  final bool isLoading;
-  final bool hasBook;
-  final VoidCallback onBackToApp;
-  final VoidCallback? onWebBack;
-  final VoidCallback? onWebForward;
-  final VoidCallback onReload;
-  final VoidCallback? onDownload;
-  final VoidCallback onOpenSettings;
+  final BrowserNavModel nav;
 
   @override
   Widget build(BuildContext context) {
@@ -44,13 +20,13 @@ class BrowserAppBar extends StatelessWidget implements PreferredSizeWidget {
       color: Theme.of(context).colorScheme.surface,
       elevation: 2,
       child: MyAppBar(
-        title: title,
-        leading: isWide
+        title: nav.title,
+        leading: nav.isWide
             ? Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
-                    onPressed: onBackToApp,
+                    onPressed: nav.onBackToApp,
                     icon: const Icon(Icons.arrow_back_ios_new),
                     tooltip: BrowserTooltips.backToApp,
                   ),
@@ -70,17 +46,17 @@ class BrowserAppBar extends StatelessWidget implements PreferredSizeWidget {
                       children: [
                         IconButton(
                           icon: const Icon(Icons.arrow_back, size: 24),
-                          onPressed: canGoBack ? onWebBack : null,
+                          onPressed: nav.canGoBack ? nav.onWebBack : null,
                           tooltip: BrowserTooltips.webBack,
                         ),
                         IconButton(
                           icon: const Icon(Icons.arrow_forward, size: 24),
-                          onPressed: canGoForward ? onWebForward : null,
+                          onPressed: nav.canGoForward ? nav.onWebForward : null,
                           tooltip: BrowserTooltips.webForward,
                         ),
                         BrowserRefreshButton(
-                          isLoading: isLoading,
-                          onReload: onReload,
+                          isLoading: nav.isLoading,
+                          onReload: nav.onReload,
                         ),
                       ],
                     ),
@@ -88,24 +64,24 @@ class BrowserAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ],
               )
             : IconButton(
-                onPressed: onBackToApp,
+                onPressed: nav.onBackToApp,
                 icon: const Icon(Icons.arrow_back_ios_new),
               ),
         actions: [
           const DownloadsIndicatorButton(),
-          if (isWide) ...[
+          if (nav.isWide) ...[
             const SizedBox(width: 8),
             M3EButton.icon(
               style: M3EButtonStyle.tonal,
               size: M3EButtonSize.sm,
-              onPressed: hasBook ? onDownload : null,
+              onPressed: nav.hasBook ? nav.onDownload : null,
               icon: const Icon(Icons.download, size: 18),
               label: const Text('Скачать'),
             ),
           ],
           IconButton(
             icon: const Icon(Icons.settings),
-            onPressed: onOpenSettings,
+            onPressed: nav.onOpenSettings,
             tooltip: 'Настройки',
           ),
         ],

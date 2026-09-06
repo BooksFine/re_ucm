@@ -1,9 +1,17 @@
+/// TODO: вернуть `String?` (null для неизвестного) — сейчас call-сайты
+/// в portals/ ждут non-null строку, менять сигнатуру нельзя без их правок.
 String guessMediaType(String path) {
   final lower = path.toLowerCase();
-  if (lower.endsWith('.png')) return 'image/png';
-  if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
-  if (lower.endsWith('.gif')) return 'image/gif';
-  if (lower.endsWith('.webp')) return 'image/webp';
-  if (lower.endsWith('.svg')) return 'image/svg+xml';
-  return 'image/jpeg';
+  const byExtension = {
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.gif': 'image/gif',
+    '.webp': 'image/webp',
+    '.svg': 'image/svg+xml',
+  };
+  for (final entry in byExtension.entries) {
+    if (lower.endsWith(entry.key)) return entry.value;
+  }
+  return 'application/octet-stream';
 }

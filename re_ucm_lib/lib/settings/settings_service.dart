@@ -25,8 +25,19 @@ class SettingsService {
 
   List<PortalSession> get sessions => _sessions;
 
-  PortalSession sessionByCode(String code) =>
-      _sessions.firstWhere((s) => s.code == code);
+  PortalSession sessionByCode(String code) => _sessions.firstWhere(
+    (s) => s.code == code,
+    orElse: () => throw StateError('No session for portal code: $code'),
+  );
+
+  /// Null-safe вариант для presentation (detail/browser): вместо
+  /// firstWhere с `!` — явный null с фолбэком выше по стеку.
+  PortalSession? sessionByCodeOrNull(String code) {
+    for (final s in _sessions) {
+      if (s.code == code) return s;
+    }
+    return null;
+  }
 
   GeneralSettings get generalSettings => _settings;
 
@@ -83,13 +94,15 @@ class SettingsService {
   bool isPortalPinned(String code) => pinnedPortalCodes.contains(code);
 
   void togglePinPortal(String code) {
-    final list = List<String>.from(pinnedPortalCodes);
-    if (list.contains(code)) {
-      list.remove(code);
-    } else {
-      list.add(code);
-    }
-    _saveSettings(_settings.copyWith(pinnedPortalCodes: list));
+    updateSettings((current) {
+      final list = List<String>.from(current.pinnedPortalCodes);
+      if (list.contains(code)) {
+        list.remove(code);
+      } else {
+        list.add(code);
+      }
+      return current.copyWith(pinnedPortalCodes: list);
+    });
   }
 
   RecentBooksViewMode get recentBooksViewMode => _settings.recentBooksViewMode;

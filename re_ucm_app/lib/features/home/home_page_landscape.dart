@@ -1,9 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/ui/tokens.dart';
-import '../recent_books/presentation/recent_books_list.dart';
-import '../recent_books/presentation/widgets/recent_books_header.dart';
 import 'widgets/home_action_hub.dart';
+import 'widgets/recent_books_section.dart';
 
 /// Unified Tablet & Desktop Layout (>= 780dp).
 ///
@@ -19,9 +18,18 @@ class HomePageLandscape extends StatefulWidget {
   State<HomePageLandscape> createState() => _HomePageLandscapeState();
 }
 
+/// Pure-функция ширины левой панели: 340–420 для баланса.
+/// Вынесена из build, чтобы layout-константы тестировались отдельно.
+double homeLeftPaneWidth(double totalWidth) {
+  if (totalWidth < 960) {
+    return (totalWidth * 0.40).clamp(320.0, 360.0);
+  }
+  return (totalWidth * 0.35).clamp(340.0, 420.0);
+}
+
 class _HomePageLandscapeState extends State<HomePageLandscape> {
-  late final ScrollController _libraryScrollController = ScrollController();
-  late final ScrollController _actionHubScrollController = ScrollController();
+  final ScrollController _libraryScrollController = ScrollController();
+  final ScrollController _actionHubScrollController = ScrollController();
 
   @override
   void dispose() {
@@ -45,10 +53,7 @@ class _HomePageLandscapeState extends State<HomePageLandscape> {
       body: LayoutBuilder(
         builder: (context, constraints) {
           final totalWidth = constraints.maxWidth;
-          // Proportional left pane width between 340 and 420 for optimal balance
-          final leftWidth = totalWidth < 960
-              ? (totalWidth * 0.40).clamp(320.0, 360.0)
-              : (totalWidth * 0.35).clamp(340.0, 420.0);
+          final leftWidth = homeLeftPaneWidth(totalWidth);
 
           return Center(
             child: ConstrainedBox(
@@ -107,24 +112,18 @@ class _HomePageLandscapeState extends State<HomePageLandscape> {
                         child: CustomScrollView(
                           controller: _libraryScrollController,
                           slivers: [
-                            SliverToBoxAdapter(
-                              child: Padding(
-                                padding: EdgeInsets.only(top: topInset),
-                                child: RecentBooksHeader(
-                                  padding: EdgeInsets.fromLTRB(
+                            RecentBooksSection(
+                              headerOuterPadding: EdgeInsets.only(
+                                top: topInset,
+                              ),
+                              headerInnerPadding:
+                                  const EdgeInsets.fromLTRB(
                                     4,
                                     0,
                                     4,
                                     AppSpacing.sm,
                                   ),
-                                ),
-                              ),
-                            ),
-                            const SliverToBoxAdapter(
-                              child: RecentBooksList(),
-                            ),
-                            SliverToBoxAdapter(
-                              child: SizedBox(height: bottomInset),
+                              bottomSpacing: bottomInset,
                             ),
                           ],
                         ),

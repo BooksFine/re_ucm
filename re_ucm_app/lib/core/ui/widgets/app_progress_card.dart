@@ -11,11 +11,11 @@ import '../tokens.dart';
 /// - Rounded progress bar indicator
 /// - Optional collapsible details section ([expandedChild]) with smooth animation
 class AppProgressCard extends StatefulWidget {
+  /// Канонический конструктор: заголовок/статус — только виджеты
+  /// ([titleWidget]/[statusWidget], например `AppCardTitle.text('...')`).
   const AppProgressCard({
     super.key,
-    this.title,
     this.titleWidget,
-    this.statusText,
     this.statusWidget,
     this.progress,
     this.accentColor,
@@ -24,13 +24,11 @@ class AppProgressCard extends StatefulWidget {
     this.padding = const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
     this.trailing,
   }) : assert(
-         title != null || titleWidget != null,
-         'Either title or titleWidget must be provided',
+         titleWidget != null,
+         'titleWidget is required',
        );
 
-  final String? title;
   final Widget? titleWidget;
-  final String? statusText;
   final Widget? statusWidget;
   final double? progress;
   final Color? accentColor;
@@ -64,42 +62,23 @@ class _AppProgressCardState extends State<AppProgressCard> {
     final accent = widget.accentColor ?? theme.colorScheme.primary;
     final hasDetails = widget.expandedChild != null;
 
-    final Widget resolvedTitle =
-        widget.titleWidget ??
-        Text(
-          widget.title!,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        );
+    final Widget resolvedTitle = widget.titleWidget!;
 
-    final Widget? resolvedStatus =
-        widget.statusWidget ??
-        (widget.statusText != null
-            ? Text(
-                widget.statusText!,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: accent,
-                  fontWeight: FontWeight.bold,
-                ),
-              )
-            : null);
+    final Widget? resolvedStatus = widget.statusWidget;
 
     return RepaintBoundary(
       child: Container(
         decoration: BoxDecoration(
-          color: accent.withValues(alpha: 0.10),
+          color: accent.withValues(alpha: AppOpacity.tint),
           borderRadius: AppRadii.lgRadius,
           border: Border.all(
-            color: accent.withValues(alpha: 0.22),
-            width: 0.8,
+            color: accent.withValues(alpha: AppOpacity.tintBorder),
+            width: AppBorderWidth.thin,
           ),
         ),
         clipBehavior: Clip.antiAlias,
         child: AnimatedSize(
-          duration: const Duration(milliseconds: 250),
+          duration: AppDurations.expand,
           curve: Curves.easeOutCubic,
           alignment: Alignment.topCenter,
           child: Column(
@@ -144,7 +123,9 @@ class _AppProgressCardState extends State<AppProgressCard> {
                       M3ELinearWavyProgressIndicator(
                         value: widget.progress,
                         color: accent,
-                        backgroundColor: accent.withValues(alpha: 0.15),
+                        backgroundColor: accent.withValues(
+                          alpha: AppOpacity.wash,
+                        ),
                       ),
                     ],
                   ),
@@ -155,8 +136,8 @@ class _AppProgressCardState extends State<AppProgressCard> {
               if (hasDetails && _isExpanded) ...[
                 Divider(
                   height: 1,
-                  thickness: 0.5,
-                  color: accent.withValues(alpha: 0.15),
+                  thickness: AppBorderWidth.hairline,
+                  color: accent.withValues(alpha: AppOpacity.wash),
                 ),
                 widget.expandedChild!,
               ],

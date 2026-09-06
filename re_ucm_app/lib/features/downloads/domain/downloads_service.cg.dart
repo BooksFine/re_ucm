@@ -3,6 +3,9 @@ import 'package:mobx/mobx.dart';
 import 'package:re_ucm_core/re_ucm_core.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
+import 'book_saver.dart';
+import 'book_sharer.dart';
+import 'download_opener.dart';
 import 'download_task.cg.dart';
 
 part '../../../.gen/features/downloads/domain/downloads_service.cg.g.dart';
@@ -69,6 +72,9 @@ abstract class DownloadsServiceBase with Store {
     required PortalSession session,
     required String bookId,
     BookMetadata? initialMetadata,
+    BookSaver? saver,
+    BookSharer? sharer,
+    DownloadOpener? opener,
   }) {
     final key = taskKey(session.portal.code, bookId);
     if (tasks.containsKey(key)) {
@@ -85,6 +91,9 @@ abstract class DownloadsServiceBase with Store {
       settings: settings,
       recentBooksService: recentBooksService,
       initialMetadata: initialMetadata,
+      saver: saver,
+      sharer: sharer,
+      opener: opener,
       onTaskCompleted: (task) {
         onTaskCompletedGlobal?.call(task);
       },
@@ -99,11 +108,17 @@ abstract class DownloadsServiceBase with Store {
     required PortalSession session,
     required String bookId,
     BookMetadata? initialMetadata,
+    BookSaver? saver,
+    BookSharer? sharer,
+    DownloadOpener? opener,
   }) {
     final task = getOrCreateTask(
       session: session,
       bookId: bookId,
       initialMetadata: initialMetadata,
+      saver: saver,
+      sharer: sharer,
+      opener: opener,
     );
 
     if (task.status == DownloadTaskStatus.idle ||

@@ -17,8 +17,10 @@ class StorageSettingsCard extends StatelessWidget {
 
     return AppCard(
       icon: Icons.folder_copy_rounded,
-      title: 'Сохранение',
-      subtitle: 'Параметры сохранения файлов',
+      titleWidget: AppCardTitle.text('Сохранение'),
+      subtitleWidget: const AppCardSubtitle(
+        text: 'Параметры сохранения файлов',
+      ),
       children: [
         Observer(
           builder: (_) => AppCheckboxRow(
@@ -37,7 +39,7 @@ class StorageSettingsCard extends StatelessWidget {
             final hasDir = saveDir != null && saveDir.isNotEmpty;
 
             return AnimatedSize(
-              duration: const Duration(milliseconds: 260),
+              duration: AppDurations.expand,
               curve: Curves.easeInOutCubic,
               alignment: Alignment.topCenter,
               child: hasDir

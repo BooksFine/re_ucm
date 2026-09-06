@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of '../../../data/models/fb_settings.cg.dart';
@@ -9,6 +9,7 @@ part of '../../../data/models/fb_settings.cg.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $FBSettingsCopyWith<FBSettings> get copyWith => _$FBSettingsCopyWithImpl<FBSetti
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is FBSettings&&(identical(other.mirrorUrl, mirrorUrl) || other.mirrorUrl == mirrorUrl)&&(identical(other.maxConcurrentDownloads, maxConcurrentDownloads) || other.maxConcurrentDownloads == maxConcurrentDownloads)&&(identical(other.token, token) || other.token == token));
+  final _this = this as FBSettings;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FBSettings&&(identical(other.mirrorUrl, _this.mirrorUrl) || other.mirrorUrl == _this.mirrorUrl)&&(identical(other.maxConcurrentDownloads, _this.maxConcurrentDownloads) || other.maxConcurrentDownloads == _this.maxConcurrentDownloads)&&(identical(other.token, _this.token) || other.token == _this.token));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,mirrorUrl,maxConcurrentDownloads,token);
+int get hashCode {
+  final _this = this as FBSettings;
+  return Object.hash(runtimeType,_this.mirrorUrl,_this.maxConcurrentDownloads,_this.token);
+}
 
 @override
 String toString() {
-  return 'FBSettings(mirrorUrl: $mirrorUrl, maxConcurrentDownloads: $maxConcurrentDownloads, token: $token)';
+  final _this = this as FBSettings;
+  return 'FBSettings(mirrorUrl: ${_this.mirrorUrl}, maxConcurrentDownloads: ${_this.maxConcurrentDownloads}, token: ${_this.token})';
 }
 
 
@@ -66,7 +72,7 @@ class _$FBSettingsCopyWithImpl<$Res>
 /// Create a copy of FBSettings
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? mirrorUrl = null,Object? maxConcurrentDownloads = null,Object? token = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(FBSettings(
 mirrorUrl: null == mirrorUrl ? _self.mirrorUrl : mirrorUrl // ignore: cast_nullable_to_non_nullable
 as String,maxConcurrentDownloads: null == maxConcurrentDownloads ? _self.maxConcurrentDownloads : maxConcurrentDownloads // ignore: cast_nullable_to_non_nullable
 as int,token: freezed == token ? _self.token : token // ignore: cast_nullable_to_non_nullable
@@ -231,16 +237,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _FBSettings&&(identical(other.mirrorUrl, mirrorUrl) || other.mirrorUrl == mirrorUrl)&&(identical(other.maxConcurrentDownloads, maxConcurrentDownloads) || other.maxConcurrentDownloads == maxConcurrentDownloads)&&(identical(other.token, token) || other.token == token));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _FBSettings&&(identical(other.mirrorUrl, mirrorUrl) || other.mirrorUrl == mirrorUrl)&&(identical(other.maxConcurrentDownloads, maxConcurrentDownloads) || other.maxConcurrentDownloads == maxConcurrentDownloads)&&(identical(other.token, token) || other.token == token));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,mirrorUrl,maxConcurrentDownloads,token);
+int get hashCode {
+    return Object.hash(runtimeType,mirrorUrl,maxConcurrentDownloads,token);
+}
 
 @override
 String toString() {
-  return 'FBSettings(mirrorUrl: $mirrorUrl, maxConcurrentDownloads: $maxConcurrentDownloads, token: $token)';
+    return 'FBSettings(mirrorUrl: $mirrorUrl, maxConcurrentDownloads: $maxConcurrentDownloads, token: $token)';
 }
 
 

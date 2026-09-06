@@ -65,3 +65,76 @@ abstract final class AppBreakpoints {
   /// 1024 — широкие карточки recent.
   static const double wideCards = 1024.0;
 }
+
+/// Единый источник alpha для `withValues(alpha: ...)`.
+///
+/// Значения зафиксированы по факту использования в дизайн-системе
+/// (core/ui + common/widgets), замена — только внутри своей зоны,
+/// пиксель в пиксель, без визуального дрейфа.
+abstract final class AppOpacity {
+  /// 0.38 — disabled-текст/иконки (Material guideline).
+  static const double disabled = 0.38;
+
+  /// 0.8 — сильные бордеры инпутов, приглушённые субтитры.
+  static const double strong = 0.8;
+
+  /// 0.7 — вторичные иконки (chevron), хинты текстовых полей.
+  static const double emphasized = 0.7;
+
+  /// 0.5 — бордеры карточек (CardTheme).
+  static const double half = 0.5;
+
+  /// 0.4 — разделители, бордеры меню.
+  static const double muted = 0.4;
+
+  /// 0.35 — бордеры поповеров.
+  static const double soft = 0.35;
+
+  /// 0.15 — заливки/разделители на tinted-поверхностях.
+  static const double wash = 0.15;
+
+  /// 0.22 — бордеры tinted-поверхностей (прогресс-карточки).
+  static const double tintBorder = 0.22;
+
+  /// 0.10 — фоновые tinted-заливки (прогресс-карточки).
+  static const double tint = 0.1;
+
+  /// 0.12 — мягкие тени поповеров.
+  static const double shadow = 0.12;
+
+  /// 0.85 — пиковый scrim градиента схлопнутого app bar'а.
+  static const double scrimPeak = 0.85;
+}
+
+/// Единый источник толщин бордеров/разделителей.
+abstract final class AppBorderWidth {
+  /// 0.5 — hairline-разделители на tinted-поверхностях.
+  static const double hairline = 0.5;
+
+  /// 0.8 — тонкие бордеры поповеров и прогресс-карточек.
+  static const double thin = 0.8;
+
+  /// 1.0 — стандартные бордеры карточек и разделители.
+  static const double regular = 1.0;
+
+  /// 1.8 — акцентный бордер сфокусированного инпута.
+  static const double thick = 1.8;
+}
+
+/// Единый источник длительностей анимаций дизайн-системы.
+///
+/// Значения зафиксированы по факту использования, замена — только
+/// внутри своей зоны.
+abstract final class AppDurations {
+  /// 80ms — fade-out поповера при dismiss.
+  static const Duration fadeOut = Duration(milliseconds: 80);
+
+  /// 140ms — задержка снятия overlay поповера после dismiss.
+  static const Duration exit = Duration(milliseconds: 140);
+
+  /// 180ms — fade-in поповера при появлении.
+  static const Duration fadeIn = Duration(milliseconds: 180);
+
+  /// 250ms — AnimatedSize раскрытия прогресс-карточки.
+  static const Duration expand = Duration(milliseconds: 250);
+}

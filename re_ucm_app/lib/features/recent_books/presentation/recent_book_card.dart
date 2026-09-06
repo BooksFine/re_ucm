@@ -1,11 +1,16 @@
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:m3e_core/m3e_core.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 import 'package:text_balancer/text_balancer.dart';
 
+import '../../../core/di.dart';
 import '../../../core/ui/tokens.dart';
+import '../../common/widgets/book_cover_image.dart';
+import '../domain/recent_book_item_state.dart';
 import 'recent_book_actions.dart';
+import 'recent_book_badges.dart';
+import 'recent_book_controls.dart';
+import 'recent_book_more_menu.dart';
 import 'recent_book_shared.dart';
 import 'recent_book_utils.dart';
 
@@ -19,9 +24,15 @@ class RecentBookCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isWide = MediaQuery.sizeOf(context).width >= AppBreakpoints.wideCards;
 
-    return RecentBookScope(
-      book: book,
-      builder: (context, state, session, effectiveFormat) {
+    final deps = AppDependencies.of(context);
+    final session = deps.settingsService.sessionByCode(book.portal.code);
+    return Observer(
+      builder: (context) {
+        final state = RecentBookItemState.resolve(
+          book,
+          deps.downloadsService,
+        );
+        final effectiveFormat = getEffectiveFormat(book, deps.settingsService);
         return RecentBookContainer(
           isDownloading: state.isDownloading,
           child: Row(
@@ -68,6 +79,7 @@ class _TitleBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
+    final seriesLine = formatSeriesLine(book);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -89,10 +101,10 @@ class _TitleBlock extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        if (book.seriesName != null) ...[
+        if (seriesLine != null) ...[
           const SizedBox(height: 3),
           Text(
-            '${book.seriesName!} #${book.seriesNumber ?? 1}',
+            seriesLine,
             style: theme.textTheme.bodySmall?.copyWith(
               color: cs.onSurfaceVariant,
               fontSize: 12,
@@ -102,30 +114,6 @@ class _TitleBlock extends StatelessWidget {
           ),
         ],
         const SizedBox(height: 6),
-      ],
-    );
-  }
-}
-
-class _BadgesRow extends StatelessWidget {
-  const _BadgesRow({required this.book, required this.state});
-
-  final RecentBook book;
-  final RecentBookItemState state;
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 6,
-      runSpacing: 4,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        PortalBadge(portal: book.portal),
-        if (state.fileExists)
-          DownloadedBadge(
-            downloadedAt: state.downloadedAt,
-            prefix: 'Скачано',
-          ),
       ],
     );
   }
@@ -197,12 +185,7 @@ class _DownloadActions extends StatelessWidget {
             if (state.isDownloading)
               RecentBookDownloadingRow(task: task)
             else
-              M3EButton.icon(
-                style: M3EButtonStyle.tonal,
-                size: M3EButtonSize.sm,
-                shape: M3EButtonShape.round,
-                icon: const Icon(Icons.download_rounded),
-                label: const Text('Скачать'),
+              DownloadButton(
                 onPressed: () {
                   startDownload(context, session, effectiveFormat, book.id);
                 },
@@ -239,7 +222,11 @@ class _WideInfo extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _TitleBlock(book: book),
-              _BadgesRow(book: book, state: state),
+              RecentBookBadgesRow(
+                book: book,
+                state: state,
+                downloadedPrefix: 'Скачано',
+              ),
             ],
           ),
         ),
@@ -311,7 +298,11 @@ class _NarrowInfo extends StatelessWidget {
             ),
           ],
         ),
-        _BadgesRow(book: book, state: state),
+        RecentBookBadgesRow(
+          book: book,
+          state: state,
+          downloadedPrefix: 'Скачано',
+        ),
         const SizedBox(height: 10),
         Align(
           alignment: Alignment.centerRight,

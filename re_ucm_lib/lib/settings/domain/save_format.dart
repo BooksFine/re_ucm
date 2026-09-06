@@ -9,6 +9,10 @@ enum SaveFormat {
 
   const SaveFormat(this.ext, this.mimeType, this.label);
 
+  /// Канонический список для UI (ChoiceChip / SegmentedButton).
+  /// Порядок фиксирован: epub → fb2 → fb2.zip.
+  static const List<SaveFormat> displayValues = [epub, fb2, fb2Zip];
+
   String toJson() => name;
 
   static SaveFormat fromJson(String value) {

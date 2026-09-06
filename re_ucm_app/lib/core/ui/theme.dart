@@ -53,8 +53,8 @@ ThemeData _buildTheme(ColorScheme cs, AppColorsExtension appColors) {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadii.card),
         side: BorderSide(
-          color: cs.outlineVariant.withValues(alpha: 0.5),
-          width: 1.0,
+          color: cs.outlineVariant.withValues(alpha: AppOpacity.half),
+          width: AppBorderWidth.regular,
         ),
       ),
     ),
@@ -65,28 +65,36 @@ ThemeData _buildTheme(ColorScheme cs, AppColorsExtension appColors) {
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadii.lg),
         borderSide: BorderSide(
-          color: cs.outlineVariant.withValues(alpha: 0.8),
+          color: cs.outlineVariant.withValues(alpha: AppOpacity.strong),
         ),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadii.lg),
         borderSide: BorderSide(
-          color: cs.outlineVariant.withValues(alpha: 0.8),
+          color: cs.outlineVariant.withValues(alpha: AppOpacity.strong),
         ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadii.lg),
         borderSide: BorderSide(
           color: cs.onSurfaceVariant,
-          width: 1.8,
+          width: AppBorderWidth.thick,
         ),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
     ),
+    snackBarTheme: SnackBarThemeData(
+      behavior: SnackBarBehavior.floating,
+      elevation: 6,
+      dismissDirection: DismissDirection.horizontal,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadii.md),
+      ),
+    ),
     dividerTheme: DividerThemeData(
       space: 1,
-      thickness: 1,
-      color: cs.outlineVariant.withValues(alpha: 0.4),
+      thickness: AppBorderWidth.regular,
+      color: cs.outlineVariant.withValues(alpha: AppOpacity.muted),
     ),
     segmentedButtonTheme: SegmentedButtonThemeData(
       style: SegmentedButton.styleFrom(
@@ -110,8 +118,8 @@ ThemeData _buildTheme(ColorScheme cs, AppColorsExtension appColors) {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadii.card),
         side: BorderSide(
-          color: cs.outlineVariant.withValues(alpha: 0.4),
-          width: 0.8,
+          color: cs.outlineVariant.withValues(alpha: AppOpacity.muted),
+          width: AppBorderWidth.thin,
         ),
       ),
       menuPadding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
@@ -125,8 +133,8 @@ ThemeData _buildTheme(ColorScheme cs, AppColorsExtension appColors) {
           RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadii.card),
             side: BorderSide(
-              color: cs.outlineVariant.withValues(alpha: 0.4),
-              width: 0.8,
+              color: cs.outlineVariant.withValues(alpha: AppOpacity.muted),
+              width: AppBorderWidth.thin,
             ),
           ),
         ),

@@ -4,7 +4,6 @@ import 'package:re_ucm_core/models/portal.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 import '../../../../core/ui/tokens.dart';
-import 'portal_domain_extension.dart';
 import 'source_detail_cards.dart';
 
 class SourceDetailView extends StatelessWidget {
@@ -57,7 +56,7 @@ class SourceDetailView extends StatelessWidget {
                 const SizedBox(height: 16),
 
                 // 2. Account & Authorization Card (if portal supports auth)
-                if (portal.hasAuth) ...[
+                if (portal.supportsAuth) ...[
                   SourceAccountCard(
                     portal: portal,
                     session: session,

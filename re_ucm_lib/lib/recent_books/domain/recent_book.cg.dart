@@ -8,6 +8,11 @@ part '../../.gen/recent_books/domain/recent_book.cg.g.dart';
 
 @JsonSerializable()
 class RecentBook {
+  /// Канонический ключ книги в пределах истории: `portalCode:id`.
+  /// Разделитель обязателен — конкатенация без него (`code + id`)
+  /// даёт коллизии (например `ab`+`c1` == `a`+`bc1`).
+  static String keyFor(String portalCode, String id) => '$portalCode:$id';
+
   final String id;
   final String title;
   final String authors;

@@ -1,6 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
-import '../../../core/navigation/router_delegate.dart';
+import '../../../core/navigation/nav.dart';
 import '../../../core/ui/tokens.dart';
 import '../../../core/ui/widgets/app_section_header.dart';
 import '../../downloads/presentation/widgets/live_download_card.dart';
@@ -32,7 +32,10 @@ class HomeActionHub extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Padding(padding: contentPadding, child: const LinkForwarder()),
+        Padding(
+          padding: contentPadding,
+          child: LinkForwarder(isWide: isWide),
+        ),
         const SizedBox(height: AppSpacing.lg),
         AppSectionHeader('Браузер', padding: headerPadding),
         PortalsList(onTap: (portal) => Nav.goBrowser(portal.code)),

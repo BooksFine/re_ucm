@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:re_ucm_core/re_ucm_core.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 import '../../../core/di.dart';
@@ -19,7 +20,13 @@ class _SourceDetailPageState extends State<SourceDetailPage> {
   @override
   Widget build(BuildContext context) {
     final deps = AppDependencies.of(context);
-    final portal = PortalFactory.fromCode(widget.portalCode);
+    final portal = PortalFactory.portals.cast<Portal?>().firstWhere(
+          (p) => p!.code == widget.portalCode,
+          orElse: () => null,
+        );
+    if (portal == null) {
+      return const Scaffold(body: SizedBox.shrink());
+    }
     final session = deps.settingsService.sessionByCode(widget.portalCode);
     final isPinned = deps.settingsService.isPortalPinned(widget.portalCode);
 

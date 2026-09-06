@@ -1,7 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
-import '../../../core/ui/constants.dart';
+import '../../../core/ui/tokens.dart';
 import 'recent_book_card.dart';
 import 'recent_book_compact_tile.dart';
 
@@ -65,7 +65,7 @@ class _AnimatedRecentBookCardState extends State<AnimatedRecentBookCard>
         axis: .vertical,
         alignment: .topCenter,
         child: Padding(
-          padding: .only(top: widget.isFirst ? 0 : (widget.viewMode == RecentBooksViewMode.compact ? 2 : appPadding)),
+          padding: .only(top: widget.isFirst ? 0 : (widget.viewMode == RecentBooksViewMode.compact ? 2 : AppSpacing.sm)),
           child: widget.viewMode == RecentBooksViewMode.compact
               ? RecentBookCompactTile(
                   onDelete: deleteBook,

@@ -50,7 +50,7 @@ class PortalsList extends StatelessWidget {
 
           Widget buildCard() => PortalCard(
             portal: portal,
-            authIndication: authIndication,
+            authIndication: authIndication ?? false,
             isAuthorized: isAuthorizedResolver != null
                 ? isAuthorizedResolver!(portal)
                 : false,

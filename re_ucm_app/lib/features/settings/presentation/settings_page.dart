@@ -1,5 +1,4 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 import '../../../core/di.dart';
 import '../../../core/navigation/router_delegate.dart';
@@ -14,11 +13,9 @@ import 'widgets/storage_settings_card.dart';
 class SettingsPage extends StatefulWidget {
   const SettingsPage({
     super.key,
-    required this.service,
     this.isEmbedded = false,
   });
 
-  final SettingsService service;
   final bool isEmbedded;
 
   @override

@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
+import 'package:mobx/mobx.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -20,11 +20,21 @@ class UpdateController {
   String? get actualVersion => service.actualVersion;
   String get releasePageUrl => service.releasePageUrl ?? releasesUrl;
 
-  UpdateState state = UpdateState.idle;
-  double progress = 0.0;
-  int recievedBytes = 0;
-  int totalBytes = 0;
-  String? errorMessage;
+  final Observable<UpdateState> _state = Observable(UpdateState.idle);
+  UpdateState get state => _state.value;
+
+  final Observable<double> _progress = Observable(0.0);
+  double get progress => _progress.value;
+
+  final Observable<int> _recievedBytes = Observable(0);
+  int get recievedBytes => _recievedBytes.value;
+
+  final Observable<int> _totalBytes = Observable(0);
+  int get totalBytes => _totalBytes.value;
+
+  final Observable<String?> _errorMessage = Observable(null);
+  String? get errorMessage => _errorMessage.value;
+
   CancelToken? _cancelToken;
 
   bool get isDownloading => state == UpdateState.downloading;
@@ -41,7 +51,7 @@ class UpdateController {
     }
   }
 
-  Future<void> downloadAndInstall(VoidCallback onUpdate) async {
+  Future<void> downloadAndInstall() async {
     if (isDownloading) return;
 
     final downloadUrl = service.getPlatformDownloadUrl();
@@ -50,13 +60,14 @@ class UpdateController {
       return;
     }
 
-    state = UpdateState.downloading;
-    progress = 0.0;
-    recievedBytes = 0;
-    totalBytes = 0;
-    errorMessage = null;
-    _cancelToken = CancelToken();
-    onUpdate();
+    runInAction(() {
+      _state.value = UpdateState.downloading;
+      _progress.value = 0.0;
+      _recievedBytes.value = 0;
+      _totalBytes.value = 0;
+      _errorMessage.value = null;
+      _cancelToken = CancelToken();
+    });
 
     try {
       final Directory tempDir;
@@ -88,19 +99,17 @@ class UpdateController {
         filePath,
         cancelToken: _cancelToken,
         onReceiveProgress: (received, total) {
-          recievedBytes = received;
-          totalBytes = total;
-          if (total > 0) {
-            progress = (received / total).clamp(0.0, 1.0);
-          } else {
-            progress = 0.0;
-          }
-          onUpdate();
+          runInAction(() {
+            _recievedBytes.value = received;
+            _totalBytes.value = total;
+            _progress.value = total > 0
+                ? (received / total).clamp(0.0, 1.0)
+                : 0.0;
+          });
         },
       );
 
-      state = UpdateState.installing;
-      onUpdate();
+      runInAction(() => _state.value = UpdateState.installing);
 
       if (Platform.isLinux) {
         try {
@@ -127,31 +136,34 @@ class UpdateController {
             ? 'application/vnd.android.package-archive'
             : null,
       );
-      if (openResult.type != ResultType.done) {
-        logger.w('OpenFile result: ${openResult.message} (${openResult.type})');
-        errorMessage = openResult.message;
-        state = UpdateState.error;
-      } else {
-        state = UpdateState.completed;
-      }
-      onUpdate();
+      runInAction(() {
+        if (openResult.type != ResultType.done) {
+          logger.w(
+              'OpenFile result: ${openResult.message} (${openResult.type})');
+          _errorMessage.value = openResult.message;
+          _state.value = UpdateState.error;
+        } else {
+          _state.value = UpdateState.completed;
+        }
+      });
     } catch (e, trace) {
       if (CancelToken.isCancel(e as dynamic)) {
-        state = UpdateState.idle;
-        onUpdate();
+        runInAction(() => _state.value = UpdateState.idle);
         return;
       }
       logger.e('OTA Download Error', error: e, stackTrace: trace);
-      errorMessage = 'Ошибка загрузки обновления';
-      state = UpdateState.error;
-      onUpdate();
+      runInAction(() {
+        _errorMessage.value = 'Ошибка загрузки обновления';
+        _state.value = UpdateState.error;
+      });
     }
   }
 
-  void cancelDownload(VoidCallback onUpdate) {
+  void cancelDownload() {
     _cancelToken?.cancel();
-    state = UpdateState.idle;
-    progress = 0.0;
-    onUpdate();
+    runInAction(() {
+      _state.value = UpdateState.idle;
+      _progress.value = 0.0;
+    });
   }
 }

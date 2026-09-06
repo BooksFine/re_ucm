@@ -5,6 +5,7 @@ import 'package:re_ucm_core/re_ucm_core.dart';
 
 import '../../../../core/ui/tokens.dart';
 import '../../../common/widgets/shimmer.dart';
+import 'cover_fallback.dart';
 
 class DownloadBookHeader extends StatelessWidget {
   const DownloadBookHeader({
@@ -49,11 +50,11 @@ class DownloadBookHeader extends StatelessWidget {
                 ),
               ),
               errorWidget: (_, _, _) =>
-                  _FallbackCover(width: coverWidth, height: coverHeight),
+                  CoverFallback(width: coverWidth, height: coverHeight, iconSize: coverWidth * 0.4),
             ),
           )
         else
-          _FallbackCover(width: coverWidth, height: coverHeight),
+          CoverFallback(width: coverWidth, height: coverHeight, iconSize: coverWidth * 0.4),
 
         const SizedBox(width: AppSpacing.lg),
 
@@ -236,26 +237,4 @@ class DownloadBookHeaderSkeleton extends StatelessWidget {
   }
 }
 
-class _FallbackCover extends StatelessWidget {
-  const _FallbackCover({required this.width, required this.height});
 
-  final double width;
-  final double height;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-      ),
-      child: Icon(
-        Icons.book,
-        size: width * 0.4,
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
-      ),
-    );
-  }
-}

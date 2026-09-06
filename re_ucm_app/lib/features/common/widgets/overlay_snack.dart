@@ -10,22 +10,24 @@ void overlaySnackMessage(BuildContext context, String message) {
 
   late final OverlayEntry overlayEntry;
   overlayEntry = OverlayEntry(
-    builder: (context) => _OverlaySnackMessage(message: message),
+    builder: (context) => _OverlaySnackMessage(
+      message: message,
+      onDone: () {
+        if (overlayEntry.mounted) {
+          overlayEntry.remove();
+        }
+      },
+    ),
   );
 
   overlay.insert(overlayEntry);
-
-  Future.delayed(const Duration(milliseconds: 5500), () {
-    if (overlayEntry.mounted) {
-      overlayEntry.remove();
-    }
-  });
 }
 
 class _OverlaySnackMessage extends StatefulWidget {
   final String message;
+  final VoidCallback onDone;
 
-  const _OverlaySnackMessage({required this.message});
+  const _OverlaySnackMessage({required this.message, required this.onDone});
 
   @override
   State<_OverlaySnackMessage> createState() => __OverlaySnackMessageState();
@@ -54,7 +56,12 @@ class __OverlaySnackMessageState extends State<_OverlaySnackMessage>
     ).animate(_animation);
 
     _controller.forward();
-    Future.delayed(const Duration(seconds: 5), () => _controller.reverse());
+    Future.delayed(const Duration(seconds: 5), () {
+      if (!mounted) return;
+      _controller.reverse().then((_) {
+        if (mounted) widget.onDone();
+      });
+    });
   }
 
   @override
@@ -80,7 +87,7 @@ class __OverlaySnackMessageState extends State<_OverlaySnackMessage>
           child: Material(
             color: Colors.transparent,
             child: Container(
-              width: MediaQuery.of(context).size.width - AppSpacing.xxl * 2,
+              width: MediaQuery.sizeOf(context).width - AppSpacing.xxl * 2,
               constraints: const BoxConstraints(maxWidth: 500),
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.lg,

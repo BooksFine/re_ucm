@@ -57,6 +57,134 @@ class _SourcesPageState extends State<SourcesPage> {
     _controller.togglePin(code, deps.settingsService.togglePinPortal);
   }
 
+  Widget _buildSearchBar(List<Portal> allPortals) {
+    return Observer(
+      builder: (_) => SourcesSearchBar(
+        controller: _searchController,
+        totalCount: allPortals.length,
+        searchQuery: _controller.searchQuery,
+        onChanged: (val) => _controller.searchQuery = val,
+      ),
+    );
+  }
+
+  Widget _buildFilteredPortalList(
+    BuildContext context, {
+    required List<Portal> allPortals,
+    required EdgeInsets padding,
+    required String keyPrefix,
+    required bool showChevron,
+    required void Function(Portal portal) onTap,
+    bool Function(String code)? isSelected,
+    required EdgeInsetsGeometry sectionHeaderPadding,
+  }) {
+    return Observer(builder: (_) {
+      final filteredPortals = _controller.filterPortals(allPortals);
+      if (filteredPortals.isEmpty) {
+        return const SourcesEmptyView();
+      }
+      return _buildPortalList(
+        context,
+        padding: padding,
+        keyPrefix: keyPrefix,
+        showChevron: showChevron,
+        onTap: onTap,
+        isSelected: isSelected,
+        sectionHeaderPadding: sectionHeaderPadding,
+      );
+    });
+  }
+
+  Widget _buildPortalList(
+    BuildContext context, {
+    required EdgeInsets padding,
+    required String keyPrefix,
+    required bool showChevron,
+    required void Function(Portal portal) onTap,
+    bool Function(String code)? isSelected,
+    required EdgeInsetsGeometry sectionHeaderPadding,
+  }) {
+    final deps = AppDependencies.of(context);
+    final allPortals = PortalFactory.portals;
+    final filteredPortals = _controller.filterPortals(allPortals);
+    final pinnedCodes = _controller.pinnedCodes;
+    final pinnedPortals = filteredPortals
+        .where((p) => pinnedCodes.contains(p.code))
+        .toList();
+    final otherPortals = filteredPortals
+        .where((p) => !pinnedCodes.contains(p.code))
+        .toList();
+
+    if (filteredPortals.isEmpty) {
+      return const SourcesEmptyView();
+    }
+
+    return Padding(
+      padding: padding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AnimatedCollapseSlot(
+            isVisible: _controller.searchQuery.isEmpty &&
+                pinnedPortals.isNotEmpty,
+            child: SourcesSectionHeader(
+              title: 'Закрепленные (${pinnedPortals.length})',
+              padding: sectionHeaderPadding,
+            ),
+          ),
+          for (final portal in allPortals)
+            AnimatedCollapseSlot(
+              key: ValueKey('${keyPrefix}_pinned_slot_${portal.code}'),
+              isVisible: _controller.searchQuery.isEmpty &&
+                  pinnedCodes.contains(portal.code) &&
+                  filteredPortals.any((p) => p.code == portal.code),
+              bottomPadding: 8,
+              child: SourceItemTile(
+                key: ValueKey('${keyPrefix}_pin_${portal.code}'),
+                portal: portal,
+                session: deps.settingsService.sessionByCode(portal.code),
+                isPinned: true,
+                showChevron: showChevron,
+                isSelected: isSelected?.call(portal.code) ?? false,
+                onTap: () => onTap(portal),
+                onTogglePin: () => _togglePin(deps, portal.code),
+              ),
+            ),
+          AnimatedCollapseSlot(
+            isVisible: _controller.searchQuery.isEmpty &&
+                pinnedPortals.isNotEmpty,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: SourcesSectionHeader(
+                title: 'Все источники (${otherPortals.length})',
+                padding: sectionHeaderPadding,
+              ),
+            ),
+          ),
+          for (final portal in allPortals)
+            AnimatedCollapseSlot(
+              key: ValueKey('${keyPrefix}_other_slot_${portal.code}'),
+              isVisible: _controller.searchQuery.isNotEmpty
+                  ? filteredPortals.any((p) => p.code == portal.code)
+                  : (!pinnedCodes.contains(portal.code) &&
+                      filteredPortals.any((p) => p.code == portal.code)),
+              bottomPadding: 8,
+              child: SourceItemTile(
+                key: ValueKey('${keyPrefix}_${portal.code}'),
+                portal: portal,
+                session: deps.settingsService.sessionByCode(portal.code),
+                isPinned: pinnedCodes.contains(portal.code),
+                showChevron: showChevron,
+                isSelected: isSelected?.call(portal.code) ?? false,
+                onTap: () => onTap(portal),
+                onTogglePin: () => _togglePin(deps, portal.code),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -106,27 +234,12 @@ class _SourcesPageState extends State<SourcesPage> {
               children: [
                 Padding(
                   padding: EdgeInsets.fromLTRB(20, topInset, 12, 10),
-                  child: Observer(
-                    builder: (_) => SourcesSearchBar(
-                      controller: _searchController,
-                      totalCount: allPortals.length,
-                      searchQuery: _controller.searchQuery,
-                      onChanged: (val) => _controller.searchQuery = val,
-                    ),
-                  ),
+                  child: _buildSearchBar(allPortals),
                 ),
                 Expanded(
                   child: Observer(
                     builder: (_) {
                       final filteredPortals = _controller.filterPortals(allPortals);
-                      final pinnedCodes = _controller.pinnedCodes;
-                      final pinnedPortals = filteredPortals
-                          .where((p) => pinnedCodes.contains(p.code))
-                          .toList();
-                      final otherPortals = filteredPortals
-                          .where((p) => !pinnedCodes.contains(p.code))
-                          .toList();
-
                       if (filteredPortals.isEmpty) {
                         return const SourcesEmptyView();
                       }
@@ -137,66 +250,16 @@ class _SourcesPageState extends State<SourcesPage> {
 
                       return ListView(
                         controller: _masterScrollController,
-                        padding: const EdgeInsets.fromLTRB(20, 4, 12, 4),
                         children: [
-                          // Pinned section header
-                          AnimatedCollapseSlot(
-                            isVisible: _controller.searchQuery.isEmpty &&
-                                pinnedPortals.isNotEmpty,
-                            child: SourcesSectionHeader(
-                              title: 'Закрепленные (${pinnedPortals.length})',
-                            ),
+                          _buildPortalList(
+                            context,
+                            padding: const EdgeInsets.fromLTRB(20, 4, 12, 4),
+                            keyPrefix: 'master',
+                            showChevron: false,
+                            isSelected: (code) => code == validCode,
+                            onTap: (portal) => _controller.selectPortal(portal.code),
+                            sectionHeaderPadding: const EdgeInsets.only(left: 4, bottom: 8),
                           ),
-                          // Pinned items
-                          for (final portal in allPortals)
-                            AnimatedCollapseSlot(
-                              key: ValueKey('master_pinned_slot_${portal.code}'),
-                              isVisible: _controller.searchQuery.isEmpty &&
-                                  pinnedCodes.contains(portal.code) &&
-                                  filteredPortals.any((p) => p.code == portal.code),
-                              bottomPadding: 8,
-                              child: SourceItemTile(
-                                key: ValueKey('master_pin_${portal.code}'),
-                                portal: portal,
-                                session: deps.settingsService
-                                    .sessionByCode(portal.code),
-                                isPinned: true,
-                                isSelected: portal.code == validCode,
-                                onTap: () => _controller.selectPortal(portal.code),
-                                onTogglePin: () => _togglePin(deps, portal.code),
-                              ),
-                            ),
-                          // Other section header
-                          AnimatedCollapseSlot(
-                            isVisible: _controller.searchQuery.isEmpty &&
-                                pinnedPortals.isNotEmpty,
-                            child: Padding(
-                              padding: const EdgeInsets.only(top: 8),
-                              child: SourcesSectionHeader(
-                                title: 'Все источники (${otherPortals.length})',
-                              ),
-                            ),
-                          ),
-                          // Other / Filtered items
-                          for (final portal in allPortals)
-                            AnimatedCollapseSlot(
-                              key: ValueKey('master_other_slot_${portal.code}'),
-                              isVisible: _controller.searchQuery.isNotEmpty
-                                  ? filteredPortals.any((p) => p.code == portal.code)
-                                  : (!pinnedCodes.contains(portal.code) &&
-                                      filteredPortals.any((p) => p.code == portal.code)),
-                              bottomPadding: 8,
-                              child: SourceItemTile(
-                                key: ValueKey('master_${portal.code}'),
-                                portal: portal,
-                                session: deps.settingsService
-                                    .sessionByCode(portal.code),
-                                isPinned: pinnedCodes.contains(portal.code),
-                                isSelected: portal.code == validCode,
-                                onTap: () => _controller.selectPortal(portal.code),
-                                onTogglePin: () => _togglePin(deps, portal.code),
-                              ),
-                            ),
                           const SizedBox(height: 32),
                         ],
                       );
@@ -327,122 +390,29 @@ class _SourcesPageState extends State<SourcesPage> {
                     horizontal: AppSpacing.lg,
                     vertical: 8,
                   ),
-                  child: Observer(
-                    builder: (_) => SourcesSearchBar(
-                      controller: _searchController,
-                      totalCount: allPortals.length,
-                      searchQuery: _controller.searchQuery,
-                      onChanged: (val) => _controller.searchQuery = val,
-                    ),
-                  ),
+                  child: _buildSearchBar(allPortals),
                 ),
               ),
-              Observer(
-                builder: (_) {
-                  final filteredPortals = _controller.filterPortals(allPortals);
-                  final pinnedCodes = _controller.pinnedCodes;
-                  final pinnedPortals = filteredPortals
-                      .where((p) => pinnedCodes.contains(p.code))
-                      .toList();
-                  final otherPortals = filteredPortals
-                      .where((p) => !pinnedCodes.contains(p.code))
-                      .toList();
-
-                  if (filteredPortals.isEmpty) {
-                    return const SliverToBoxAdapter(
-                      child: Padding(
-                        padding: EdgeInsets.all(32),
-                        child: SourcesEmptyView(),
-                      ),
-                    );
-                  }
-
-                  return SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.fromLTRB(
-                        AppSpacing.lg,
-                        _controller.searchQuery.isNotEmpty ? 12 : 0,
-                        AppSpacing.lg,
-                        bottomInset,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // Pinned section header
-                          AnimatedCollapseSlot(
-                            isVisible: _controller.searchQuery.isEmpty &&
-                                pinnedPortals.isNotEmpty,
-                            child: SourcesSectionHeader(
-                              title: 'Закрепленные (${pinnedPortals.length})',
-                              padding: const EdgeInsets.fromLTRB(
-                                AppSpacing.xs,
-                                14,
-                                AppSpacing.xs,
-                                8,
-                              ),
-                            ),
-                          ),
-                          // Pinned items
-                          for (final portal in allPortals)
-                            AnimatedCollapseSlot(
-                              key: ValueKey('mob_pinned_slot_${portal.code}'),
-                              isVisible: _controller.searchQuery.isEmpty &&
-                                  pinnedCodes.contains(portal.code) &&
-                                  filteredPortals.any((p) => p.code == portal.code),
-                              bottomPadding: 8,
-                              child: SourceItemTile(
-                                key: ValueKey('mob_pin_${portal.code}'),
-                                portal: portal,
-                                session: deps.settingsService
-                                    .sessionByCode(portal.code),
-                                isPinned: true,
-                                showChevron: true,
-                                onTap: () => Nav.goSourceDetails(portal.code),
-                                onTogglePin: () => _togglePin(deps, portal.code),
-                              ),
-                            ),
-                          // Other section header
-                          AnimatedCollapseSlot(
-                            isVisible: _controller.searchQuery.isEmpty &&
-                                pinnedPortals.isNotEmpty,
-                            child: Padding(
-                              padding: const EdgeInsets.only(top: 8),
-                              child: SourcesSectionHeader(
-                                title: 'Все источники (${otherPortals.length})',
-                                padding: const EdgeInsets.fromLTRB(
-                                  AppSpacing.xs,
-                                  14,
-                                  AppSpacing.xs,
-                                  8,
-                                ),
-                              ),
-                            ),
-                          ),
-                          // Other / Filtered items
-                          for (final portal in allPortals)
-                            AnimatedCollapseSlot(
-                              key: ValueKey('mob_other_slot_${portal.code}'),
-                              isVisible: _controller.searchQuery.isNotEmpty
-                                  ? filteredPortals.any((p) => p.code == portal.code)
-                                  : (!pinnedCodes.contains(portal.code) &&
-                                      filteredPortals.any((p) => p.code == portal.code)),
-                              bottomPadding: 8,
-                              child: SourceItemTile(
-                                key: ValueKey('mob_${portal.code}'),
-                                portal: portal,
-                                session: deps.settingsService
-                                    .sessionByCode(portal.code),
-                                isPinned: pinnedCodes.contains(portal.code),
-                                showChevron: true,
-                                onTap: () => Nav.goSourceDetails(portal.code),
-                                onTogglePin: () => _togglePin(deps, portal.code),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
+              SliverToBoxAdapter(
+                child: _buildFilteredPortalList(
+                  context,
+                  allPortals: allPortals,
+                  padding: EdgeInsets.fromLTRB(
+                    AppSpacing.lg,
+                    _controller.searchQuery.isNotEmpty ? 12 : 0,
+                    AppSpacing.lg,
+                    bottomInset,
+                  ),
+                  keyPrefix: 'mob',
+                  showChevron: true,
+                  onTap: (portal) => Nav.goSourceDetails(portal.code),
+                  sectionHeaderPadding: const EdgeInsets.fromLTRB(
+                    AppSpacing.xs,
+                    14,
+                    AppSpacing.xs,
+                    8,
+                  ),
+                ),
               ),
             ],
           ),

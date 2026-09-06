@@ -1,5 +1,5 @@
 import 'package:material_ui/material_ui.dart';
-import '../../../core/ui/constants.dart';
+import '../../../core/ui/tokens.dart';
 
 void snackMessage(BuildContext context, String text) {
   ScaffoldMessenger.of(context).showSnackBar(
@@ -8,8 +8,8 @@ void snackMessage(BuildContext context, String text) {
       content: Text(text),
       behavior: SnackBarBehavior.floating,
       margin: EdgeInsets.symmetric(
-        vertical: appPadding * 2 + MediaQuery.of(context).padding.bottom,
-        horizontal: appPadding * 2,
+        vertical: AppSpacing.sm * 2 + MediaQuery.of(context).padding.bottom,
+        horizontal: AppSpacing.sm * 2,
       ),
     ),
   );

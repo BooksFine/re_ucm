@@ -1,9 +1,6 @@
-import 'package:dart_book/dart_book.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:m3e_core/m3e_core.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:re_ucm_core/re_ucm_core.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 import '../../../core/di.dart';
@@ -11,7 +8,7 @@ import '../../../core/ui/tokens.dart';
 import '../../common/utils/uri_from_url.dart';
 import '../../downloads/presentation/download_modal.dart';
 import '../../downloads/presentation/widgets/download_book_header.dart';
-import '../../downloads/presentation/widgets/unauthorized_download_dialog.dart';
+import 'link_forwarder_controller.dart';
 
 class LinkForwarder extends StatefulWidget {
   const LinkForwarder({super.key});
@@ -24,149 +21,56 @@ class _LinkForwarderState extends State<LinkForwarder> {
   final _formKey = GlobalKey<FormState>();
   final _textController = TextEditingController();
   final _focusNode = FocusNode();
+  final _controller = LinkForwarderController();
 
-  bool _isEmpty = true;
-  SaveFormat? _selectedFormat;
-
-  bool _isLoadingBook = false;
-  String? _loadingError;
-  BookMetadata? _loadedMetadata;
-  Portal? _loadedPortal;
-  String? _loadedBookId;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _controller.bindContext(context);
+  }
 
   @override
   void dispose() {
+    _controller.unbindContext();
     _textController.dispose();
     _focusNode.dispose();
     super.dispose();
   }
 
   void _onChanged(String value) {
-    final newIsEmpty = value.trim().isEmpty;
-    if (_isEmpty != newIsEmpty) {
-      setState(() => _isEmpty = newIsEmpty);
-    }
-    // If text changed, reset previously loaded preview
-    if (_loadedMetadata != null || _loadingError != null) {
-      setState(() {
-        _loadedMetadata = null;
-        _loadedPortal = null;
-        _loadedBookId = null;
-        _loadingError = null;
-      });
-    }
-    _checkAndAutoFetch(value);
-  }
-
-  void _checkAndAutoFetch(String value) {
-    final text = value.trim();
-    if (text.isEmpty || _isLoadingBook) return;
-    try {
-      final uri = uriFromUrl(text);
-      final portal = PortalFactory.fromUrl(uri);
-      final bookId = portal.service.getIdFromUrl(uri);
-      if (bookId.isNotEmpty && bookId != _loadedBookId) {
-        _fetchBookInfo();
-      }
-    } catch (_) {
-      // Not a supported portal URL yet
-    }
+    _controller.onTextChanged(value);
   }
 
   void _reset() {
     _textController.clear();
     _onChanged('');
-    setState(() {
-      _isLoadingBook = false;
-      _loadingError = null;
-      _loadedMetadata = null;
-      _loadedPortal = null;
-      _loadedBookId = null;
-    });
+    _controller.reset();
   }
 
   Future<void> _pasteFromClipboard() async {
-    HapticFeedback.lightImpact();
-    final data = await Clipboard.getData(Clipboard.kTextPlain);
-    final text = data?.text?.trim() ?? '';
-    if (text.isNotEmpty) {
-      _textController.text = text;
-      _onChanged(text);
-      _focusNode.requestFocus();
-      _fetchBookInfo();
-    }
+    await _controller.pasteFromClipboard(
+      onPasted: (text) async {
+        _textController.text = text;
+        _onChanged(text);
+        _focusNode.requestFocus();
+      },
+    );
   }
 
   Future<void> _fetchBookInfo() async {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
-
-    final url = _textController.text.trim();
-    final uri = uriFromUrl(url);
-    final portal = PortalFactory.fromUrl(uri);
-    final bookId = portal.service.getIdFromUrl(uri);
-
     _focusNode.unfocus();
-    setState(() {
-      _isLoadingBook = true;
-      _loadingError = null;
-      _loadedMetadata = null;
-      _loadedPortal = null;
-      _loadedBookId = null;
-    });
-
-    try {
-      final deps = AppDependencies.of(context);
-      final session = deps.settingsService.sessionByCode(portal.code);
-      final meta = await session.getBookMetadata(bookId);
-
-      if (!mounted) return;
-      setState(() {
-        _isLoadingBook = false;
-        _loadedMetadata = meta;
-        _loadedPortal = portal;
-        _loadedBookId = bookId;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _isLoadingBook = false;
-        _loadingError = 'Не удалось загрузить данные книги: $e';
-      });
-    }
+    await _controller.fetchBookInfo(
+      text: _textController.text.trim(),
+      validate: () => _formKey.currentState?.validate() ?? false,
+    );
   }
 
   Future<void> _startDownload() async {
-    if (_loadedMetadata == null || _loadedPortal == null || _loadedBookId == null) {
-      return;
-    }
-
-    final deps = AppDependencies.of(context);
-    final session = deps.settingsService.sessionByCode(_loadedPortal!.code);
-
-    final shouldProceed = await checkAndConfirmUnauthorizedDownload(
-      context: context,
-      session: session,
-      settingsService: deps.settingsService,
+    final settingsService = AppDependencies.of(context).settingsService;
+    await _controller.startDownload(
+      defaultFormat: settingsService.saveFormat,
+      showModal: (task) => showDownloadModalForTask(context, task),
     );
-    if (!shouldProceed || !mounted) return;
-
-    final format = _selectedFormat ?? deps.settingsService.saveFormat;
-
-    final task = deps.downloadsService.getOrCreateTask(
-      session: session,
-      bookId: _loadedBookId!,
-      initialMetadata: _loadedMetadata,
-    );
-    task.updateSaveFormat(format);
-    if (!task.isActive) {
-      task.start();
-    }
-
-    _reset();
-
-    if (mounted) {
-      showDownloadModalForTask(context, task);
-    }
   }
 
   @override
@@ -177,13 +81,13 @@ class _LinkForwarderState extends State<LinkForwarder> {
 
     return Observer(
       builder: (context) {
-        final currentFormat = _selectedFormat ?? settingsService.saveFormat;
+        final currentFormat =
+            _controller.selectedFormat.value ?? settingsService.saveFormat;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Search / Link Input Bar
             Form(
               key: _formKey,
               child: TextFormField(
@@ -208,7 +112,7 @@ class _LinkForwarderState extends State<LinkForwarder> {
                   suffixIcon: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (_isLoadingBook)
+                      if (_controller.isLoadingBook.value)
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                           child: SizedBox(
@@ -221,7 +125,7 @@ class _LinkForwarderState extends State<LinkForwarder> {
                             ),
                           ),
                         )
-                      else if (!_isEmpty)
+                      else if (!_controller.isEmpty.value)
                         IconButton(
                           tooltip: 'Очистить',
                           icon: Icon(
@@ -290,8 +194,7 @@ class _LinkForwarderState extends State<LinkForwarder> {
               ),
             ),
 
-            // Loading skeleton while book info is fetching
-            if (_isLoadingBook) ...[
+            if (_controller.isLoadingBook.value) ...[
               const SizedBox(height: AppSpacing.md),
               Container(
                 padding: const EdgeInsets.all(AppSpacing.md),
@@ -307,8 +210,7 @@ class _LinkForwarderState extends State<LinkForwarder> {
               ),
             ],
 
-            // Error message if fetch failed
-            if (_loadingError != null) ...[
+            if (_controller.loadingError.value != null) ...[
               const SizedBox(height: AppSpacing.sm),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -318,7 +220,7 @@ class _LinkForwarderState extends State<LinkForwarder> {
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        _loadingError!,
+                        _controller.loadingError.value!,
                         style: theme.textTheme.bodySmall?.copyWith(color: cs.error),
                       ),
                     ),
@@ -327,8 +229,7 @@ class _LinkForwarderState extends State<LinkForwarder> {
               ),
             ],
 
-            // Loaded Book Card & Format + Download Button
-            if (_loadedMetadata != null && _loadedPortal != null) ...[
+            if (_controller.loadedMetadata.value != null && _controller.loadedPortal.value != null) ...[
               const SizedBox(height: AppSpacing.md),
               Container(
                 padding: const EdgeInsets.all(AppSpacing.md),
@@ -344,8 +245,8 @@ class _LinkForwarderState extends State<LinkForwarder> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     DownloadBookHeader(
-                      book: _loadedMetadata!,
-                      portal: _loadedPortal!,
+                      book: _controller.loadedMetadata.value!,
+                      portal: _controller.loadedPortal.value!,
                       isWide: false,
                     ),
                     const SizedBox(height: AppSpacing.md),
@@ -357,7 +258,6 @@ class _LinkForwarderState extends State<LinkForwarder> {
                       alignment: WrapAlignment.spaceBetween,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        // Quick format chips
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -392,8 +292,7 @@ class _LinkForwarderState extends State<LinkForwarder> {
                                   ),
                                   onSelected: (selected) {
                                     if (selected) {
-                                      HapticFeedback.selectionClick();
-                                      setState(() => _selectedFormat = fmt);
+                                      _controller.setSelectedFormat(fmt);
                                     }
                                   },
                                 ),
@@ -401,8 +300,6 @@ class _LinkForwarderState extends State<LinkForwarder> {
                             ],
                           ],
                         ),
-
-                        // Action: Download Button
                         M3EButton.icon(
                           onPressed: _startDownload,
                           icon: const Icon(Icons.download_rounded, size: 18),

@@ -27,15 +27,19 @@ abstract class _RecentBooksService with Store {
 
   final recentBooks = <RecentBook>[].asObservable();
 
-  Future<void> addRecentBook(BookMetadata metadata, Portal portal) async {
-    final existing = recentBooks.cast<RecentBook?>().firstWhere(
-      (e) => e != null && e.portal.code + e.id == portal.code + metadata.id,
-      orElse: () => null,
-    );
+  static String _bookKey(String portalCode, String id) => '$portalCode:$id';
 
-    recentBooks.removeWhere(
-      (e) => e.portal.code + e.id == portal.code + metadata.id,
+  bool _matchesBook(RecentBook e, String portalCode, String id) =>
+      _bookKey(e.portal.code, e.id) == _bookKey(portalCode, id);
+
+  Future<void> addRecentBook(BookMetadata metadata, Portal portal) async {
+    final key = _bookKey(portal.code, metadata.id);
+    final existingIndex = recentBooks.indexWhere(
+      (e) => _bookKey(e.portal.code, e.id) == key,
     );
+    final existing = existingIndex != -1 ? recentBooks[existingIndex] : null;
+
+    recentBooks.removeWhere((e) => _bookKey(e.portal.code, e.id) == key);
 
     final authors = metadata.contributors
         .map((e) => e.name.toDisplayString())
@@ -83,7 +87,7 @@ abstract class _RecentBooksService with Store {
 
   Future<void> removeRecentBook(RecentBook book) async {
     recentBooks.removeWhere(
-      (e) => e.portal.code + e.id == book.portal.code + book.id,
+      (e) => _matchesBook(e, book.portal.code, book.id),
     );
     _repo.removeRecentBook(book);
   }

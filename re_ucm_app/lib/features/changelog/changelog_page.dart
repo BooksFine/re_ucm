@@ -1,7 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/navigation/router_delegate.dart';
-import '../../core/ui/constants.dart';
+import '../../core/ui/tokens.dart';
 import '../common/widgets/appbar.dart';
 import 'changelog.dart';
 import 'changelog_card.dart';
@@ -29,9 +29,9 @@ class ChangelogPage extends StatelessWidget {
       ),
       body: ListView.separated(
         padding: EdgeInsets.only(
-          left: isWide ? 0 : appPadding * 2,
-          right: appPadding * 2,
-          top: appPadding,
+          left: isWide ? 0 : AppSpacing.sm * 2,
+          right: AppSpacing.sm * 2,
+          top: AppSpacing.sm,
           bottom: MediaQuery.paddingOf(context).bottom,
         ),
         itemCount: changelogGen.length,

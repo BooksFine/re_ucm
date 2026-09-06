@@ -79,8 +79,8 @@ abstract class SettingsControllerBase with Store {
 
   @action
   void updateParallelImageDownloads(int value) {
-    parallelImageDownloads = value.clamp(1, 16);
-    service.updateParallelImageDownloads(parallelImageDownloads);
+    parallelImageDownloads = value;
+    service.updateParallelImageDownloads(value);
   }
 
   @observable
@@ -88,8 +88,8 @@ abstract class SettingsControllerBase with Store {
 
   @action
   void updateParallelChapterDownloads(int value) {
-    parallelChapterDownloads = value.clamp(1, 16);
-    service.updateParallelChapterDownloads(parallelChapterDownloads);
+    parallelChapterDownloads = value;
+    service.updateParallelChapterDownloads(value);
   }
 
   bool isPickingDirectory = false;

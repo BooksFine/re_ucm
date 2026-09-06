@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../nav_items.dart';
 import 'animated_branch_container.dart';
 import 'nav_bar.dart';
 
@@ -95,24 +96,6 @@ class _DesktopNavigationRail extends StatelessWidget {
   static const _panelHorizontalPadding = 6.0;
   static const _itemGap = 12.0;
 
-  static const _items = [
-    (
-      icon: Icons.home_outlined,
-      selectedIcon: Icons.home_rounded,
-      label: 'Главная',
-    ),
-    (
-      icon: Icons.explore_outlined,
-      selectedIcon: Icons.explore_rounded,
-      label: 'Источники',
-    ),
-    (
-      icon: Icons.settings_outlined,
-      selectedIcon: Icons.settings_rounded,
-      label: 'Настройки',
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -152,13 +135,13 @@ class _DesktopNavigationRail extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        for (var i = 0; i < _items.length; i++) ...[
+                        for (var i = 0; i < navItems.length; i++) ...[
                           _DesktopRailItem(
-                            item: _items[i],
+                            item: navItems[i],
                             isSelected: selectedIndex == i,
                             onTap: () => onDestinationSelected(i),
                           ),
-                          if (i < _items.length - 1)
+                          if (i < navItems.length - 1)
                             const SizedBox(height: _itemGap),
                         ],
                       ],
@@ -181,7 +164,7 @@ class _DesktopRailItem extends StatefulWidget {
     required this.onTap,
   });
 
-  final ({IconData icon, IconData selectedIcon, String label}) item;
+  final NavItem item;
   final bool isSelected;
   final VoidCallback onTap;
 

@@ -56,53 +56,40 @@ class SettingsStorageSembast implements SettingsStorage {
     return legacySettings;
   }
 
+  Future<T?> _readLegacy<T>(String key, T Function(dynamic) convert) async {
+    try {
+      final val = await _store.record(key).get(db);
+      if (val != null) return convert(val);
+    } catch (_) {}
+    return null;
+  }
+
   Future<GeneralSettings> _readLegacySettings() async {
     var settings = GeneralSettings.initial();
 
-    try {
-      final record = await _store.record('downloadPathTemplate').get(db);
-      if (record is Map) {
-        settings = settings.copyWith(
-          downloadPathTemplate: PathTemplate.fromJson(
-            Map<String, dynamic>.from(record),
-          ),
-        );
-      }
-    } catch (_) {}
+    final template = await _readLegacy(
+      'downloadPathTemplate',
+      (v) => v is Map ? PathTemplate.fromJson(Map<String, dynamic>.from(v)) : null,
+    );
+    if (template != null) settings = settings.copyWith(downloadPathTemplate: template);
 
-    try {
-      final val = await _store.record('authorsPathSeparator').get(db);
-      if (val is String) settings = settings.copyWith(authorsPathSeparator: val);
-    } catch (_) {}
+    final sep = await _readLegacy('authorsPathSeparator', (v) => v is String ? v : null);
+    if (sep != null) settings = settings.copyWith(authorsPathSeparator: sep);
 
-    try {
-      final val = await _store.record('saveDirectory').get(db);
-      if (val is String) settings = settings.copyWith(saveDirectory: val);
-    } catch (_) {}
+    final dir = await _readLegacy('saveDirectory', (v) => v is String ? v : null);
+    if (dir != null) settings = settings.copyWith(saveDirectory: dir);
 
-    try {
-      final formatStr = await _store.record('saveFormat').get(db) as String?;
-      if (formatStr != null) {
-        settings = settings.copyWith(saveFormat: SaveFormat.fromJson(formatStr));
-      }
-    } catch (_) {}
+    final fmt = await _readLegacy('saveFormat', (v) => v is String ? SaveFormat.fromJson(v) : null);
+    if (fmt != null) settings = settings.copyWith(saveFormat: fmt);
 
-    try {
-      final val = await _store.record('autoSaveOnComplete').get(db);
-      if (val is bool) settings = settings.copyWith(autoSaveOnComplete: val);
-    } catch (_) {}
+    final autoSave = await _readLegacy('autoSaveOnComplete', (v) => v is bool ? v : null);
+    if (autoSave != null) settings = settings.copyWith(autoSaveOnComplete: autoSave);
 
-    try {
-      final val = await _store.record('parallelImageDownloads').get(db);
-      if (val is int) settings = settings.copyWith(parallelImageDownloads: val);
-    } catch (_) {}
+    final imgParallel = await _readLegacy('parallelImageDownloads', (v) => v is int ? v : null);
+    if (imgParallel != null) settings = settings.copyWith(parallelImageDownloads: imgParallel);
 
-    try {
-      final val = await _store.record('parallelChapterDownloads').get(db);
-      if (val is int) {
-        settings = settings.copyWith(parallelChapterDownloads: val);
-      }
-    } catch (_) {}
+    final chParallel = await _readLegacy('parallelChapterDownloads', (v) => v is int ? v : null);
+    if (chParallel != null) settings = settings.copyWith(parallelChapterDownloads: chParallel);
 
     return settings;
   }

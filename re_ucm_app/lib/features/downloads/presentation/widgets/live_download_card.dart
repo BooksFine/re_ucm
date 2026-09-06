@@ -10,6 +10,7 @@ import '../../../../core/ui/tokens.dart';
 import '../../../../core/ui/widgets/app_section_header.dart';
 import '../../domain/download_task.cg.dart';
 import '../download_modal.dart';
+import 'cover_fallback.dart';
 
 /// A live, non-blocking on-page card displaying active download tasks.
 ///
@@ -84,22 +85,9 @@ class _SingleActiveTaskCard extends StatelessWidget {
         final progress = task.progress;
         final cur = progress.current ?? 0;
         final tot = progress.total ?? 0;
-        final double? progressVal = (tot > 0)
-            ? (cur / tot).clamp(0.0, 1.0)
-            : null;
+        final double? progressVal = task.normalizedProgress;
 
-        final stageTitle = switch (progress.stage) {
-          Stages.decrypting => 'Расшифровка глав',
-          Stages.parsing => 'Построение структуры',
-          Stages.imageDownloading => 'Загрузка изображений',
-          Stages.downloading => 'Загрузка глав',
-          Stages.building => 'Сборка книги',
-          Stages.ziping => 'Упаковка архива',
-          Stages.analyzing => 'Анализ книги',
-          Stages.done => 'Готово',
-          Stages.error => 'Ошибка',
-          _ => 'Подготовка...',
-        };
+        final stageTitle = progress.stage.title;
 
         final statusText = tot > 0
             ? '$stageTitle: $cur/$tot${progressVal != null ? ' (${(progressVal * 100).toInt()}%)' : ''}'
@@ -148,10 +136,20 @@ class _SingleActiveTaskCard extends StatelessWidget {
                                   width: 38,
                                   height: 52,
                                   fit: BoxFit.cover,
-                                  errorWidget: (context, error, stackTrace) =>
-                                      _coverFallback(cs),
+                                   errorWidget: (context, error, stackTrace) =>
+                                      const CoverFallback(
+                                        width: 38,
+                                        height: 52,
+                                        iconSize: 20,
+                                        icon: Icons.downloading_rounded,
+                                      ),
                                 )
-                              : _coverFallback(cs),
+                              : const CoverFallback(
+                                  width: 38,
+                                  height: 52,
+                                  iconSize: 20,
+                                  icon: Icons.downloading_rounded,
+                                ),
                         ),
                         const SizedBox(width: AppSpacing.md),
 
@@ -235,12 +233,4 @@ class _SingleActiveTaskCard extends StatelessWidget {
     );
   }
 
-  Widget _coverFallback(ColorScheme cs) {
-    return Container(
-      width: 38,
-      height: 52,
-      color: cs.surfaceContainerHighest,
-      child: Icon(Icons.downloading_rounded, size: 20, color: cs.primary),
-    );
-  }
 }

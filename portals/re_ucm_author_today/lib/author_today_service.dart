@@ -6,6 +6,7 @@ import 'package:re_ucm_author_today/data/models/at_settings.cg.dart';
 import 'package:re_ucm_core/logger.dart';
 import 'package:re_ucm_core/models/portal.dart';
 import 'package:re_ucm_core/models/progress.dart';
+import 'package:re_ucm_core/utils/media_type.dart';
 
 import 'data/author_today_api.cg.dart';
 import 'domain/constants.dart';
@@ -333,7 +334,7 @@ class AuthorTodayService implements PortalService<ATSettings> {
             (headerContentType != null &&
                 headerContentType.startsWith('image/'))
             ? headerContentType.split(';').first.trim()
-            : _guessMediaType(url);
+            : guessMediaType(url);
 
         return BookResource(
           id: request.id,
@@ -352,13 +353,4 @@ class AuthorTodayService implements PortalService<ATSettings> {
     };
   }
 
-  static String _guessMediaType(String url) {
-    final lower = url.toLowerCase();
-    if (lower.endsWith('.png')) return 'image/png';
-    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
-    if (lower.endsWith('.gif')) return 'image/gif';
-    if (lower.endsWith('.webp')) return 'image/webp';
-    if (lower.endsWith('.svg')) return 'image/svg+xml';
-    return 'image/jpeg';
-  }
 }

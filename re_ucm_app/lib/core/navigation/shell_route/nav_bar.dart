@@ -4,6 +4,8 @@ import 'package:m3e_core/m3e_core.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:motor/motor.dart';
 
+import '../nav_items.dart';
+
 class NavBar extends StatelessWidget {
   const NavBar({
     super.key,
@@ -13,24 +15,6 @@ class NavBar extends StatelessWidget {
 
   final int currentIndex;
   final ValueChanged<int> onDestinationSelected;
-
-  static const List<_NavBarItem> _navItems = [
-    _NavBarItem(
-      icon: Icons.home_outlined,
-      selectedIcon: Icons.home_rounded,
-      label: 'Главная',
-    ),
-    _NavBarItem(
-      icon: Icons.explore_outlined,
-      selectedIcon: Icons.explore_rounded,
-      label: 'Источники',
-    ),
-    _NavBarItem(
-      icon: Icons.settings_outlined,
-      selectedIcon: Icons.settings_rounded,
-      label: 'Настройки',
-    ),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -52,10 +36,10 @@ class NavBar extends StatelessWidget {
       decoration: toolbarDecoration,
       content: Row(
         mainAxisSize: MainAxisSize.min,
-        children: List.generate(_navItems.length, (index) {
+        children: List.generate(navItems.length, (index) {
           return _M3ENavBarTab(
-            key: ValueKey(_navItems[index].label),
-            item: _navItems[index],
+            key: ValueKey(navItems[index].label),
+            item: navItems[index],
             isSelected: index == currentIndex,
             onTap: () => onDestinationSelected(index),
           );
@@ -65,20 +49,8 @@ class NavBar extends StatelessWidget {
   }
 }
 
-class _NavBarItem {
-  final IconData icon;
-  final IconData selectedIcon;
-  final String label;
-
-  const _NavBarItem({
-    required this.icon,
-    required this.selectedIcon,
-    required this.label,
-  });
-}
-
 class _M3ENavBarTab extends StatefulWidget {
-  final _NavBarItem item;
+  final NavItem item;
   final bool isSelected;
   final VoidCallback onTap;
 

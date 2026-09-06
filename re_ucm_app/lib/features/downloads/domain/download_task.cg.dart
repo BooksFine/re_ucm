@@ -1,21 +1,19 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:dart_book/dart_book.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:dart_book/dart_book.dart' show BookMetadata, Book, BookResource, BookContent, BookEncodingOptions, BookResourceNamingPolicy;
 import 'package:material_ui/material_ui.dart';
 import 'package:mobx/mobx.dart';
 import 'package:open_file/open_file.dart';
-import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart';
 import 'package:re_ucm_core/re_ucm_core.dart' hide logger;
 import 'package:re_ucm_lib/re_ucm_lib.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../../core/constants.dart';
 import '../../../core/logger.dart';
 import '../../common/widgets/overlay_snack.dart';
+import 'book_encoder.dart';
+import 'book_saver.dart';
+import 'book_sharer.dart';
 
 part '../../../.gen/features/downloads/domain/download_task.cg.g.dart';
 
@@ -36,6 +34,9 @@ abstract class DownloadTaskBase with Store {
   final SettingsService settings;
   final RecentBooksService recentBooksService;
   final void Function(DownloadTask task)? onTaskCompleted;
+  final BookEncoder _encoder;
+  final BookSaver _saver;
+  final BookSharer _sharer;
 
   DownloadTaskBase({
     required this.bookId,
@@ -44,8 +45,14 @@ abstract class DownloadTaskBase with Store {
     required this.recentBooksService,
     this.onTaskCompleted,
     BookMetadata? initialMetadata,
-  }) : metadata = initialMetadata,
-       saveFormat = settings.saveFormat;
+    BookEncoder? encoder,
+    BookSaver? saver,
+    BookSharer? sharer,
+  })  : metadata = initialMetadata,
+        saveFormat = settings.saveFormat,
+        _encoder = encoder ?? BookEncoder(),
+        _saver = saver ?? BookSaver(),
+        _sharer = sharer ?? BookSharer();
 
   @observable
   BookMetadata? metadata;
@@ -287,7 +294,7 @@ abstract class DownloadTaskBase with Store {
       if (_isCancelled) return;
       logger.e('Error retrying failed images', error: e, stackTrace: trace);
       errorMessage = e.toString();
-      status = DownloadTaskStatus.completed;
+      status = DownloadTaskStatus.failed;
     }
   }
 
@@ -302,16 +309,7 @@ abstract class DownloadTaskBase with Store {
 
     try {
       final data = metadata!;
-      final primarySeries = data.primarySeries;
-      var name = primarySeries != null
-          ? '${primarySeries.name}–${primarySeries.number}'
-          : data.title;
-
-      name = name.replaceAll(RegExp(r'[<>:"/\\|?*]'), '');
-
       final format = saveFormat;
-      final ext = format.ext;
-      final mimeType = format.mimeType;
 
       final templateFileName = TemplateFormatter.buildTemplateFileName(
         data,
@@ -324,7 +322,7 @@ abstract class DownloadTaskBase with Store {
       if (_encodedFormat == format && _encodedBytes != null) {
         bytes = _encodedBytes!;
       } else {
-        bytes = await BookExporter.encode(
+        bytes = await _encoder.encode(
           book: resolvedBook!,
           format: format,
           options: BookEncodingOptions(
@@ -342,68 +340,22 @@ abstract class DownloadTaskBase with Store {
       }
 
       if (share) {
-        final tempDir = (await getTemporaryDirectory()).path;
-        final filePath = path.join(tempDir, '$name$ext');
-        final tempFile = File(filePath);
-        await tempFile.writeAsBytes(bytes);
-
-        final xfile = XFile(filePath, name: '$name$ext', mimeType: mimeType);
-
-        final authors = data.contributors
-            .map((e) => e.name.toDisplayString())
-            .join(', ');
-
-        String statusText;
-        if (data.isFinished) {
-          statusText = '\n\nПолностью';
-        } else {
-          final sections =
-              resolvedBook?.content.blocks.whereType<BookSection>().toList() ??
-              const [];
-          final lastChapter = sections.length > 1
-              ? sections[sections.length - 2]
-              : (sections.isNotEmpty ? sections.first : null);
-          final lastTitle = lastChapter != null
-              ? _inlinesToPlainText(lastChapter.title).trim()
-              : '';
-          statusText = lastTitle.isNotEmpty ? '\n\nПо: «$lastTitle»' : '';
-        }
-
-        final text =
-            '${data.title}'
-            '\nАвторы: $authors'
-            '${data.primarySeries == null ? '' : '\nСерия: ${data.primarySeries!.name} #${data.primarySeries!.number}'}'
-            '$statusText';
-
-        await SharePlus.instance.share(
-          ShareParams(files: [xfile], text: text, subject: name),
+        await _sharer.shareBook(
+          bytes: bytes,
+          metadata: data,
+          format: format,
+          portal: session.portal,
+          resolvedBook: resolvedBook,
         );
         return;
       }
 
-      final saveDirectory = settings.saveDirectory;
-      String? finalPath;
-
-      if (saveDirectory != null && saveDirectory.isNotEmpty) {
-        finalPath = path.join(saveDirectory, '$templateFileName$ext');
-        final destFile = File(finalPath);
-        await destFile.parent.create(recursive: true);
-        await destFile.writeAsBytes(bytes);
-      } else {
-        final cleanExt = ext.startsWith('.') ? ext.substring(1) : ext;
-        final savedUri = await FilePicker.saveFile(
-          dialogTitle: 'Сохранение книги',
-          bytes: bytes,
-          fileName: '$templateFileName$ext',
-          type: FileType.custom,
-          allowedExtensions: [cleanExt],
-        );
-        finalPath = savedUri != null
-            ? (savedUri.isScheme('file')
-                  ? savedUri.toFilePath()
-                  : savedUri.toString())
-            : null;
-      }
+      final finalPath = await _saver.saveToFile(
+        bytes: bytes,
+        templateFileName: templateFileName,
+        format: format,
+        saveDirectory: settings.saveDirectory,
+      );
 
       if (context != null && context.mounted) {
         if (finalPath == null) {
@@ -439,7 +391,6 @@ abstract class DownloadTaskBase with Store {
     try {
       final data = metadata ?? resolvedBook!.metadata;
       final format = saveFormat;
-      final ext = format.ext;
 
       final templateFileName = TemplateFormatter.buildTemplateFileName(
         data,
@@ -448,7 +399,7 @@ abstract class DownloadTaskBase with Store {
         authorsPathSeparator: settings.authorsPathSeparator,
       );
 
-      final bytes = await BookExporter.encode(
+      final bytes = await _encoder.encode(
         book: resolvedBook!,
         format: format,
         options: BookEncodingOptions(
@@ -471,22 +422,26 @@ abstract class DownloadTaskBase with Store {
       if ((settings.autoSaveOnComplete || savedFilePath != null) &&
           saveDirectory != null &&
           saveDirectory.isNotEmpty) {
-        final finalPath = path.join(saveDirectory, '$templateFileName$ext');
-        final destFile = File(finalPath);
-        await destFile.parent.create(recursive: true);
-        await destFile.writeAsBytes(bytes);
-
-        runInAction(() => savedFilePath = finalPath);
-        unawaited(
-          recentBooksService.updateRecentBookFile(
-            portalCode: session.portal.code,
-            bookId: bookId,
-            savedFilePath: finalPath,
-            saveFormat: format,
-            downloadedAt: DateTime.now(),
-          ),
+        final finalPath = await _saver.saveToFile(
+          bytes: bytes,
+          templateFileName: templateFileName,
+          format: format,
+          saveDirectory: saveDirectory,
         );
-        logger.i('Saved book to $finalPath');
+
+        if (finalPath != null) {
+          runInAction(() => savedFilePath = finalPath);
+          unawaited(
+            recentBooksService.updateRecentBookFile(
+              portalCode: session.portal.code,
+              bookId: bookId,
+              savedFilePath: finalPath,
+              saveFormat: format,
+              downloadedAt: DateTime.now(),
+            ),
+          );
+          logger.i('Saved book to $finalPath');
+        }
       } else if (!settings.autoSaveOnComplete && savedFilePath != null) {
         runInAction(() => savedFilePath = null);
       }
@@ -497,30 +452,10 @@ abstract class DownloadTaskBase with Store {
     }
   }
 
-  String _inlinesToPlainText(List<BookInline> inlines) {
-    final buffer = StringBuffer();
-    for (final inline in inlines) {
-      switch (inline) {
-        case BookText t:
-          buffer.write(t.text);
-        case BookEmphasis e:
-          buffer.write(_inlinesToPlainText(e.children));
-        case BookStrong s:
-          buffer.write(_inlinesToPlainText(s.children));
-        case BookStrike st:
-          buffer.write(_inlinesToPlainText(st.children));
-        case BookNamedStyle n:
-          buffer.write(_inlinesToPlainText(n.inlines));
-        case BookLink l:
-          buffer.write(_inlinesToPlainText(l.children));
-        case BookSuperscript sup:
-          buffer.write(_inlinesToPlainText(sup.children));
-        case BookSubscript sub:
-          buffer.write(_inlinesToPlainText(sub.children));
-        default:
-          break;
-      }
-    }
-    return buffer.toString();
+  double? get normalizedProgress {
+    final cur = progress.current;
+    final tot = progress.total;
+    if (cur == null || tot == null || tot <= 0) return null;
+    return (cur / tot).clamp(0.0, 1.0);
   }
 }

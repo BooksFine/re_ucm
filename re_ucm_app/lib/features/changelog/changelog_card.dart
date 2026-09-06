@@ -1,5 +1,5 @@
 import 'package:material_ui/material_ui.dart';
-import '../../core/ui/constants.dart';
+import '../../core/ui/tokens.dart';
 
 import 'changelog.dart';
 
@@ -16,11 +16,11 @@ class ChangelogCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: appPadding * 2),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm * 2),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: appPadding * 2),
+            SizedBox(height: AppSpacing.sm * 2),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -34,9 +34,9 @@ class ChangelogCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: appPadding),
+            const SizedBox(height: AppSpacing.sm),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: appPadding),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
               child: Text(
                 model.content,
                 style: Theme.of(context).textTheme.titleMedium,
@@ -56,9 +56,9 @@ class ChangelogCard extends StatelessWidget {
                     color: Theme.of(context).colorScheme.secondary,
                   ),
                 ),
-                tilePadding: const EdgeInsets.symmetric(horizontal: appPadding),
+                tilePadding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
                 childrenPadding: const EdgeInsets.symmetric(
-                  horizontal: appPadding,
+                  horizontal: AppSpacing.sm,
                 ),
                 expandedAlignment: Alignment.centerLeft,
                 children: [
@@ -69,12 +69,12 @@ class ChangelogCard extends StatelessWidget {
                       fontSize: 12,
                     ),
                   ),
-                  const SizedBox(height: appPadding * 2),
+                  const SizedBox(height: AppSpacing.sm * 2),
                 ],
               ),
 
             if (model.technicalDetails == null)
-              const SizedBox(height: appPadding * 2),
+              const SizedBox(height: AppSpacing.sm * 2),
           ],
         ),
       ),

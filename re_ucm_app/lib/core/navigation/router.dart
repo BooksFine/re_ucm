@@ -15,8 +15,6 @@ import 'dialog_page.dart';
 import 'modal_bottom_sheet_page.dart';
 import 'shell_route/navigator_container.dart';
 
-bool isLaunched = false;
-
 final rootNavigationKey = GlobalKey<NavigatorState>();
 
 GoRouter createRouter(AppDependencies deps) => GoRouter(
@@ -25,22 +23,39 @@ GoRouter createRouter(AppDependencies deps) => GoRouter(
   routes: [
     GoRoute(
       path: '/dialog',
-      pageBuilder: (context, state) =>
-          DialogPage(builder: state.extra as RoutePageBuilder),
+      pageBuilder: (context, state) {
+        final builder = state.extra;
+        if (builder is! RoutePageBuilder) {
+          return const MaterialPage(child: SizedBox.shrink());
+        }
+        return DialogPage(builder: builder);
+      },
     ),
     GoRoute(
       path: '/webauth',
-      pageBuilder: (context, state) => MaterialPage(
-        key: state.pageKey,
-        child: WebAuthPage(field: state.extra as PortalSettingWebAuthButton),
-      ),
+      pageBuilder: (context, state) {
+        final extra = state.extra;
+        if (extra is! PortalSettingWebAuthButton) {
+          return const MaterialPage(child: SizedBox.shrink());
+        }
+        return MaterialPage(
+          key: state.pageKey,
+          child: WebAuthPage(field: extra),
+        );
+      },
     ),
     GoRoute(
       path: '/bottomsheet',
-      pageBuilder: (context, state) => ModalBottomSheetPage(
-        child: state.extra as Widget,
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
-      ),
+      pageBuilder: (context, state) {
+        final child = state.extra;
+        if (child is! Widget) {
+          return const MaterialPage(child: SizedBox.shrink());
+        }
+        return ModalBottomSheetPage(
+          child: child,
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
+        );
+      },
     ),
     GoRoute(
       path: '/settings_modal',
@@ -48,7 +63,7 @@ GoRouter createRouter(AppDependencies deps) => GoRouter(
       pageBuilder: (context, state) {
         return MaterialPage(
           key: state.pageKey,
-          child: SettingsPage(service: deps.settingsService),
+          child: SettingsPage(),
         );
       },
     ),
@@ -83,13 +98,19 @@ GoRouter createRouter(AppDependencies deps) => GoRouter(
                   name: 'Browser',
                   path: 'browser/:portalCode',
                   pageBuilder: (context, state) {
+                    final code = state.pathParameters['portalCode'];
+                    final portal = code != null
+                        ? PortalFactory.portals.cast<Portal?>().firstWhere(
+                              (p) => p!.code == code,
+                              orElse: () => null,
+                            )
+                        : null;
+                    if (portal == null) {
+                      return const MaterialPage(child: SizedBox.shrink());
+                    }
                     return MaterialPage(
                       key: state.pageKey,
-                      child: Browser(
-                        portal: PortalFactory.fromCode(
-                          state.pathParameters['portalCode']!,
-                        ),
-                      ),
+                      child: Browser(portal: portal),
                     );
                   },
                 ),
@@ -111,7 +132,7 @@ GoRouter createRouter(AppDependencies deps) => GoRouter(
                     return MaterialPage(
                       key: state.pageKey,
                       child: SourceDetailPage(
-                        portalCode: state.pathParameters['portalCode']!,
+                        portalCode: state.pathParameters['portalCode'] ?? '',
                       ),
                     );
                   },
@@ -126,7 +147,6 @@ GoRouter createRouter(AppDependencies deps) => GoRouter(
               path: '/settings',
               pageBuilder: (context, state) => MaterialPage(
                 child: SettingsPage(
-                  service: deps.settingsService,
                   isEmbedded: true,
                 ),
               ),

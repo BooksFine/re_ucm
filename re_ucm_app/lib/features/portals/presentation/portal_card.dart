@@ -16,15 +16,14 @@ class PortalCard extends StatelessWidget {
 
   final Portal portal;
   final VoidCallback? onTap;
-  final bool? authIndication;
+  final bool authIndication;
   final bool isAuthorized;
 
   @override
   Widget build(BuildContext context) {
-    if (authIndication == true) {
-      final isActive = authIndication != true || isAuthorized;
-
-      return TweenAnimationBuilder(
+    if (authIndication) {
+      final isActive = isAuthorized;
+      return TweenAnimationBuilder<double>(
         duration: Durations.medium2,
         tween: Tween<double>(
           begin: isActive ? 0.5 : 1,
@@ -34,45 +33,22 @@ class PortalCard extends StatelessWidget {
           final color = Theme.of(
             context,
           ).colorScheme.onSurface.withValues(alpha: v);
-
-          return PortalCardBase(
-            onTap: onTap,
-            portal: portal,
-            color: color,
-            authIndication: authIndication,
-            isActive: isActive,
-          );
+          return _buildCard(context, color: color, isActive: isActive);
         },
       );
     }
-    return PortalCardBase(
-      onTap: onTap,
-      portal: portal,
+    return _buildCard(
+      context,
       color: Theme.of(context).colorScheme.onSurface,
-      authIndication: authIndication,
       isActive: false,
     );
   }
-}
 
-class PortalCardBase extends StatelessWidget {
-  const PortalCardBase({
-    super.key,
-    required this.onTap,
-    required this.portal,
-    required this.color,
-    required this.authIndication,
-    required this.isActive,
-  });
-
-  final VoidCallback? onTap;
-  final Portal portal;
-  final Color color;
-  final bool? authIndication;
-  final bool isActive;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildCard(
+    BuildContext context, {
+    required Color color,
+    required bool isActive,
+  }) {
     final theme = Theme.of(context);
     final appColors = context.appColors;
 
@@ -106,10 +82,10 @@ class PortalCardBase extends StatelessWidget {
                         child: PortalLogoIcon(
                           portal: portal,
                           color: color,
-                          opacity: isActive || authIndication != true ? 1.0 : 0.5,
+                          opacity: isActive || !authIndication ? 1.0 : 0.5,
                         ),
                       ),
-                      if (authIndication == true)
+                      if (authIndication)
                         Positioned(
                           right: 14,
                           bottom: 0,

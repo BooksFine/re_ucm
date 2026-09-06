@@ -1,5 +1,5 @@
 import 'package:material_ui/material_ui.dart';
-import '../../../core/ui/constants.dart';
+import '../../../core/ui/tokens.dart';
 
 class MyIconButton extends StatelessWidget {
   const MyIconButton({
@@ -23,7 +23,7 @@ class MyIconButton extends StatelessWidget {
         onTap: onTap,
         customBorder: const CircleBorder(),
         child: Padding(
-          padding: const EdgeInsets.all(appPadding),
+          padding: const EdgeInsets.all(AppSpacing.sm),
           child: IconTheme(
             data: IconThemeData(
               color: Theme.of(context).colorScheme.onSecondaryContainer,

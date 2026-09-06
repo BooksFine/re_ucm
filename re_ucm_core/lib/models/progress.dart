@@ -11,6 +11,21 @@ enum Stages {
   error,
 }
 
+extension StagesTitle on Stages {
+  String get title => switch (this) {
+    Stages.decrypting => 'Расшифровка глав',
+    Stages.parsing => 'Построение структуры',
+    Stages.imageDownloading => 'Загрузка изображений',
+    Stages.downloading => 'Загрузка глав',
+    Stages.building => 'Сборка книги',
+    Stages.ziping => 'Упаковка архива',
+    Stages.analyzing => 'Анализ книги',
+    Stages.done => 'Загрузка завершена',
+    Stages.error => 'Ошибка',
+    _ => 'Подготовка...',
+  };
+}
+
 enum ImageDownloadStatus { pending, downloading, completed, failed }
 
 enum ChapterDownloadStatus { pending, downloading, completed, failed }

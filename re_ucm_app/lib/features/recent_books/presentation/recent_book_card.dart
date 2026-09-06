@@ -1,27 +1,15 @@
-import 'dart:io';
-
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:intl/intl.dart';
 import 'package:m3e_core/m3e_core.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:open_file/open_file.dart';
-import 'package:path/path.dart' as p;
 import 'package:re_ucm_lib/re_ucm_lib.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:text_balancer/text_balancer.dart';
 
 import '../../../core/di.dart';
 import '../../../core/navigation/router_delegate.dart';
 import '../../../core/ui/tokens.dart';
 import '../../../core/ui/widgets/m3e_spring_popup.dart';
-import '../../common/widgets/overlay_snack.dart';
-import '../../common/widgets/shimmer.dart';
-import '../../downloads/domain/download_task.cg.dart';
-import '../../downloads/domain/downloads_service.cg.dart';
-import '../../downloads/presentation/download_modal.dart';
-import '../../downloads/presentation/widgets/unauthorized_download_dialog.dart';
+import 'recent_book_actions.dart';
 
 class RecentBookCard extends StatefulWidget {
   const RecentBookCard({
@@ -40,112 +28,6 @@ class RecentBookCard extends StatefulWidget {
 }
 
 class _RecentBookCardState extends State<RecentBookCard> {
-  SaveFormat? _customFormat;
-
-  SaveFormat _getEffectiveFormat(SettingsService settings) {
-    return _customFormat ?? widget.book.saveFormat ?? settings.saveFormat;
-  }
-
-  Future<void> _startDownload(
-    BuildContext context,
-    PortalSession session,
-    SaveFormat format,
-  ) async {
-    final deps = AppDependencies.of(context);
-    final shouldProceed = await checkAndConfirmUnauthorizedDownload(
-      context: context,
-      session: session,
-      settingsService: deps.settingsService,
-    );
-    if (!shouldProceed || !context.mounted) return;
-
-    final downloadsService = deps.downloadsService;
-    final task = downloadsService.getOrCreateTask(
-      session: session,
-      bookId: widget.book.id,
-    );
-    task.updateSaveFormat(format);
-    if (!task.isActive) {
-      task.start();
-    }
-    showDownloadModalForTask(context, task);
-  }
-
-  Future<void> _openDownloadedFile(
-    BuildContext context,
-    String filePath,
-  ) async {
-    HapticFeedback.lightImpact();
-    final file = File(filePath);
-    if (!file.existsSync()) {
-      if (context.mounted) {
-        overlaySnackMessage(
-          context,
-          'Файл книги не найден на диске (возможно, перемещён или удалён)',
-        );
-      }
-      return;
-    }
-    await OpenFile.open(filePath);
-  }
-
-  Future<void> _shareBook(
-    BuildContext context,
-    DownloadTask? task,
-    String? effectiveFilePath,
-  ) async {
-    HapticFeedback.lightImpact();
-
-    // 1. If active task is completed and has its own share routine with chapters info
-    if (task != null && task.savedFilePath != null && task.isCompleted) {
-      await task.share();
-      return;
-    }
-
-    // 2. If we have a stored file on disk from recent book or task
-    if (effectiveFilePath != null && File(effectiveFilePath).existsSync()) {
-      final fileName = p.basename(effectiveFilePath);
-      final xfile = XFile(effectiveFilePath, name: fileName);
-      final text =
-          '«${widget.book.title}»\nАвтор: ${widget.book.authors}\nИсточник: ${widget.book.portal.name}';
-
-      await SharePlus.instance.share(
-        ShareParams(files: [xfile], text: text, subject: widget.book.title),
-      );
-      return;
-    }
-
-    // 3. Fallback: Share book details and portal info
-    final portalName = widget.book.portal.name;
-    final text =
-        '«${widget.book.title}»\nАвтор: ${widget.book.authors}\nИсточник: $portalName';
-    await SharePlus.instance.share(
-      ShareParams(text: text, subject: widget.book.title),
-    );
-  }
-
-  String _formatDownloadedDate(DateTime date) {
-    final now = DateTime.now();
-    final isToday =
-        now.year == date.year && now.month == date.month && now.day == date.day;
-    final timeStr = DateFormat('HH:mm').format(date);
-    if (isToday) {
-      return 'сегодня в $timeStr';
-    }
-    final yesterday = now.subtract(const Duration(days: 1));
-    final isYesterday =
-        yesterday.year == date.year &&
-        yesterday.month == date.month &&
-        yesterday.day == date.day;
-    if (isYesterday) {
-      return 'вчера в $timeStr';
-    }
-    if (now.year == date.year) {
-      return DateFormat('d MMM, HH:mm', 'ru').format(date);
-    }
-    return DateFormat('d MMM yyyy', 'ru').format(date);
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -155,34 +37,16 @@ class _RecentBookCardState extends State<RecentBookCard> {
     final settingsService = deps.settingsService;
 
     final session = settingsService.sessionByCode(widget.book.portal.code);
-    final taskKey = DownloadsServiceBase.taskKey(
-      widget.book.portal.code,
-      widget.book.id,
-    );
 
     return Observer(
       builder: (context) {
-        final task = downloadsService.tasks[taskKey];
-        final isDownloading = task?.isActive ?? false;
-        final isCompleted = task?.isCompleted ?? false;
-        final effectiveFilePath =
-            task?.savedFilePath ?? widget.book.savedFilePath;
-        final fileExists =
-            effectiveFilePath != null && File(effectiveFilePath).existsSync();
-        final effectiveFormat = _getEffectiveFormat(settingsService);
-        final downloadedAt =
-            (task != null && isCompleted && task.savedFilePath != null)
-            ? DateTime.now()
-            : widget.book.downloadedAt;
-
-        double? progress;
-        if (isDownloading && task != null) {
-          final cur = task.progress.current;
-          final tot = task.progress.total;
-          if (cur != null && tot != null && tot > 0) {
-            progress = (cur / tot).clamp(0.0, 1.0);
-          }
-        }
+        final state = RecentBookItemState.resolve(
+          widget.book,
+          downloadsService,
+        );
+        final effectiveFormat = getEffectiveFormat(widget.book, settingsService);
+        final task = state.task;
+        final effectiveFilePath = state.effectiveFilePath;
 
         return Container(
           margin: const EdgeInsets.symmetric(vertical: 4),
@@ -190,10 +54,10 @@ class _RecentBookCardState extends State<RecentBookCard> {
             color: cs.surfaceContainerLow,
             borderRadius: BorderRadius.circular(AppRadii.card),
             border: Border.all(
-              color: isDownloading
+              color: state.isDownloading
                   ? cs.primary.withValues(alpha: 0.4)
                   : cs.outlineVariant.withValues(alpha: 0.35),
-              width: isDownloading ? 1.2 : 0.6,
+              width: state.isDownloading ? 1.2 : 0.6,
             ),
           ),
           clipBehavior: Clip.antiAlias,
@@ -205,7 +69,14 @@ class _RecentBookCardState extends State<RecentBookCard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Book Cover
-                  _buildCover(context, cs),
+                  buildCover(
+                    context,
+                    cs,
+                    widget.book,
+                    width: 68,
+                    height: 98,
+                    borderRadius: BorderRadius.circular(AppRadii.md),
+                  ),
                   const SizedBox(width: AppSpacing.md),
 
                   // Book Information and Actions
@@ -258,8 +129,12 @@ class _RecentBookCardState extends State<RecentBookCard> {
                                 minWidth: 40,
                                 minHeight: 40,
                               ),
-                              onPressed: () =>
-                                  _shareBook(context, task, effectiveFilePath),
+                              onPressed: () => shareBook(
+                                context,
+                                task,
+                                effectiveFilePath,
+                                widget.book,
+                              ),
                             ),
 
                             // More options menu (Open in browser, Delete)
@@ -288,65 +163,14 @@ class _RecentBookCardState extends State<RecentBookCard> {
                           runSpacing: 4,
                           crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
-                            // Portal Badge
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: cs.surfaceContainerHighest,
-                                borderRadius: BorderRadius.circular(
-                                  AppRadii.xs,
-                                ),
-                              ),
-                              child: Text(
-                                widget.book.portal.name,
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                  color: cs.onSurfaceVariant,
-                                ),
-                              ),
-                            ),
-
-                            // Downloaded date badge if downloaded
-                            if (downloadedAt != null && fileExists) ...[
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: cs.primaryContainer.withValues(
-                                    alpha: 0.6,
-                                  ),
-                                  borderRadius: BorderRadius.circular(
-                                    AppRadii.xs,
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.check_circle_rounded,
-                                      size: 11,
-                                      color: cs.onPrimaryContainer,
-                                    ),
-                                    const SizedBox(width: 3),
-                                    Text(
-                                      'Скачано ${_formatDownloadedDate(downloadedAt)}',
-                                      style: theme.textTheme.labelSmall
-                                          ?.copyWith(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w500,
-                                            color: cs.onPrimaryContainer,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
+                            buildPortalBadge(context, widget.book.portal),
+                            if (buildDownloadedBadge(
+                                  context,
+                                  downloadedAt: state.downloadedAt,
+                                  isVisible: state.fileExists,
+                                  prefix: 'Скачано',
+                                ) case final badge?)
+                              badge,
                           ],
                         ),
 
@@ -355,34 +179,24 @@ class _RecentBookCardState extends State<RecentBookCard> {
                         // Bottom Actions: Read file button (if available) and Split Download Button
                         Builder(
                           builder: (context) {
-                            final isCompact = fileExists || !widget.isWide;
-
                             return Wrap(
                               alignment: WrapAlignment.spaceBetween,
                               crossAxisAlignment: WrapCrossAlignment.center,
                               spacing: AppSpacing.xs,
                               runSpacing: AppSpacing.xs,
                               children: [
-                                // "Open / Read" button if downloaded and file exists
-                                if (fileExists)
+                                if (state.fileExists)
                                   M3EButton.icon(
                                     style: M3EButtonStyle.tonal,
                                     size: M3EButtonSize.sm,
                                     shape: M3EButtonShape.round,
                                     icon: const Icon(Icons.menu_book_rounded),
                                     label: const Text('Читать'),
-                                    onPressed: () {
-                                      if (task != null &&
-                                          task.isCompleted &&
-                                          task.savedFilePath != null) {
-                                        task.open();
-                                      } else {
-                                        _openDownloadedFile(
-                                          context,
-                                          effectiveFilePath,
-                                        );
-                                      }
-                                    },
+                                    onPressed: () => openBook(
+                                      context,
+                                      task: task,
+                                      effectiveFilePath: effectiveFilePath,
+                                    ),
                                   ),
 
                                 // Primary Action: M3E Split Button for download & format
@@ -393,10 +207,11 @@ class _RecentBookCardState extends State<RecentBookCard> {
                                   icon: const Icon(Icons.download_rounded),
                                   label: const Text('Скачать'),
                                   onPressed: () {
-                                    _startDownload(
+                                    startDownload(
                                       context,
                                       session,
                                       effectiveFormat,
+                                      widget.book.id,
                                     );
                                   },
                                 ),
@@ -413,44 +228,6 @@ class _RecentBookCardState extends State<RecentBookCard> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildCover(BuildContext context, ColorScheme cs) {
-    const width = 68.0;
-    const height = 98.0;
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppRadii.md),
-      child: widget.book.coverUrl != null
-          ? CachedNetworkImage(
-              imageUrl: widget.book.coverUrl!,
-              width: width,
-              height: height,
-              fit: BoxFit.cover,
-              placeholder: (context, url) => ShimmerEffect(
-                Container(
-                  width: width,
-                  height: height,
-                  color: cs.surfaceContainerHighest,
-                ),
-              ),
-              errorWidget: (context, url, error) => Container(
-                width: width,
-                height: height,
-                color: cs.surfaceContainerHighest,
-                child: Icon(
-                  Icons.broken_image_rounded,
-                  color: cs.onSurfaceVariant,
-                ),
-              ),
-            )
-          : Container(
-              width: width,
-              height: height,
-              color: cs.surfaceContainerHighest,
-              child: Icon(Icons.book_rounded, color: cs.onSurfaceVariant),
-            ),
     );
   }
 

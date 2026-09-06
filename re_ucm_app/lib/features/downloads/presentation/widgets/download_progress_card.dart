@@ -2,6 +2,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_core/models/progress.dart';
 
+import '../../../../core/ui/formatters.dart';
 import '../../../../core/ui/widgets/app_progress_card.dart';
 import '../../domain/download_task.cg.dart';
 import 'download_task_row.dart';
@@ -25,21 +26,9 @@ class DownloadProgressCard extends StatelessWidget {
         final progress = task.progress;
         final cur = progress.current ?? 0;
         final tot = progress.total ?? 0;
-        final double? progressVal =
-            (tot > 0) ? (cur / tot).clamp(0.0, 1.0) : null;
+        final double? progressVal = task.normalizedProgress;
 
-        final stageTitle = switch (progress.stage) {
-          Stages.decrypting => 'Расшифровка глав',
-          Stages.parsing => 'Построение структуры',
-          Stages.imageDownloading => 'Загрузка изображений',
-          Stages.downloading => 'Загрузка глав',
-          Stages.building => 'Сборка книги',
-          Stages.ziping => 'Упаковка архива',
-          Stages.analyzing => 'Анализ книги',
-          Stages.done => 'Загрузка завершена',
-          Stages.error => 'Ошибка',
-          _ => 'Подготовка...',
-        };
+        final stageTitle = progress.stage.title;
 
         final nonCompletedChapters = <ChapterDownloadTask>[];
         for (final t in progress.chapterTasks) {
@@ -106,10 +95,10 @@ class DownloadProgressCard extends StatelessWidget {
         return DownloadTaskRow(
           status: switch (task.status) {
             ChapterDownloadStatus.downloading =>
-              DownloadTaskRowStatus.downloading,
-            ChapterDownloadStatus.completed => DownloadTaskRowStatus.completed,
-            ChapterDownloadStatus.failed => DownloadTaskRowStatus.failed,
-            ChapterDownloadStatus.pending => DownloadTaskRowStatus.pending,
+              DownloadTaskStatus.downloading,
+            ChapterDownloadStatus.completed => DownloadTaskStatus.completed,
+            ChapterDownloadStatus.failed => DownloadTaskStatus.failed,
+            ChapterDownloadStatus.pending => DownloadTaskStatus.idle,
           },
           prefix: Text(
             '#${task.index}',
@@ -146,9 +135,9 @@ class DownloadProgressCard extends StatelessWidget {
         final statusText = switch (task.status) {
           ImageDownloadStatus.downloading =>
             task.totalBytes != null
-                ? '${_formatBytes(task.receivedBytes)} / ${_formatBytes(task.totalBytes!)}$percentText'
-                : _formatBytes(task.receivedBytes),
-          ImageDownloadStatus.completed => _formatBytes(task.receivedBytes),
+                ? '${formatBytes(task.receivedBytes)} / ${formatBytes(task.totalBytes!)}$percentText'
+                : formatBytes(task.receivedBytes),
+          ImageDownloadStatus.completed => formatBytes(task.receivedBytes),
           ImageDownloadStatus.failed => 'Ошибка',
           ImageDownloadStatus.pending => 'В очереди',
         };
@@ -156,10 +145,10 @@ class DownloadProgressCard extends StatelessWidget {
         return DownloadTaskRow(
           status: switch (task.status) {
             ImageDownloadStatus.downloading =>
-              DownloadTaskRowStatus.downloading,
-            ImageDownloadStatus.completed => DownloadTaskRowStatus.completed,
-            ImageDownloadStatus.failed => DownloadTaskRowStatus.failed,
-            ImageDownloadStatus.pending => DownloadTaskRowStatus.pending,
+              DownloadTaskStatus.downloading,
+            ImageDownloadStatus.completed => DownloadTaskStatus.completed,
+            ImageDownloadStatus.failed => DownloadTaskStatus.failed,
+            ImageDownloadStatus.pending => DownloadTaskStatus.idle,
           },
           title: task.id,
           statusText: statusText,
@@ -169,10 +158,4 @@ class DownloadProgressCard extends StatelessWidget {
     );
   }
 
-  static String _formatBytes(int bytes) {
-    if (bytes <= 0) return '0 B';
-    if (bytes < 1024) return '$bytes B';
-    if (bytes < 1048576) return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    return '${(bytes / 1048576).toStringAsFixed(1)} MB';
-  }
 }

@@ -8,6 +8,7 @@ import '../../../core/di.dart';
 import '../../../core/ui/tokens.dart';
 import '../domain/download_task.cg.dart';
 import 'download_modal.dart';
+import 'widgets/cover_fallback.dart';
 
 Future<void> showDownloadsListModal(BuildContext context) async {
   final isWide = MediaQuery.sizeOf(context).width >= 600;
@@ -251,21 +252,7 @@ class _TaskListItem extends StatelessWidget {
   final DownloadTask task;
   final VoidCallback onTap;
 
-  String _getStageTitle(DownloadTask task) {
-    final stage = task.progress.stage;
-    return switch (stage) {
-      Stages.decrypting => 'Расшифровка глав',
-      Stages.parsing => 'Построение структуры',
-      Stages.imageDownloading => 'Загрузка изображений',
-      Stages.downloading => 'Загрузка глав',
-      Stages.building => 'Сборка книги',
-      Stages.ziping => 'Упаковка архива',
-      Stages.analyzing => 'Анализ книги',
-      Stages.done => 'Завершено',
-      Stages.error => 'Ошибка',
-      _ => 'Подготовка...',
-    };
-  }
+  String _getStageTitle(DownloadTask task) => task.progress.stage.title;
 
   @override
   Widget build(BuildContext context) {
@@ -280,9 +267,8 @@ class _TaskListItem extends StatelessWidget {
         final isActive = task.isActive;
         final isFailed = task.isFailed;
 
-        final cur = task.progress.current ?? 0;
         final tot = task.progress.total ?? 0;
-        final progressVal = (tot > 0) ? (cur / tot).clamp(0.0, 1.0) : null;
+        final progressVal = task.normalizedProgress;
         final stageTitle = _getStageTitle(task);
 
         return Card(
@@ -308,28 +294,16 @@ class _TaskListItem extends StatelessWidget {
                             width: 44,
                             height: 60,
                             fit: BoxFit.cover,
-                            errorWidget: (_, _, _) => Container(
+                            errorWidget: (_, _, _) => const CoverFallback(
                               width: 44,
                               height: 60,
-                              color: theme.colorScheme.surfaceContainerHighest,
-                              child: Icon(
-                                Icons.book_rounded,
-                                size: 22,
-                                color: theme.colorScheme.onSurfaceVariant
-                                    .withValues(alpha: 0.6),
-                              ),
+                              iconSize: 22,
                             ),
                           )
-                        : Container(
+                        : const CoverFallback(
                             width: 44,
                             height: 60,
-                            color: theme.colorScheme.surfaceContainerHighest,
-                            child: Icon(
-                              Icons.book_rounded,
-                              size: 22,
-                              color: theme.colorScheme.onSurfaceVariant
-                                  .withValues(alpha: 0.6),
-                            ),
+                            iconSize: 22,
                           ),
                   ),
                   const SizedBox(width: 14),

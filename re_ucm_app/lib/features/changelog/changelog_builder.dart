@@ -44,7 +44,6 @@ class ChangelogBuilder implements Builder {
       }
 
       content = _formatBullets(content);
-      technicalDetails = technicalDetails;
 
       buffer.writeln("  Changelog(");
       buffer.writeln("    title: 'Релиз $version',");

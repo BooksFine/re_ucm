@@ -25,6 +25,13 @@ final _lightColorScheme = M3EColorScheme.light(
 );
 
 ThemeData _buildTheme(ColorScheme cs, AppColorsExtension appColors) {
+  final titleStyle = TextStyle(
+    fontFamily: 'Roboto',
+    fontSize: 22,
+    fontWeight: FontWeight.bold,
+    color: cs.onSurface,
+  );
+
   return ThemeData(
     fontFamily: 'Roboto',
     visualDensity: VisualDensity.standard,
@@ -34,20 +41,10 @@ ThemeData _buildTheme(ColorScheme cs, AppColorsExtension appColors) {
       scrolledUnderElevation: 0,
       surfaceTintColor: Colors.transparent,
       centerTitle: true,
-      titleTextStyle: TextStyle(
-        fontFamily: 'Roboto',
-        fontSize: 22,
-        fontWeight: FontWeight.bold,
-        color: cs.onSurface,
-      ),
+      titleTextStyle: titleStyle,
     ),
     textTheme: TextTheme(
-      titleLarge: TextStyle(
-        fontFamily: 'Roboto',
-        fontSize: 22,
-        fontWeight: FontWeight.bold,
-        color: cs.onSurface,
-      ),
+      titleLarge: titleStyle,
     ),
     cardTheme: CardThemeData(
       elevation: 0,

@@ -5,6 +5,7 @@ import 'package:re_ucm_lib/settings/domain/save_format.dart';
 
 import '../../../../core/ui/tokens.dart';
 import '../../domain/download_task.cg.dart';
+import 'exporting_indicator.dart';
 
 class DownloadActions extends StatelessWidget {
   const DownloadActions({super.key, required this.task, required this.onClose});
@@ -62,17 +63,12 @@ class DownloadActions extends StatelessWidget {
             style: M3EButtonStyle.filled,
             size: M3EButtonSize.md,
             onPressed: task.isExporting ? null : task.open,
-            icon: task.isExporting
-                ? SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: M3ECircularWavyProgressIndicator(
-                      size: 18,
-                      strokeWidth: 2,
-                      color: theme.colorScheme.onPrimary,
-                    ),
-                  )
-                : const Icon(Icons.menu_book_rounded, size: 20),
+            icon: ExportingIndicator(
+              task: task,
+              icon: Icons.menu_book_rounded,
+              size: 18,
+              color: theme.colorScheme.onPrimary,
+            ),
             label: Text(
               task.isExporting ? 'Конвертация...' : 'Открыть книгу',
               style: const TextStyle(fontWeight: FontWeight.w600),
@@ -85,17 +81,11 @@ class DownloadActions extends StatelessWidget {
             style: M3EButtonStyle.tonal,
             size: M3EButtonSize.md,
             onPressed: task.isExporting ? null : task.share,
-            icon: task.isExporting
-                ? SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: M3ECircularWavyProgressIndicator(
-                      size: 16,
-                      strokeWidth: 2,
-                      color: theme.colorScheme.primary,
-                    ),
-                  )
-                : const Icon(Icons.share_outlined, size: 18),
+            icon: ExportingIndicator(
+              task: task,
+              icon: Icons.share_outlined,
+              size: 18,
+            ),
             label: const Text('Поделиться'),
           ),
         ] else ...[
@@ -108,17 +98,11 @@ class DownloadActions extends StatelessWidget {
                   style: M3EButtonStyle.outlined,
                   size: M3EButtonSize.md,
                   onPressed: task.isExporting ? null : task.share,
-                  icon: task.isExporting
-                      ? SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: M3ECircularWavyProgressIndicator(
-                            size: 16,
-                            strokeWidth: 2,
-                            color: theme.colorScheme.primary,
-                          ),
-                        )
-                      : const Icon(Icons.share_outlined, size: 18),
+                  icon: ExportingIndicator(
+                    task: task,
+                    icon: Icons.share_outlined,
+                    size: 18,
+                  ),
                   label: const Text('Поделиться'),
                 ),
               ),
@@ -129,17 +113,12 @@ class DownloadActions extends StatelessWidget {
                   style: M3EButtonStyle.filled,
                   size: M3EButtonSize.md,
                   onPressed: task.isExporting ? null : () => task.save(context),
-                  icon: task.isExporting
-                      ? SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: M3ECircularWavyProgressIndicator(
-                            size: 16,
-                            strokeWidth: 2,
-                            color: theme.colorScheme.onPrimary,
-                          ),
-                        )
-                      : const Icon(Icons.save_alt_rounded, size: 20),
+                  icon: ExportingIndicator(
+                    task: task,
+                    icon: Icons.save_alt_rounded,
+                    size: 20,
+                    color: theme.colorScheme.onPrimary,
+                  ),
                   label: const Text(
                     'Сохранить',
                     style: TextStyle(fontWeight: FontWeight.w600),

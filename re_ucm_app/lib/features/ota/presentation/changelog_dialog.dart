@@ -2,7 +2,7 @@ import 'package:m3e_core/m3e_core.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../core/navigation/router_delegate.dart';
-import '../../../core/ui/constants.dart';
+import '../../../core/ui/tokens.dart';
 import '../../changelog/changelog.dart';
 
 class ChangelogDialog extends StatelessWidget {
@@ -13,8 +13,8 @@ class ChangelogDialog extends StatelessWidget {
     return AlertDialog(
       backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
       insetPadding: const EdgeInsets.symmetric(
-        horizontal: appPadding * 2,
-        vertical: appPadding * 6,
+        horizontal: AppSpacing.sm * 2,
+        vertical: AppSpacing.sm * 6,
       ),
       title: Text(changelogGen[0].title),
       titleTextStyle: Theme.of(context).textTheme.headlineMedium,

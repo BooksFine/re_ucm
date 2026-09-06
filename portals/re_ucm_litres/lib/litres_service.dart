@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:re_ucm_core/logger.dart';
 import 'package:re_ucm_core/models/portal.dart';
 import 'package:re_ucm_core/models/progress.dart';
+import 'package:re_ucm_core/utils/media_type.dart';
 
 import 'data/litres_api.cg.dart';
 import 'data/models/lr_settings.cg.dart';
@@ -461,7 +462,7 @@ class LitresService implements PortalService<LRSettings> {
             (headerContentType != null &&
                 headerContentType.startsWith('image/'))
             ? headerContentType.split(';').first.trim()
-            : _guessMediaType(url);
+            : guessMediaType(url);
 
         return BookResource(
           id: reqId,
@@ -480,13 +481,4 @@ class LitresService implements PortalService<LRSettings> {
     };
   }
 
-  static String _guessMediaType(String url) {
-    final lower = url.toLowerCase();
-    if (lower.endsWith('.png')) return 'image/png';
-    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
-    if (lower.endsWith('.gif')) return 'image/gif';
-    if (lower.endsWith('.webp')) return 'image/webp';
-    if (lower.endsWith('.svg')) return 'image/svg+xml';
-    return 'image/jpeg';
-  }
 }

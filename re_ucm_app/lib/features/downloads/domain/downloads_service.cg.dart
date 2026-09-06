@@ -62,7 +62,7 @@ abstract class DownloadsServiceBase with Store {
       }
     }
     if (counted == 0) return null;
-    return sum / active.length;
+    return sum / counted;
   }
 
   @action

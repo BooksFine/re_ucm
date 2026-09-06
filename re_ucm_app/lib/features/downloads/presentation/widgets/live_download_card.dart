@@ -1,16 +1,15 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:m3e_core/m3e_core.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:re_ucm_core/models/progress.dart';
+import 'package:re_ucm_core/re_ucm_core.dart';
 
 import '../../../../core/di.dart';
 import '../../../../core/ui/tokens.dart';
 import '../../../../core/ui/widgets/app_section_header.dart';
+import '../../../recent_books/presentation/recent_book_shared.dart';
 import '../../domain/download_task.cg.dart';
 import '../download_modal.dart';
-import 'cover_fallback.dart';
 
 /// A live, non-blocking on-page card displaying active download tasks.
 ///
@@ -83,23 +82,18 @@ class _SingleActiveTaskCard extends StatelessWidget {
     return Observer(
       builder: (context) {
         final progress = task.progress;
-        final cur = progress.current ?? 0;
         final tot = progress.total ?? 0;
-        final double? progressVal = task.normalizedProgress;
 
         final stageTitle = progress.stage.title;
 
         final statusText = tot > 0
-            ? '$stageTitle: $cur/$tot${progressVal != null ? ' (${(progressVal * 100).toInt()}%)' : ''}'
+            ? '$stageTitle: ${progress.counterText}'
             : (progress.message ?? stageTitle);
 
         final meta = task.metadata;
         final title = meta?.title ?? 'Книга #${task.bookId}';
         final authors =
-            meta?.contributors
-                .map((e) => e.name.toDisplayString())
-                .join(', ') ??
-            task.session.portal.name;
+            meta?.authorsDisplay ?? task.session.portal.name;
         final coverUrl = meta?.cover?.ref.id;
 
         return Container(
@@ -127,29 +121,15 @@ class _SingleActiveTaskCard extends StatelessWidget {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Cover thumbnail
-                        ClipRRect(
+                        // Cover thumbnail — единый виджет.
+                        BookCoverImage(
+                          coverUrl: coverUrl,
+                          width: 38,
+                          height: 52,
+                          iconSize: 20,
+                          errorIcon: Icons.downloading_rounded,
+                          placeholderIcon: Icons.downloading_rounded,
                           borderRadius: BorderRadius.circular(AppRadii.sm),
-                          child: coverUrl != null
-                              ? CachedNetworkImage(
-                                  imageUrl: coverUrl,
-                                  width: 38,
-                                  height: 52,
-                                  fit: BoxFit.cover,
-                                   errorWidget: (context, error, stackTrace) =>
-                                      const CoverFallback(
-                                        width: 38,
-                                        height: 52,
-                                        iconSize: 20,
-                                        icon: Icons.downloading_rounded,
-                                      ),
-                                )
-                              : const CoverFallback(
-                                  width: 38,
-                                  height: 52,
-                                  iconSize: 20,
-                                  icon: Icons.downloading_rounded,
-                                ),
                         ),
                         const SizedBox(width: AppSpacing.md),
 
@@ -217,7 +197,7 @@ class _SingleActiveTaskCard extends StatelessWidget {
 
                     // Progress bar
                     M3ELinearWavyProgressIndicator(
-                      value: progressVal,
+                      value: progress.normalized,
                       height: 6,
                       strokeWidth: 3,
                       color: cs.primary,

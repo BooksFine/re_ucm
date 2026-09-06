@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_lib/settings/domain/save_format.dart';
 
 import '../../../../core/ui/tokens.dart';
+import '../../../common/widgets/overlay_snack.dart';
 import '../../domain/download_task.cg.dart';
 import 'exporting_indicator.dart';
 
@@ -64,7 +65,7 @@ class DownloadActions extends StatelessWidget {
             size: M3EButtonSize.md,
             onPressed: task.isExporting ? null : task.open,
             icon: ExportingIndicator(
-              task: task,
+              isExporting: task.isExporting,
               icon: Icons.menu_book_rounded,
               size: 18,
               color: theme.colorScheme.onPrimary,
@@ -82,7 +83,7 @@ class DownloadActions extends StatelessWidget {
             size: M3EButtonSize.md,
             onPressed: task.isExporting ? null : task.share,
             icon: ExportingIndicator(
-              task: task,
+              isExporting: task.isExporting,
               icon: Icons.share_outlined,
               size: 18,
             ),
@@ -99,7 +100,7 @@ class DownloadActions extends StatelessWidget {
                   size: M3EButtonSize.md,
                   onPressed: task.isExporting ? null : task.share,
                   icon: ExportingIndicator(
-                    task: task,
+                    isExporting: task.isExporting,
                     icon: Icons.share_outlined,
                     size: 18,
                   ),
@@ -112,9 +113,11 @@ class DownloadActions extends StatelessWidget {
                 child: M3EButton.icon(
                   style: M3EButtonStyle.filled,
                   size: M3EButtonSize.md,
-                  onPressed: task.isExporting ? null : () => task.save(context),
+                  onPressed: task.isExporting
+                      ? null
+                      : () => _saveWithFeedback(context, task),
                   icon: ExportingIndicator(
-                    task: task,
+                    isExporting: task.isExporting,
                     icon: Icons.save_alt_rounded,
                     size: 20,
                     color: theme.colorScheme.onPrimary,
@@ -162,8 +165,7 @@ class DownloadActions extends StatelessWidget {
     );
   }
 
-  Widget _buildActive(BuildContext context, ThemeData theme) {
-    return Row(
+  Widget _buildActive(BuildContext context, ThemeData theme) {    return Row(
       children: [
         Expanded(
           flex: 1,
@@ -206,11 +208,28 @@ class DownloadActions extends StatelessWidget {
   }
 }
 
+/// Сохранение с UI-фидбеком. Раньше снэки показывал сам domain
+/// ([DownloadTask.save] принимал BuildContext).
+Future<void> _saveWithFeedback(
+  BuildContext context,
+  DownloadTask task,
+) async {
+  final outcome = await task.save();
+  if (!context.mounted) return;
+  switch (outcome) {
+    case ExportSaved():
+      overlaySnackMessage(context, 'Успешно сохранено');
+    case ExportCancelled():
+      overlaySnackMessage(context, 'Сохранение отменено');
+    case ExportFailed():
+      overlaySnackMessage(context, 'Произошла ошибка при сохранении');
+  }
+}
+
 class _FormatSelector extends StatelessWidget {
   const _FormatSelector({required this.task});
 
   final DownloadTask task;
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

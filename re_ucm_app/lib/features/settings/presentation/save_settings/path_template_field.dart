@@ -31,8 +31,6 @@ class _PathTemplateFieldState extends State<PathTemplateField> {
   late bool isPathEmpty;
   String? pathError;
 
-  static final illegalChars = RegExp(r'[<>:"|?*]');
-
   bool isEditing = false;
 
   @override
@@ -71,9 +69,9 @@ class _PathTemplateFieldState extends State<PathTemplateField> {
 
   void onPathChanged(String value) {
     final newIsEmpty = value.isEmpty;
-    final hasIllegal = illegalChars.hasMatch(value);
+    final hasIllegal = TemplateFormatter.illegalChars.hasMatch(value);
 
-    final newError = hasIllegal ? 'Недопустимые символы: <>:"|?*' : null;
+    final newError = hasIllegal ? 'Недопустимые символы: <>:"/\\|?*' : null;
 
     if (isPathEmpty != newIsEmpty || pathError != newError) {
       isPathEmpty = newIsEmpty;

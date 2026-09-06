@@ -11,6 +11,11 @@ class TemplateFormatter {
   // ⦗ (U+2997 Left Tortoise Shell Bracket)
   static const String endTagChar = '\u2997';
 
+  /// Единый набор запрещённых в именах файлов символов.
+  /// Раньше UI-валидация ([path_template_field]) использовала свой
+  /// RegExp без `/\` — domain молча заменял их, и превью врало.
+  static final RegExp illegalChars = RegExp(r'[<>:"/\\|?*]');
+
   // Регулярка: ищем всё между ⦘ и ⦗
   static final RegExp tagRegExp = RegExp(
     '$startTagChar([^$endTagChar]+)$endTagChar',
@@ -55,7 +60,7 @@ class TemplateFormatter {
       final placeholder = PathPlaceholders.fromLabel(label);
       if (placeholder == null) return '';
       final value = placeholder.resolve(data, portal, effectiveSeparator);
-      return value.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
+      return value.replaceAll(illegalChars, '_');
     });
   }
 }

@@ -14,7 +14,9 @@ class FailedTasksCard extends StatefulWidget {
   });
 
   final List<ImageDownloadTask> tasks;
-  final VoidCallback onRetry;
+  /// Async-колбэки: ошибки ретрая не должны теряться молча
+  /// (раньше `VoidCallback` стирал Future от `retryFailedImages`).
+  final Future<void> Function() onRetry;
   final VoidCallback onIgnore;
   final bool isLoading;
 

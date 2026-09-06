@@ -83,8 +83,3 @@ class ShareReceiverService {
     }
   }
 }
-
-@Deprecated('Use ShareReceiverService.init() instead')
-Future<void> shareHandler(BuildContext context) async {
-  ShareReceiverService.init();
-}

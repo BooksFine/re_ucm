@@ -1,11 +1,10 @@
-import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_core/models/portal.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
-import '../../../../core/ui/app_colors_extension.dart';
 import '../../../../core/ui/tokens.dart';
+import 'portal_badges.dart';
 import 'portal_domain_extension.dart';
 import 'portal_logo_icon.dart';
 
@@ -33,7 +32,6 @@ class SourceItemTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final appColors = context.appColors;
 
     final bgColor = isSelected
         ? cs.secondaryContainer.withValues(alpha: 0.5)
@@ -140,32 +138,9 @@ class SourceItemTile extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 250),
-                              width: 5,
-                              height: 5,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: isAuth
-                                    ? appColors.statusOnline
-                                    : appColors.statusOffline,
-                              ),
-                            ),
-                            const SizedBox(width: 5),
-                            AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 200),
-                              child: Text(
-                                isAuth ? 'Подключен' : 'Без входа',
-                                key: ValueKey(isAuth),
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: isAuth
-                                      ? appColors.statusOnline
-                                      : cs.onSurfaceVariant,
-                                  fontWeight: isAuth
-                                      ? FontWeight.w600
-                                      : FontWeight.w500,
-                                ),
-                              ),
+                            PortalAuthBadge(
+                              isAuthorized: isAuth,
+                              dotSize: 5,
                             ),
                           ],
                         );
@@ -177,26 +152,9 @@ class SourceItemTile extends StatelessWidget {
               const SizedBox(width: 8),
 
               // Pin / Favorite action
-              IconButton(
-                icon: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 250),
-                  transitionBuilder: (child, anim) => ScaleTransition(
-                    scale: anim,
-                    child: FadeTransition(opacity: anim, child: child),
-                  ),
-                  child: Icon(
-                    isPinned ? Icons.star_rounded : Icons.star_outline_rounded,
-                    key: ValueKey(isPinned),
-                    color: isPinned ? cs.primary : cs.onSurfaceVariant,
-                    size: 22,
-                  ),
-                ),
-                tooltip: isPinned ? 'Открепить' : 'Закрепить',
-                visualDensity: VisualDensity.compact,
-                onPressed: () {
-                  HapticFeedback.lightImpact();
-                  onTogglePin();
-                },
+              PortalPinIconButton(
+                isPinned: isPinned,
+                onTogglePin: onTogglePin,
               ),
 
               if (showChevron)

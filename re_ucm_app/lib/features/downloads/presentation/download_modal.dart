@@ -1,11 +1,10 @@
 import 'package:dart_book/dart_book.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:m3e_core/m3e_core.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 import '../../../core/di.dart';
-import '../../../core/ui/tokens.dart';
+import '../../../core/ui/responsive_modal.dart';
 import '../domain/download_task.cg.dart';
 
 import 'widgets/download_actions.dart';
@@ -13,6 +12,10 @@ import 'widgets/download_book_header.dart';
 import 'widgets/download_options_card.dart';
 import 'widgets/download_progress_card.dart';
 import 'widgets/failed_tasks_card.dart';
+
+/// Реестр открытых модалок. Раньше флаг `isModalOpen` жил в domain-сторе —
+/// UI-состояние не должно храниться в [DownloadTask].
+final Set<DownloadTask> _openModals = {};
 
 Future<void> showDownloadModal(
   BuildContext context, {
@@ -34,82 +37,18 @@ Future<void> showDownloadModalForTask(
   BuildContext context,
   DownloadTask task,
 ) async {
-  if (task.isModalOpen) return;
-  task.isModalOpen = true;
+  if (_openModals.contains(task)) return;
+  _openModals.add(task);
 
   try {
-    final isWide = MediaQuery.sizeOf(context).width >= 600;
-    if (isWide) {
-      await showDialog(
-        context: context,
-        builder: (dialogCtx) => Dialog(
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          elevation: 6,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadii.dialog),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 460),
-            child: Stack(
-              children: [
-                SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-                  child: DownloadModalContent(
-                    task: task,
-                    isWide: true,
-                    onClose: () => Navigator.of(dialogCtx).pop(),
-                  ),
-                ),
-                Positioned(
-                  top: 10,
-                  right: 10,
-                  child: IconButton(
-                    icon: const Icon(Icons.close, size: 18),
-                    visualDensity: VisualDensity.compact,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(
-                      minWidth: 28,
-                      minHeight: 28,
-                    ),
-                    onPressed: () => Navigator.of(dialogCtx).pop(),
-                    tooltip: 'Закрыть',
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    } else {
-      await showM3EModalBottomSheet(
-        context: context,
-        useRootNavigator: true,
-        isScrollControlled: true,
-        useSafeArea: true,
-        showDragHandle: true,
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
-        builder: (sheetCtx) => SafeArea(
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              16,
-              0,
-              16,
-              MediaQuery.viewInsetsOf(sheetCtx).bottom + 16,
-            ),
-            child: SingleChildScrollView(
-              child: DownloadModalContent(
-                task: task,
-                isWide: false,
-                onClose: () => Navigator.of(sheetCtx).pop(),
-              ),
-            ),
-          ),
-        ),
-      );
-    }
+    await showResponsiveAppModal(
+      context,
+      dialogMaxWidth: 460,
+      contentBuilder: (contentCtx, close, isWide) =>
+          DownloadModalContent(task: task, isWide: isWide, onClose: close),
+    );
   } finally {
-    task.isModalOpen = false;
+    _openModals.remove(task);
   }
 }
 

@@ -117,3 +117,23 @@ class Progress {
     return 'Progress(${params.join(', ')})';
   }
 }
+
+extension ProgressDisplay on Progress {
+  /// Единственная точка нормализации прогресса 0..1.
+  double? get normalized {
+    final cur = current;
+    final tot = total;
+    if (cur == null || tot == null || tot <= 0) return null;
+    return (cur / tot).clamp(0.0, 1.0);
+  }
+
+  /// Единственная точка форматирования счётчика «12 / 40 (30%)».
+  String get counterText {
+    final cur = current;
+    final tot = total;
+    if (cur == null || tot == null) return message ?? stage.title;
+    final pct = normalized;
+    final pctStr = pct == null ? '' : ' (${(pct * 100).toInt()}%)';
+    return '$cur / $tot$pctStr';
+  }
+}

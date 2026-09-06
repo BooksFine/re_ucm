@@ -4,10 +4,7 @@ import 'package:dio/dio.dart';
 
 import '../../core/constants.dart';
 import '../../core/logger.dart';
-import '../../core/navigation/router_delegate.dart';
 import 'ota_repo.dart';
-import 'presentation/changelog_dialog.dart';
-import 'presentation/update_widget.dart';
 
 class ReleaseAsset {
   final String name;
@@ -22,9 +19,8 @@ class OTAService {
 
   OTAService._();
   static Future<OTAService> init() async {
-    var service = OTAService._();
+    final service = OTAService._();
     service.otaRepo = await OTARepoBySembast.init();
-    service.update();
     return service;
   }
 
@@ -140,19 +136,11 @@ class OTAService {
 
   void setLatestLaunchVersion() => otaRepo.setLatestLaunchVersion(appVersion);
 
-  void update() async {
-    if (isAlphaFlavor) return;
+  /// Проверяет обновление. Возвращает true, если есть новая версия.
+  /// Навигацию (показ шита) делает вызывающий код — сервис только данные.
+  Future<bool> checkForUpdate() async {
+    if (isAlphaFlavor) return false;
     await getActualVersion();
-
-    if (actualVersion != null && actualVersion != appVersion) {
-      Nav.pushBottomSheet(UpdateWidget());
-    }
-  }
-
-  static void firstLaunch(OTAService service) async {
-    if (await service.getIsFirstLaunch()) {
-      await Nav.pushDialog((_, _, _) => const ChangelogDialog());
-      service.setLatestLaunchVersion();
-    }
+    return actualVersion != null && actualVersion != appVersion;
   }
 }

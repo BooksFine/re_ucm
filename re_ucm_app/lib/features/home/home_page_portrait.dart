@@ -1,14 +1,10 @@
 import 'package:material_ui/material_ui.dart';
 
-import '../../core/navigation/router_delegate.dart';
 import '../../core/ui/centered_flexible_space_bar.dart';
 import '../../core/ui/tokens.dart';
-import '../../core/ui/widgets/app_section_header.dart';
-import '../downloads/presentation/widgets/live_download_card.dart';
-import '../portals/presentation/portals_list.dart';
 import '../recent_books/presentation/recent_books_list.dart';
 import '../recent_books/presentation/widgets/recent_books_header.dart';
-import 'widgets/link_forwarder.dart';
+import 'widgets/home_action_hub.dart';
 
 class HomePagePortrait extends StatefulWidget {
   const HomePagePortrait({super.key});
@@ -54,53 +50,22 @@ class _HomePagePortraitState extends State<HomePagePortrait> {
                   ),
                 ),
 
-                // Action Zone: Smart Link Bar
+                // Action Hub: Smart Link Bar -> Portals -> Live Downloads
                 const SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      AppSpacing.lg,
-                      8,
-                      AppSpacing.lg,
-                      AppSpacing.sm,
+                    padding: EdgeInsets.only(top: 8, bottom: AppSpacing.sm),
+                    child: HomeActionHub(
+                      isWide: false,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: AppSpacing.lg,
+                      ),
+                      headerPadding: EdgeInsets.fromLTRB(
+                        AppSpacing.lg,
+                        0,
+                        AppSpacing.lg,
+                        AppSpacing.sm,
+                      ),
                     ),
-                    child: LinkForwarder(),
-                  ),
-                ),
-
-                // Quick Sources Section (horizontal carousel directly on page)
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: AppSpacing.sm),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const AppSectionHeader(
-                          'Браузер',
-                          padding: EdgeInsets.fromLTRB(
-                            AppSpacing.lg,
-                            0,
-                            AppSpacing.lg,
-                            AppSpacing.sm,
-                          ),
-                        ),
-                        PortalsList(
-                          onTap: (portal) => Nav.goBrowser(portal.code),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                // Live Downloads Card (located below portals, smoothly expands when downloads active)
-                const SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      AppSpacing.lg,
-                      AppSpacing.md,
-                      AppSpacing.lg,
-                      0,
-                    ),
-                    child: LiveDownloadCard(isWide: false),
                   ),
                 ),
 

@@ -1,15 +1,18 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:m3e_core/m3e_core.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 import '../../../core/di.dart';
+import '../../../core/navigation/router_delegate.dart';
 import '../../../core/ui/tokens.dart';
 import '../../../core/ui/widgets/app_text_field.dart';
-import '../../common/utils/uri_from_url.dart';
 import '../../downloads/presentation/download_modal.dart';
 import '../../downloads/presentation/widgets/download_book_header.dart';
+import '../../downloads/presentation/widgets/unauthorized_download_dialog.dart';
 import 'link_forwarder_controller.dart';
+import 'link_parser.dart';
 
 class LinkForwarder extends StatefulWidget {
   const LinkForwarder({super.key});
@@ -25,14 +28,7 @@ class _LinkForwarderState extends State<LinkForwarder> {
   final _controller = LinkForwarderController();
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _controller.bindContext(context);
-  }
-
-  @override
   void dispose() {
-    _controller.unbindContext();
     _textController.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -40,129 +36,107 @@ class _LinkForwarderState extends State<LinkForwarder> {
 
   void _onChanged(String value) {
     _controller.onTextChanged(value);
+    final candidate = _controller.autoFetchCandidate(value);
+    if (candidate != null) {
+      _fetchBookInfo(candidate);
+    }
   }
 
   void _reset() {
     _textController.clear();
-    _onChanged('');
     _controller.reset();
   }
 
   Future<void> _pasteFromClipboard() async {
-    await _controller.pasteFromClipboard(
-      onPasted: (text) async {
-        _textController.text = text;
-        _onChanged(text);
-        _focusNode.requestFocus();
-      },
-    );
+    HapticFeedback.lightImpact();
+    final text = await _controller.readClipboardText();
+    if (text == null || !mounted) return;
+    _textController.text = text;
+    _controller.onTextChanged(text);
+    _focusNode.requestFocus();
+    final candidate = tryParseBookLink(text);
+    if (candidate != null) {
+      await _fetchBookInfo(candidate);
+    }
   }
 
-  Future<void> _fetchBookInfo() async {
+  Future<void> _fetchBookInfo([ParsedBookLink? preset]) async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    final link = preset ?? tryParseBookLink(_textController.text.trim());
+    if (link == null || !mounted) return;
     _focusNode.unfocus();
-    await _controller.fetchBookInfo(
-      text: _textController.text.trim(),
-      validate: () => _formKey.currentState?.validate() ?? false,
-    );
+    final session = AppDependencies.of(
+      context,
+    ).settingsService.sessionByCode(link.portal.code);
+    await _controller.fetchBookInfo(link: link, session: session);
   }
 
   Future<void> _startDownload() async {
-    final settingsService = AppDependencies.of(context).settingsService;
-    await _controller.startDownload(
-      defaultFormat: settingsService.saveFormat,
-      showModal: (task) => showDownloadModalForTask(context, task),
+    final deps = AppDependencies.of(context);
+    final portal = _controller.loadedPortal.value;
+    if (portal == null) return;
+    final session = deps.settingsService.sessionByCode(portal.code);
+
+    final shouldProceed = await checkAndConfirmUnauthorizedDownload(
+      context: context,
+      session: session,
+      settingsService: deps.settingsService,
+      onLogin: () => Nav.goSourceDetails(portal.code),
     );
+    if (!shouldProceed || !mounted) return;
+
+    final task = _controller.buildDownloadTask(
+      settingsService: deps.settingsService,
+      downloadsService: deps.downloadsService,
+    );
+    if (task == null || !mounted) return;
+    _controller.reset();
+    _textController.clear();
+    if (mounted) {
+      await showDownloadModalForTask(context, task);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    final settingsService = AppDependencies.of(context).settingsService;
-
-    return Observer(
-      builder: (context) {
-        final currentFormat =
-            _controller.selectedFormat.value ?? settingsService.saveFormat;
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Form(
-              key: _formKey,
-              child: AppTextField(
-                focusNode: _focusNode,
-                controller: _textController,
-                textInputAction: TextInputAction.go,
-                onFieldSubmitted: (_) => _fetchBookInfo(),
-                onChanged: _onChanged,
-                hint: 'Вставьте ссылку на книгу...',
-                prefixIcon: Icon(Icons.link_rounded, size: 22),
-                suffixIcon: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (_controller.isLoadingBook.value)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        child: SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: M3ECircularWavyProgressIndicator(
-                            size: 18,
-                            strokeWidth: 2,
-                            color: cs.primary,
-                          ),
-                        ),
-                      )
-                    else if (!_controller.isEmpty.value)
-                      IconButton(
-                        tooltip: 'Очистить',
-                        icon: Icon(Icons.clear_rounded, size: 20),
-                        onPressed: _reset,
-                      )
-                    else
-                      IconButton(
-                        tooltip: 'Вставить из буфера',
-                        icon: Icon(Icons.content_paste_rounded, size: 20),
-                        onPressed: _pasteFromClipboard,
-                      ),
-                  ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Form(
+          key: _formKey,
+          child: _LinkInputField(
+            textController: _textController,
+            focusNode: _focusNode,
+            controller: _controller,
+            onChanged: _onChanged,
+            onSubmitted: () => _fetchBookInfo(),
+            onReset: _reset,
+            onPaste: _pasteFromClipboard,
+          ),
+        ),
+        Observer(
+          builder: (_) {
+            if (_controller.isLoadingBook.value) {
+              return const Padding(
+                padding: EdgeInsets.only(top: AppSpacing.md),
+                child: LinkPreviewCard(
+                  child: DownloadBookHeaderSkeleton(isWide: false),
                 ),
-                validator: (url) {
-                  if (url == null || url.trim().isEmpty) {
-                    return 'Введите или вставьте ссылку';
-                  }
-                  try {
-                    final uri = uriFromUrl(url.trim());
-                    PortalFactory.fromUrl(uri).service.getIdFromUrl(uri);
-                    return null;
-                  } catch (e) {
-                    return 'Неподдерживаемая ссылка на книгу';
-                  }
-                },
-              ),
-            ),
-
-            if (_controller.isLoadingBook.value) ...[
-              const SizedBox(height: AppSpacing.md),
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: cs.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(AppRadii.card),
-                  border: Border.all(
-                    color: cs.outlineVariant.withValues(alpha: 0.35),
-                    width: 0.6,
-                  ),
-                ),
-                child: const DownloadBookHeaderSkeleton(isWide: false),
-              ),
-            ],
-
-            if (_controller.loadingError.value != null) ...[
-              const SizedBox(height: AppSpacing.sm),
-              Padding(
+              );
+            }
+            return const SizedBox.shrink();
+          },
+        ),
+        Observer(
+          builder: (_) {
+            final error = _controller.loadingError.value;
+            if (error == null) return const SizedBox.shrink();
+            final theme = Theme.of(context);
+            final cs = theme.colorScheme;
+            return Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.sm),
+              child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: Row(
                   children: [
@@ -174,7 +148,7 @@ class _LinkForwarderState extends State<LinkForwarder> {
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        _controller.loadingError.value!,
+                        error,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: cs.error,
                         ),
@@ -183,98 +157,215 @@ class _LinkForwarderState extends State<LinkForwarder> {
                   ],
                 ),
               ),
-            ],
-
-            if (_controller.loadedMetadata.value != null &&
-                _controller.loadedPortal.value != null) ...[
-              const SizedBox(height: AppSpacing.md),
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: cs.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(AppRadii.card),
-                  border: Border.all(
-                    color: cs.outlineVariant.withValues(alpha: 0.35),
-                    width: 0.6,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    DownloadBookHeader(
-                      book: _controller.loadedMetadata.value!,
-                      portal: _controller.loadedPortal.value!,
-                      isWide: false,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    const Divider(height: 1),
-                    const SizedBox(height: AppSpacing.sm),
-                    Wrap(
-                      spacing: AppSpacing.sm,
-                      runSpacing: AppSpacing.sm,
-                      alignment: WrapAlignment.spaceBetween,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Формат: ',
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: cs.onSurfaceVariant,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            for (final fmt in [
-                              SaveFormat.epub,
-                              SaveFormat.fb2,
-                              SaveFormat.fb2Zip,
-                            ]) ...[
-                              Padding(
-                                padding: const EdgeInsets.only(right: 4),
-                                child: ChoiceChip(
-                                  label: Text(fmt.label.toUpperCase()),
-                                  labelStyle: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: fmt == currentFormat
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
-                                  ),
-                                  selected: fmt == currentFormat,
-                                  visualDensity: VisualDensity.compact,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 4,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      AppRadii.full,
-                                    ),
-                                  ),
-                                  onSelected: (selected) {
-                                    if (selected) {
-                                      _controller.setSelectedFormat(fmt);
-                                    }
-                                  },
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                        M3EButton.icon(
-                          onPressed: _startDownload,
-                          icon: const Icon(Icons.download_rounded, size: 18),
-                          label: const Text(
-                            'Скачать',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+            );
+          },
+        ),
+        Observer(
+          builder: (_) {
+            final meta = _controller.loadedMetadata.value;
+            final portal = _controller.loadedPortal.value;
+            if (meta == null || portal == null) {
+              return const SizedBox.shrink();
+            }
+            return Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.md),
+              child: LinkPreviewCard(
+                child: _LoadedPreview(
+                  controller: _controller,
+                  onDownload: _startDownload,
                 ),
               ),
-            ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+/// Поле ввода ссылки. Observer точечно вокруг suffix — само поле
+/// не перестраивается от статуса загрузки.
+class _LinkInputField extends StatelessWidget {
+  const _LinkInputField({
+    required this.textController,
+    required this.focusNode,
+    required this.controller,
+    required this.onChanged,
+    required this.onSubmitted,
+    required this.onReset,
+    required this.onPaste,
+  });
+
+  final TextEditingController textController;
+  final FocusNode focusNode;
+  final LinkForwarderController controller;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onSubmitted;
+  final VoidCallback onReset;
+  final VoidCallback onPaste;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return AppTextField(
+      focusNode: focusNode,
+      controller: textController,
+      textInputAction: TextInputAction.go,
+      onFieldSubmitted: (_) => onSubmitted(),
+      onChanged: onChanged,
+      hint: 'Вставьте ссылку на книгу...',
+      prefixIcon: const Icon(Icons.link_rounded, size: 22),
+      suffixIcon: Observer(
+        builder: (_) {
+          if (controller.isLoadingBook.value) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: SizedBox(
+                width: 18,
+                height: 18,
+                child: M3ECircularWavyProgressIndicator(
+                  size: 18,
+                  strokeWidth: 2,
+                  color: cs.primary,
+                ),
+              ),
+            );
+          }
+          if (!controller.isEmpty.value) {
+            return IconButton(
+              tooltip: 'Очистить',
+              icon: const Icon(Icons.clear_rounded, size: 20),
+              onPressed: onReset,
+            );
+          }
+          return IconButton(
+            tooltip: 'Вставить из буфера',
+            icon: const Icon(Icons.content_paste_rounded, size: 20),
+            onPressed: onPaste,
+          );
+        },
+      ),
+      validator: (url) {
+        if (url == null || url.trim().isEmpty) {
+          return 'Введите или вставьте ссылку';
+        }
+        return tryParseBookLink(url.trim()) == null
+            ? 'Неподдерживаемая ссылка на книгу'
+            : null;
+      },
+    );
+  }
+}
+
+/// Единая «плашка» превью. Раньше одинаковый Container был
+/// скопирован дважды в одном файле.
+class LinkPreviewCard extends StatelessWidget {
+  const LinkPreviewCard({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        border: Border.all(
+          color: cs.outlineVariant.withValues(alpha: 0.35),
+          width: 0.6,
+        ),
+      ),
+      child: child,
+    );
+  }
+}
+
+class _LoadedPreview extends StatelessWidget {
+  const _LoadedPreview({required this.controller, required this.onDownload});
+
+  final LinkForwarderController controller;
+  final VoidCallback onDownload;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final deps = AppDependencies.of(context);
+    return Observer(
+      builder: (_) {
+        final currentFormat =
+            controller.selectedFormat.value ?? deps.settingsService.saveFormat;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            DownloadBookHeader(
+              book: controller.loadedMetadata.value!,
+              portal: controller.loadedPortal.value!,
+              isWide: false,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            const Divider(height: 1),
+            const SizedBox(height: AppSpacing.sm),
+            Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.sm,
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Формат: ',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: cs.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    for (final fmt in [
+                      SaveFormat.epub,
+                      SaveFormat.fb2,
+                      SaveFormat.fb2Zip,
+                    ]) ...[
+                      Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: ChoiceChip(
+                          label: Text(fmt.label.toUpperCase()),
+                          labelStyle: TextStyle(
+                            fontSize: 11,
+                            fontWeight: fmt == currentFormat
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                          ),
+                          selected: fmt == currentFormat,
+                          visualDensity: VisualDensity.compact,
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppRadii.full),
+                          ),
+                          onSelected: (selected) {
+                            if (selected) {
+                              controller.setSelectedFormat(fmt);
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                M3EButton.icon(
+                  onPressed: onDownload,
+                  icon: const Icon(Icons.download_rounded, size: 18),
+                  label: const Text(
+                    'Скачать',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
           ],
         );
       },

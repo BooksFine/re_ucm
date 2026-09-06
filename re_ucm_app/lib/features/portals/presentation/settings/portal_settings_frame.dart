@@ -5,10 +5,11 @@ import 'package:re_ucm_lib/re_ucm_lib.dart';
 import 'package:webview_all/webview_all.dart';
 
 import '../../../../core/navigation/router_delegate.dart';
+import '../../../../core/ui/tokens.dart';
+import '../../../../core/ui/widgets/app_counter_row.dart';
+import '../../../../core/ui/widgets/app_tile.dart';
 import '../../../common/widgets/overlay_snack.dart';
 import 'widgets/portal_animated_switcher.dart';
-import 'widgets/portal_settings_button.dart';
-import 'widgets/portal_settings_number_field.dart';
 import 'widgets/portal_settings_text_field.dart';
 
 
@@ -27,6 +28,8 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
 
   @override
   void dispose() {
+    // Временные флаги сессии живут ровно пока открыт фрейм настроек —
+    // сброс здесь, а не в lifecycle сессии, осознанно.
     widget.session.resetTempFlags();
     for (final data in _textFieldsData.values) {
       data.controller.dispose();
@@ -116,9 +119,24 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
     );
   }
 
+  /// Вынесено из switch-expression: `_getOrInitFieldData` вызывается
+  /// один раз за build (раньше — дважды, с побочным эффектом в геттере).
+  Widget _textFieldWidget(PortalSettingTextField field) {
+    final fieldData = _getOrInitFieldData(field);
+    return PortalSettingsTextField(
+      title: field.title,
+      hint: field.hint ?? 'Введите значение',
+      controller: fieldData.controller,
+      isLoading: fieldData.isLoading,
+      onChanged: field.onChanged != null
+          ? (v) => field.onChanged!(widget.session.settings, v)
+          : null,
+      onSubmit: (v) => onTextFieldSubmit(field, v),
+    );
+  }
+
   Widget renderField(PortalSettingItem field) {
-    return switch (field) {
-      PortalSettingGroup() => Column(
+    return switch (field) {      PortalSettingGroup() => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [for (final child in field.children) renderField(child)],
       ),
@@ -131,33 +149,33 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
             : const SizedBox.shrink(),
       ),
       PortalSettingSectionTitle() => const SizedBox.shrink(),
-      PortalSettingTextField() => PortalSettingsTextField(
-        title: field.title,
-        hint: field.hint ?? 'Введите значение',
-        controller: _getOrInitFieldData(field).controller,
-        isLoading: _getOrInitFieldData(field).isLoading,
-        onChanged: field.onChanged != null
-            ? (v) => field.onChanged!(widget.session.settings, v)
-            : null,
-        onSubmit: (v) => onTextFieldSubmit(field, v),
+      PortalSettingTextField() => _textFieldWidget(field),
+      PortalSettingNumberField() => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: AppCounterRow(
+          title: field.title,
+          subtitle: field.subtitle,
+          value: field.value,
+          min: field.min,
+          max: field.max,
+          onChanged: (v) => onNumberFieldChanged(field, v),
+        ),
       ),
-      PortalSettingNumberField() => PortalSettingsNumberField(
-        title: field.title,
-        subtitle: field.subtitle,
-        value: field.value,
-        min: field.min,
-        max: field.max,
-        onChanged: (v) => onNumberFieldChanged(field, v),
-      ),
-      PortalSettingActionButton() => PortalSettingsButton(
+      PortalSettingActionButton() => AppTile(
         title: field.title,
         subtitle: field.subtitle,
         isDestructive: field.actionId == 'logout',
         onTap: () => onActionButtonTap(field),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        borderRadius: AppRadii.lg,
       ),
-      PortalSettingWebAuthButton() => PortalSettingsButton(
+      PortalSettingWebAuthButton() => AppTile(
         title: field.title,
         onTap: () => onWebAuthButtonTap(field),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        borderRadius: AppRadii.lg,
       ),
     };
   }

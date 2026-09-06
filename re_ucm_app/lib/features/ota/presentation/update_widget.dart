@@ -19,20 +19,26 @@ class UpdateWidget extends StatefulWidget {
 
 class _UpdateWidgetState extends State<UpdateWidget> {
   UpdateController? _controller;
+  bool? _hasDirectDownload;
 
   UpdateController get controller => _controller!;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _controller ??= UpdateController(AppDependencies.of(context).otaService);
+    if (_controller == null) {
+      _controller = UpdateController(AppDependencies.of(context).otaService);
+      // Мемоизация: сканирование assets не должно выполняться на каждый
+      // Observer-ребилд прогресса (десятки раз в секунду).
+      _hasDirectDownload =
+          _controller!.service.getPlatformDownloadUrl() != null;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final hasDirectDownload =
-        controller.service.getPlatformDownloadUrl() != null;
+    final hasDirectDownload = _hasDirectDownload ?? false;
 
     return SafeArea(
       child: Observer(
@@ -121,9 +127,10 @@ class _UpdateWidgetState extends State<UpdateWidget> {
                               const SizedBox(height: AppSpacing.sm),
                               Align(
                                 alignment: Alignment.centerRight,
-                                child: M3EButton(
+                                child: AppButton(
                                   style: M3EButtonStyle.tonal,
                                   size: M3EButtonSize.sm,
+                                  fullWidth: false,
                                   onPressed: () =>
                                       controller.cancelDownload(),
                                   child: const Text('Отмена'),

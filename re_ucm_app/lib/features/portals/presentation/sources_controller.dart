@@ -1,10 +1,16 @@
 import 'package:mobx/mobx.dart';
 import 'package:re_ucm_core/models/portal.dart';
+import 'package:re_ucm_lib/re_ucm_lib.dart';
 
+/// View-model страницы источников. Держит только UI-состояние
+/// (выбор, поиск, пины); персистентность пинов — внутри через
+/// [SettingsService], колбэк из page больше не нужен.
 class SourcesController {
   SourcesController({String? initialCode}) {
     selectedCode = initialCode;
   }
+
+  SettingsService? _settings;
 
   final Observable<String?> _selectedCode = Observable(null);
   final Observable<String> _searchQuery = Observable('');
@@ -20,22 +26,36 @@ class SourcesController {
 
   List<String> get pinnedCodes => _pinnedCodes;
 
-  void initPinnedCodes(List<String> codes) {
+  /// Идемпотентно: можно вызывать из didChangeDependencies.
+  /// Локальный optimistic-пин не перетирается, т.к. синхронизация
+  /// идёт из того же [SettingsService], куда пишет [togglePin].
+  void attachSettings(SettingsService settings) {
+    _settings = settings;
+    final codes = settings.pinnedPortalCodes;
     runInAction(() {
       _pinnedCodes.clear();
       _pinnedCodes.addAll(codes);
     });
   }
 
-  void togglePin(String code, void Function(String) onPersist) {
-    runInAction(() {
-      if (_pinnedCodes.contains(code)) {
-        _pinnedCodes.remove(code);
-      } else {
-        _pinnedCodes.add(code);
-      }
-    });
-    onPersist(code);
+  void togglePin(String code) {
+    final settings = _settings;
+    if (settings != null) {
+      settings.togglePinPortal(code);
+      final codes = settings.pinnedPortalCodes;
+      runInAction(() {
+        _pinnedCodes.clear();
+        _pinnedCodes.addAll(codes);
+      });
+    } else {
+      runInAction(() {
+        if (_pinnedCodes.contains(code)) {
+          _pinnedCodes.remove(code);
+        } else {
+          _pinnedCodes.add(code);
+        }
+      });
+    }
   }
 
   void selectPortal(String code) {
@@ -53,5 +73,26 @@ class SourcesController {
       final urlMatch = p.url.toLowerCase().contains(query);
       return nameMatch || codeMatch || urlMatch;
     }).toList();
+  }
+
+  /// Видимые порталы с учётом поиска (считается один раз вызывающим).
+  List<Portal> visiblePortals(List<Portal> allPortals) =>
+      filterPortals(allPortals);
+
+  List<Portal> pinnedVisible(List<Portal> visible) =>
+      visible.where((p) => _pinnedCodes.contains(p.code)).toList();
+
+  List<Portal> otherVisible(List<Portal> visible) =>
+      visible.where((p) => !_pinnedCodes.contains(p.code)).toList();
+
+  /// Фолбэк выбора: текущий код, если он видим, иначе первый видимый.
+  /// Раньше дублировался в wide master и detail.
+  String? validSelectedCode(List<Portal> visible) {
+    if (visible.isEmpty) return null;
+    final current = _selectedCode.value;
+    if (current != null && visible.any((p) => p.code == current)) {
+      return current;
+    }
+    return visible.first.code;
   }
 }

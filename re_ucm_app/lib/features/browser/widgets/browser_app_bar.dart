@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../common/widgets/appbar.dart';
 import '../../downloads/presentation/widgets/downloads_indicator_button.dart';
 import 'browser_refresh_button.dart';
+import 'browser_tooltips.dart';
 
 class BrowserAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
@@ -51,7 +52,7 @@ class BrowserAppBar extends StatelessWidget implements PreferredSizeWidget {
                   IconButton(
                     onPressed: onBackToApp,
                     icon: const Icon(Icons.arrow_back_ios_new),
-                    tooltip: 'Назад в приложение',
+                    tooltip: BrowserTooltips.backToApp,
                   ),
                   const SizedBox(width: 6),
                   Container(
@@ -70,12 +71,12 @@ class BrowserAppBar extends StatelessWidget implements PreferredSizeWidget {
                         IconButton(
                           icon: const Icon(Icons.arrow_back, size: 24),
                           onPressed: canGoBack ? onWebBack : null,
-                          tooltip: 'Назад по сайту',
+                          tooltip: BrowserTooltips.webBack,
                         ),
                         IconButton(
                           icon: const Icon(Icons.arrow_forward, size: 24),
                           onPressed: canGoForward ? onWebForward : null,
-                          tooltip: 'Вперёд по сайту',
+                          tooltip: BrowserTooltips.webForward,
                         ),
                         BrowserRefreshButton(
                           isLoading: isLoading,

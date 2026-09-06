@@ -1,52 +1,65 @@
 import 'package:flutter/services.dart';
 import 'package:m3e_core/m3e_core.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:re_ucm_core/re_ucm_core.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
-import '../../../../core/navigation/router.dart';
 import '../../../../core/navigation/router_delegate.dart';
 import '../../../../core/ui/tokens.dart';
 
-bool _cachedWarnUnauthorized = true;
-
-/// Показывает диалог-предупреждение, если пользователь не авторизован в источнике.
+/// Показывает диалог-предупреждение, если пользователь не авторизован.
 ///
-/// Возвращает `true`, если пользователь подтвердил скачивание («Всё равно скачать»).
-/// Возвращает `false`, если скачивание отменено или пользователь перешёл ко входу.
+/// Возвращает `true`, если скачивание подтверждено.
+/// Флаг «больше не спрашивать» хранится в [SettingsService]
+/// (персистентно), а не в глобальной переменной процесса.
+/// Навигация наружу вынесена через [onLogin] — диалог не знает про роутер.
 Future<bool> checkAndConfirmUnauthorizedDownload({
   required BuildContext context,
   required PortalSession session,
-  SettingsService? settingsService,
+  required SettingsService settingsService,
+  required VoidCallback onLogin,
 }) async {
-  final hasAuthSupport = session.portal.code != 'ficbook';
-  final isAuthorized = session.isAuthorized;
-
-  if (!hasAuthSupport || isAuthorized || !_cachedWarnUnauthorized) {
+  if (!session.portal.supportsAuth ||
+      session.isAuthorized ||
+      !settingsService.warnUnauthorizedDownloads) {
     return true;
   }
 
-  final targetContext = rootNavigationKey.currentContext ?? context;
+  final targetContext = Nav.contextOrNull ?? context;
 
+  bool? dontAskAgain;
   final result = await showDialog<bool>(
     context: targetContext,
     barrierDismissible: true,
     builder: (dialogCtx) => _UnauthorizedDownloadDialog(
       session: session,
       onClose: () => Navigator.of(dialogCtx).pop(false),
+      onDontAskAgainChanged: (v) => dontAskAgain = v,
     ),
   );
 
-  return result ?? false;
+  if (dontAskAgain == true) {
+    settingsService.updateWarnUnauthorizedDownloads(false);
+  }
+
+  if (result == null) return false;
+  if (result) return true;
+
+  // Пользователь нажал «Войти»: отдаём решение наружу.
+  onLogin();
+  return false;
 }
 
 class _UnauthorizedDownloadDialog extends StatefulWidget {
   const _UnauthorizedDownloadDialog({
     required this.session,
     required this.onClose,
+    required this.onDontAskAgainChanged,
   });
 
   final PortalSession session;
   final VoidCallback onClose;
+  final ValueChanged<bool> onDontAskAgainChanged;
 
   @override
   State<_UnauthorizedDownloadDialog> createState() =>
@@ -62,6 +75,7 @@ class _UnauthorizedDownloadDialogState
     setState(() {
       _dontAskAgain = !_dontAskAgain;
     });
+    widget.onDontAskAgainChanged(_dontAskAgain);
   }
 
   @override
@@ -107,8 +121,6 @@ class _UnauthorizedDownloadDialogState
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
-
-              // Чекбокс «Больше не спрашивать»
               Material(
                 color: Colors.transparent,
                 child: InkWell(
@@ -130,6 +142,7 @@ class _UnauthorizedDownloadDialogState
                             setState(() {
                               _dontAskAgain = value ?? false;
                             });
+                            widget.onDontAskAgainChanged(_dontAskAgain);
                           },
                         ),
                         const SizedBox(width: AppSpacing.xs),
@@ -145,8 +158,6 @@ class _UnauthorizedDownloadDialogState
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
-
-              // Кнопки: «Скачать» + «Войти»
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -155,9 +166,6 @@ class _UnauthorizedDownloadDialogState
                     size: M3EButtonSize.sm,
                     onPressed: () {
                       HapticFeedback.lightImpact();
-                      if (_dontAskAgain) {
-                        _cachedWarnUnauthorized = false;
-                      }
                       Navigator.of(context).pop(true);
                     },
                     child: const Text('Скачать'),
@@ -169,7 +177,6 @@ class _UnauthorizedDownloadDialogState
                     onPressed: () {
                       HapticFeedback.lightImpact();
                       Navigator.of(context).pop(false);
-                      Nav.goSourceDetails(widget.session.portal.code);
                     },
                     child: const Text('Войти'),
                   ),

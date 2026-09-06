@@ -53,7 +53,7 @@ class AppDependencies extends InheritedWidget {
     );
 
     downloadsService.onTaskCompletedGlobal = (task) {
-      if (task.showResultOnComplete && !task.isModalOpen) {
+      if (task.showResultOnComplete) {
         final ctx = rootNavigationKey.currentContext;
         if (ctx != null) {
           showDownloadModalForTask(ctx, task);

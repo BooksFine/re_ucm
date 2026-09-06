@@ -1,89 +1,27 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:m3e_core/m3e_core.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:re_ucm_core/models/progress.dart';
+import 'package:re_ucm_core/re_ucm_core.dart';
 
 import '../../../core/di.dart';
+import '../../../core/ui/responsive_modal.dart';
 import '../../../core/ui/tokens.dart';
+import '../../recent_books/presentation/recent_book_shared.dart';
 import '../domain/download_task.cg.dart';
 import 'download_modal.dart';
-import 'widgets/cover_fallback.dart';
 
 Future<void> showDownloadsListModal(BuildContext context) async {
-  final isWide = MediaQuery.sizeOf(context).width >= 600;
-
-  if (isWide) {
-    await showDialog(
-      context: context,
-      builder: (dialogCtx) => Dialog(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 6,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadii.dialog),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 520, maxHeight: 620),
-          child: Stack(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
-                child: DownloadsListContent(
-                  isWide: true,
-                  onClose: () => Navigator.of(dialogCtx).pop(),
-                ),
-              ),
-              Positioned(
-                top: 14,
-                right: 14,
-                child: IconButton(
-                  icon: const Icon(Icons.close, size: 20),
-                  visualDensity: VisualDensity.compact,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(
-                    minWidth: 32,
-                    minHeight: 32,
-                  ),
-                  onPressed: () => Navigator.of(dialogCtx).pop(),
-                  tooltip: 'Закрыть',
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  } else {
-    await showM3EModalBottomSheet(
-      context: context,
-      useRootNavigator: true,
-      isScrollControlled: true,
-      useSafeArea: true,
-      showDragHandle: true,
-      backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
-      builder: (sheetCtx) {
-        final screenHeight = MediaQuery.sizeOf(sheetCtx).height;
-        return SafeArea(
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              16,
-              0,
-              16,
-              MediaQuery.viewInsetsOf(sheetCtx).bottom + 16,
-            ),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxHeight: screenHeight * 0.75),
-              child: DownloadsListContent(
-                isWide: false,
-                onClose: () => Navigator.of(sheetCtx).pop(),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
+  await showResponsiveAppModal(
+    context,
+    dialogMaxWidth: 520,
+    dialogMaxHeight: 620,
+    dialogPadding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
+    dialogScrollable: false,
+    sheetMaxHeightFraction: 0.75,
+    sheetScrollable: false,
+    contentBuilder: (contentCtx, close, isWide) =>
+        DownloadsListContent(isWide: isWide, onClose: close),
+  );
 }
 
 class DownloadsListContent extends StatelessWidget {
@@ -285,26 +223,15 @@ class _TaskListItem extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               child: Row(
                 children: [
-                  // Book Cover
-                  ClipRRect(
+                  // Book Cover — единый виджет.
+                  BookCoverImage(
+                    coverUrl: (coverUrl != null && coverUrl.isNotEmpty)
+                        ? coverUrl
+                        : null,
+                    width: 44,
+                    height: 60,
+                    iconSize: 22,
                     borderRadius: BorderRadius.circular(AppRadii.sm),
-                    child: (coverUrl != null && coverUrl.isNotEmpty)
-                        ? CachedNetworkImage(
-                            imageUrl: coverUrl,
-                            width: 44,
-                            height: 60,
-                            fit: BoxFit.cover,
-                            errorWidget: (_, _, _) => const CoverFallback(
-                              width: 44,
-                              height: 60,
-                              iconSize: 22,
-                            ),
-                          )
-                        : const CoverFallback(
-                            width: 44,
-                            height: 60,
-                            iconSize: 22,
-                          ),
                   ),
                   const SizedBox(width: 14),
 

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:dart_book/dart_book.dart' show BookMetadata, Book, BookResource, BookContent, BookEncodingOptions, BookResourceNamingPolicy;
-import 'package:material_ui/material_ui.dart';
 import 'package:mobx/mobx.dart';
 import 'package:open_file/open_file.dart';
 import 'package:re_ucm_core/re_ucm_core.dart' hide logger;
@@ -10,7 +9,6 @@ import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 import '../../../core/constants.dart';
 import '../../../core/logger.dart';
-import '../../common/widgets/overlay_snack.dart';
 import 'book_encoder.dart';
 import 'book_saver.dart';
 import 'book_sharer.dart';
@@ -24,6 +22,26 @@ enum DownloadTaskStatus {
   completed,
   failed,
   cancelled,
+}
+
+/// Результат экспорта (сохранение на диск). Снэки и прочий UI —
+/// в presentation, domain возвращает только факт.
+sealed class ExportOutcome {
+  const ExportOutcome();
+}
+
+class ExportSaved extends ExportOutcome {
+  const ExportSaved(this.path);
+  final String path;
+}
+
+class ExportCancelled extends ExportOutcome {
+  const ExportCancelled();
+}
+
+class ExportFailed extends ExportOutcome {
+  const ExportFailed(this.error);
+  final Object error;
 }
 
 class DownloadTask = DownloadTaskBase with _$DownloadTask;
@@ -93,7 +111,6 @@ abstract class DownloadTaskBase with Store {
     }
   }
 
-  bool isModalOpen = false;
   bool _isCancelled = false;
   CancellationToken? _cancelToken;
   Uint8List? _encodedBytes;
@@ -112,6 +129,9 @@ abstract class DownloadTaskBase with Store {
   @computed
   bool get isFailed => status == DownloadTaskStatus.failed;
 
+  /// Смена формата + персист в настройки + фоновая переконвертация,
+  /// если книга уже скачана. Сайд-эффект осознанный (см. имя) —
+  /// вызывается только из UI выбора формата.
   @action
   void updateSaveFormat(SaveFormat format) {
     if (saveFormat == format) return;
@@ -168,31 +188,10 @@ abstract class DownloadTaskBase with Store {
       status = DownloadTaskStatus.downloading;
       logger.i('Downloading content for book [${session.code}-$bookId]');
 
-      var lastProgressTimestamp = 0;
-      var lastStage = Stages.none;
-      var lastCurrent = -1;
-
-      void handleProgress(Progress p) {
-        if (_isCancelled) return;
-        final now = DateTime.now().millisecondsSinceEpoch;
-        final isStageChanged = p.stage != lastStage;
-        final isCountChanged = p.current != lastCurrent;
-        final isDoneOrError = p.stage == Stages.done || p.stage == Stages.error;
-
-        if (isDoneOrError ||
-            isStageChanged ||
-            isCountChanged ||
-            (now - lastProgressTimestamp > 33)) {
-          lastProgressTimestamp = now;
-          lastStage = p.stage;
-          lastCurrent = p.current ?? -1;
-          progress = p;
-        }
-      }
-
+      final throttled = _throttledProgress();
       final content = _contentCache ??= await session.getBookContent(
         bookId,
-        onProgress: handleProgress,
+        onProgress: throttled,
         cancelToken: _cancelToken,
       );
       if (_isCancelled) return;
@@ -203,7 +202,7 @@ abstract class DownloadTaskBase with Store {
         resourceResolver: session.getResourceResolver(),
         initialResources: _resolvedResources,
         maxConcurrentDownloads: settings.parallelImageDownloads,
-        onProgress: handleProgress,
+        onProgress: throttled,
         cancelToken: _cancelToken,
       );
       if (_isCancelled) return;
@@ -262,7 +261,6 @@ abstract class DownloadTaskBase with Store {
     status = DownloadTaskStatus.downloading;
     failedTasks = [];
     try {
-      var lastRetryTimestamp = 0;
       final result = await BookExporter.resolveBook(
         metadata: metadata!,
         content: _contentCache!,
@@ -270,16 +268,7 @@ abstract class DownloadTaskBase with Store {
         initialResources: _resolvedResources,
         maxConcurrentDownloads: settings.parallelImageDownloads,
         cancelToken: _cancelToken,
-        onProgress: (p) {
-          if (_isCancelled) return;
-          final now = DateTime.now().millisecondsSinceEpoch;
-          if (p.stage == Stages.done ||
-              p.stage == Stages.error ||
-              now - lastRetryTimestamp > 50) {
-            lastRetryTimestamp = now;
-            progress = p;
-          }
-        },
+        onProgress: _throttledProgress(minIntervalMs: 50),
       );
       if (_isCancelled) return;
 
@@ -298,87 +287,83 @@ abstract class DownloadTaskBase with Store {
     }
   }
 
-  Future<void> share() => _export(share: true);
+  /// Единый throttling прогресса для start/retry.
+  /// Порог по умолчанию 33мс (~30fps для UI).
+  void Function(Progress) _throttledProgress({int minIntervalMs = 33}) {
+    var lastTimestamp = 0;
+    var lastStage = Stages.none;
+    var lastCurrent = -1;
+    return (Progress p) {
+      if (_isCancelled) return;
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final isStageChanged = p.stage != lastStage;
+      final isCountChanged = p.current != lastCurrent;
+      final isDoneOrError =
+          p.stage == Stages.done || p.stage == Stages.error;
+      if (isDoneOrError ||
+          isStageChanged ||
+          isCountChanged ||
+          (now - lastTimestamp > minIntervalMs)) {
+        lastTimestamp = now;
+        lastStage = p.stage;
+        lastCurrent = p.current ?? -1;
+        progress = p;
+      }
+    };
+  }
 
-  Future<void> save(BuildContext context) =>
-      _export(context: context, share: false);
-
-  Future<void> _export({BuildContext? context, bool share = false}) async {
+  Future<void> share() async {
     if (resolvedBook == null || metadata == null) return;
     runInAction(() => isExporting = true);
-
     try {
-      final data = metadata!;
-      final format = saveFormat;
-
-      final templateFileName = TemplateFormatter.buildTemplateFileName(
-        data,
-        session.portal,
+      final bytes = await _encodeCurrentBook();
+      await _sharer.shareBook(
+        bytes: bytes,
+        metadata: metadata!,
+        format: saveFormat,
+        portal: session.portal,
+        resolvedBook: resolvedBook,
         downloadPathTemplate: settings.downloadPathTemplate,
         authorsPathSeparator: settings.authorsPathSeparator,
       );
+    } finally {
+      runInAction(() => isExporting = false);
+    }
+  }
 
-      final Uint8List bytes;
-      if (_encodedFormat == format && _encodedBytes != null) {
-        bytes = _encodedBytes!;
-      } else {
-        bytes = await _encoder.encode(
-          book: resolvedBook!,
-          format: format,
-          options: BookEncodingOptions(
-            documentId: 'UCM-${session.portal.code.toUpperCase()}-${data.id}',
-            programUsed: 'ReUltimateCopyManager $appVersion',
-            entryFilename: templateFileName,
-            namingPolicy: BookResourceNamingPolicy.sequential,
-          ),
-          onProgress: (p) {
-            progress = p;
-          },
-        );
-        _encodedBytes = bytes;
-        _encodedFormat = format;
-      }
-
-      if (share) {
-        await _sharer.shareBook(
-          bytes: bytes,
-          metadata: data,
-          format: format,
-          portal: session.portal,
-          resolvedBook: resolvedBook,
-        );
-        return;
-      }
-
+  /// Сохранение без UI-зависимостей. Снэки — в presentation
+  /// по возвращённому [ExportOutcome].
+  Future<ExportOutcome> save() async {
+    if (resolvedBook == null || metadata == null) {
+      return const ExportCancelled();
+    }
+    runInAction(() => isExporting = true);
+    try {
+      final templateFileName = _templateFileName();
+      final bytes = await _encodeCurrentBook(
+        templateFileName: templateFileName,
+      );
       final finalPath = await _saver.saveToFile(
         bytes: bytes,
         templateFileName: templateFileName,
-        format: format,
+        format: saveFormat,
         saveDirectory: settings.saveDirectory,
       );
-
-      if (context != null && context.mounted) {
-        if (finalPath == null) {
-          overlaySnackMessage(context, 'Сохранение отменено');
-        } else {
-          runInAction(() => savedFilePath = finalPath);
-          unawaited(
-            recentBooksService.updateRecentBookFile(
-              portalCode: session.portal.code,
-              bookId: bookId,
-              savedFilePath: finalPath,
-              saveFormat: format,
-              downloadedAt: DateTime.now(),
-            ),
-          );
-          overlaySnackMessage(context, 'Успешно сохранено');
-        }
-      }
+      if (finalPath == null) return const ExportCancelled();
+      runInAction(() => savedFilePath = finalPath);
+      unawaited(
+        recentBooksService.updateRecentBookFile(
+          portalCode: session.portal.code,
+          bookId: bookId,
+          savedFilePath: finalPath,
+          saveFormat: saveFormat,
+          downloadedAt: DateTime.now(),
+        ),
+      );
+      return ExportSaved(finalPath);
     } catch (e, trace) {
       logger.e('Book export error', error: e, stackTrace: trace);
-      if (context != null && context.mounted) {
-        overlaySnackMessage(context, 'Произошла ошибка при сохранении');
-      }
+      return ExportFailed(e);
     } finally {
       runInAction(() => isExporting = false);
     }
@@ -389,34 +374,12 @@ abstract class DownloadTaskBase with Store {
     runInAction(() => isExporting = true);
 
     try {
-      final data = metadata ?? resolvedBook!.metadata;
-      final format = saveFormat;
-
-      final templateFileName = TemplateFormatter.buildTemplateFileName(
-        data,
-        session.portal,
-        downloadPathTemplate: settings.downloadPathTemplate,
-        authorsPathSeparator: settings.authorsPathSeparator,
-      );
-
-      final bytes = await _encoder.encode(
-        book: resolvedBook!,
-        format: format,
-        options: BookEncodingOptions(
-          documentId: 'UCM-${session.portal.code.toUpperCase()}-${data.id}',
-          programUsed: 'ReUltimateCopyManager $appVersion',
-          entryFilename: templateFileName,
-          namingPolicy: BookResourceNamingPolicy.sequential,
-        ),
-        onProgress: (p) {
-          progress = p;
-        },
+      final templateFileName = _templateFileName();
+      final bytes = await _encodeCurrentBook(
+        templateFileName: templateFileName,
       );
 
       if (_isCancelled) return;
-
-      _encodedBytes = bytes;
-      _encodedFormat = format;
 
       final saveDirectory = settings.saveDirectory;
       if ((settings.autoSaveOnComplete || savedFilePath != null) &&
@@ -425,7 +388,7 @@ abstract class DownloadTaskBase with Store {
         final finalPath = await _saver.saveToFile(
           bytes: bytes,
           templateFileName: templateFileName,
-          format: format,
+          format: saveFormat,
           saveDirectory: saveDirectory,
         );
 
@@ -436,7 +399,7 @@ abstract class DownloadTaskBase with Store {
               portalCode: session.portal.code,
               bookId: bookId,
               savedFilePath: finalPath,
-              saveFormat: format,
+              saveFormat: saveFormat,
               downloadedAt: DateTime.now(),
             ),
           );
@@ -452,10 +415,48 @@ abstract class DownloadTaskBase with Store {
     }
   }
 
-  double? get normalizedProgress {
-    final cur = progress.current;
-    final tot = progress.total;
-    if (cur == null || tot == null || tot <= 0) return null;
-    return (cur / tot).clamp(0.0, 1.0);
+  String _templateFileName() {
+    final data = metadata ?? resolvedBook!.metadata;
+    return TemplateFormatter.buildTemplateFileName(
+      data,
+      session.portal,
+      downloadPathTemplate: settings.downloadPathTemplate,
+      authorsPathSeparator: settings.authorsPathSeparator,
+    );
   }
+
+  BookEncodingOptions _encodingOptions(String templateFileName) {
+    final data = metadata ?? resolvedBook!.metadata;
+    return BookEncodingOptions(
+      documentId: 'UCM-${session.portal.code.toUpperCase()}-${data.id}',
+      programUsed: 'ReUltimateCopyManager $appVersion',
+      entryFilename: templateFileName,
+      namingPolicy: BookResourceNamingPolicy.sequential,
+    );
+  }
+
+  /// Единая точка кодирования с кэшем. Раньше логика была
+  /// скопирована в `_export` и `_convertBook`.
+  Future<Uint8List> _encodeCurrentBook({String? templateFileName}) async {
+    final format = saveFormat;
+    if (templateFileName == null &&
+        _encodedFormat == format &&
+        _encodedBytes != null) {
+      return _encodedBytes!;
+    }
+    final name = templateFileName ?? _templateFileName();
+    final bytes = await _encoder.encode(
+      book: resolvedBook!,
+      format: format,
+      options: _encodingOptions(name),
+      onProgress: (p) {
+        progress = p;
+      },
+    );
+    _encodedBytes = bytes;
+    _encodedFormat = format;
+    return bytes;
+  }
+
+  double? get normalizedProgress => progress.normalized;
 }

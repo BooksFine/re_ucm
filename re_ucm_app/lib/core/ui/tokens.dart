@@ -51,3 +51,17 @@ abstract final class AppSpacing {
   /// 24.0
   static const double xxl = 24.0;
 }
+
+abstract final class AppBreakpoints {
+  /// 600 — mobile/wide для модалов и навигации.
+  static const double mobileNav = 600.0;
+
+  /// 780 — master/detail для sources.
+  static const double sourcesSplit = 780.0;
+
+  /// 840 — split главной.
+  static const double homeSplit = 840.0;
+
+  /// 1024 — широкие карточки recent.
+  static const double wideCards = 1024.0;
+}

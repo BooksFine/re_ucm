@@ -7,7 +7,6 @@ import '../../../core/di.dart';
 import '../../../core/navigation/router_delegate.dart';
 import '../../../core/ui/tokens.dart';
 import 'portal_card.dart';
-
 class PortalsList extends StatelessWidget {
   const PortalsList({
     super.key,
@@ -73,62 +72,21 @@ class _AllSourcesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-
-    return Card(
-      margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadii.card),
-        side: BorderSide(
-          color: cs.outlineVariant.withValues(alpha: 0.4),
-          width: 0.8,
+    final cs = Theme.of(context).colorScheme;
+    return PortalCardShell(
+      onTap: onTap,
+      label: 'Все источники',
+      logo: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: cs.surfaceContainerHighest,
         ),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadii.card),
-        child: SizedBox(
-          width: 110,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: AppSpacing.md,
-              horizontal: AppSpacing.xs,
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Center(
-                    child: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: cs.surfaceContainerHighest,
-                      ),
-                      child: Icon(
-                        Icons.arrow_forward_rounded,
-                        color: cs.onSurface,
-                        size: 22,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  'Все источники',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: cs.onSurface,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
+        child: Icon(
+          Icons.arrow_forward_rounded,
+          color: cs.onSurface,
+          size: 22,
         ),
       ),
     );

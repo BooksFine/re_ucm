@@ -5,6 +5,7 @@ import 'package:webview_all/webview_all.dart';
 
 import '../../core/di.dart';
 import '../../core/navigation/router_delegate.dart';
+import '../../core/ui/tokens.dart';
 import '../common/widgets/webview.dart';
 import '../downloads/presentation/download_modal.dart';
 import 'widgets/browser_app_bar.dart';
@@ -104,7 +105,7 @@ class _BrowserState extends State<Browser> {
 
   @override
   Widget build(BuildContext context) {
-    final isWide = MediaQuery.sizeOf(context).width >= 600;
+    final isWide = MediaQuery.sizeOf(context).width >= AppBreakpoints.mobileNav;
     final bottomPadding = MediaQuery.paddingOf(context).bottom;
     final bottomBarHeight =
         M3EFloatingToolbarDefaults.containerSize + 16.0 + bottomPadding;

@@ -8,13 +8,11 @@ import 'package:re_ucm_lib/re_ucm_lib.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../core/di.dart';
+import '../../../core/navigation/router_delegate.dart';
 import '../../common/widgets/overlay_snack.dart';
 import '../../downloads/domain/download_task.cg.dart';
 import '../../downloads/presentation/download_modal.dart';
 import '../../downloads/presentation/widgets/unauthorized_download_dialog.dart';
-
-export 'recent_book_utils.dart';
-export 'recent_book_widgets.dart';
 
 Future<void> openDownloadedFile(
   BuildContext context,
@@ -78,6 +76,7 @@ Future<void> startDownload(
     context: context,
     session: session,
     settingsService: deps.settingsService,
+    onLogin: () => Nav.goSourceDetails(session.portal.code),
   );
   if (!shouldProceed || !context.mounted) return;
 

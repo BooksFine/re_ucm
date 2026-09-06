@@ -10,17 +10,23 @@ class ChangelogCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: ColorScheme.of(context).surfaceTint.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(24),
+    return Card(
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        side: BorderSide(
+          color: Theme.of(
+            context,
+          ).colorScheme.outlineVariant.withValues(alpha: 0.4),
+          width: 0.8,
+        ),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm * 2),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: AppSpacing.sm * 2),
+            const SizedBox(height: AppSpacing.lg),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -45,10 +51,10 @@ class ChangelogCard extends StatelessWidget {
             if (model.technicalDetails != null)
               ExpansionTile(
                 collapsedShape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppRadii.lg),
                 ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppRadii.lg),
                 ),
                 title: Text(
                   'Технические подробности',
@@ -69,12 +75,12 @@ class ChangelogCard extends StatelessWidget {
                       fontSize: 12,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.sm * 2),
+                  const SizedBox(height: AppSpacing.lg),
                 ],
               ),
 
             if (model.technicalDetails == null)
-              const SizedBox(height: AppSpacing.sm * 2),
+              const SizedBox(height: AppSpacing.lg),
           ],
         ),
       ),

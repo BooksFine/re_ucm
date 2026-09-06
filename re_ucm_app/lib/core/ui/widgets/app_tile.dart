@@ -79,52 +79,33 @@ class AppTile extends StatelessWidget {
       ],
     );
 
-    Widget content = LayoutBuilder(
-      builder: (context, constraints) {
-        final resolvedTrailing = trailing ??
-            (effectiveShowChevron
-                ? Icon(
-                    Icons.chevron_right_rounded,
-                    size: 20,
-                    color: isDestructive
-                        ? cs.error.withValues(alpha: 0.7)
-                        : cs.onSurfaceVariant,
-                  )
-                : null);
+    // Один Row вместо двух деревьев: раньше ветка <250px дублировала
+    // всё дерево ради редкого кейса, а каждый tile в списке платил
+    // за LayoutBuilder. Trailing — без flex-обёртки: Flexible делил бы
+    // свободное место с Expanded и уводил trailing к центру.
+    final resolvedTrailing = trailing ??
+        (effectiveShowChevron
+            ? Icon(
+                Icons.chevron_right_rounded,
+                size: 20,
+                color: isDestructive
+                    ? cs.error.withValues(alpha: 0.7)
+                    : cs.onSurfaceVariant,
+              )
+            : null);
 
-        if (constraints.maxWidth < 250 && resolvedTrailing != null) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  if (leading != null) ...[
-                    leading!,
-                    const SizedBox(width: AppSpacing.md),
-                  ],
-                  Expanded(child: titleColumn),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Align(alignment: Alignment.centerRight, child: resolvedTrailing),
-            ],
-          );
-        }
-
-        return Row(
-          children: [
-            if (leading != null) ...[
-              leading!,
-              const SizedBox(width: AppSpacing.md),
-            ],
-            Expanded(child: titleColumn),
-            if (resolvedTrailing != null) ...[
-              const SizedBox(width: AppSpacing.md),
-              resolvedTrailing,
-            ],
-          ],
-        );
-      },
+    final content = Row(
+      children: [
+        if (leading != null) ...[
+          leading!,
+          const SizedBox(width: AppSpacing.md),
+        ],
+        Expanded(child: titleColumn),
+        if (resolvedTrailing != null) ...[
+          const SizedBox(width: AppSpacing.md),
+          resolvedTrailing,
+        ],
+      ],
     );
 
     return InkWell(

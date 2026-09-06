@@ -97,6 +97,11 @@ class SettingsService {
     _saveSettings(_settings.copyWith(recentBooksViewMode: mode));
   }
 
+  bool get warnUnauthorizedDownloads => _settings.warnUnauthorizedDownloads;
+  void updateWarnUnauthorizedDownloads(bool value) {
+    _saveSettings(_settings.copyWith(warnUnauthorizedDownloads: value));
+  }
+
   Future<void> loadSettings() async {
     _settings = await storage.getGeneralSettings();
 

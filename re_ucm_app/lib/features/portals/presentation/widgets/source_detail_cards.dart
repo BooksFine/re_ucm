@@ -3,13 +3,12 @@ import 'package:m3e_core/m3e_core.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_core/models/portal.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
-
 import '../../../../core/navigation/router_delegate.dart';
-import '../../../../core/ui/app_colors_extension.dart';
 import '../../../../core/ui/tokens.dart';
 import '../../../../core/ui/widgets/widgets.dart';
 import '../../../common/utils/external_launcher.dart';
 import '../settings/portal_settings_frame.dart';
+import 'portal_badges.dart';
 import 'portal_domain_extension.dart';
 import 'portal_logo_icon.dart';
 
@@ -31,8 +30,6 @@ class SourceHeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final appColors = context.appColors;
-
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xl),
@@ -104,33 +101,7 @@ class SourceHeroCard extends StatelessWidget {
                           ),
                           if (portal.hasAuth) ...[
                             const SizedBox(width: 10),
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 250),
-                              width: 6,
-                              height: 6,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: isAuth
-                                    ? appColors.statusOnline
-                                    : appColors.statusOffline,
-                              ),
-                            ),
-                            const SizedBox(width: 5),
-                            AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 200),
-                              child: Text(
-                                isAuth ? 'Подключен' : 'Без входа',
-                                key: ValueKey(isAuth),
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: isAuth
-                                      ? appColors.statusOnline
-                                      : cs.onSurfaceVariant,
-                                  fontWeight: isAuth
-                                      ? FontWeight.w600
-                                      : FontWeight.w500,
-                                ),
-                              ),
-                            ),
+                            PortalAuthBadge(isAuthorized: isAuth),
                           ],
                         ],
                       ),
@@ -157,20 +128,7 @@ class SourceHeroCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 250),
-                    switchInCurve: Curves.easeOutCubic,
-                    switchOutCurve: Curves.easeInCubic,
-                    layoutBuilder: (currentChild, previousChildren) {
-                      return Stack(
-                        fit: StackFit.passthrough,
-                        alignment: Alignment.center,
-                        children: <Widget>[
-                          ...previousChildren,
-                          ?currentChild,
-                        ],
-                      );
-                    },
+                  child: PortalPinScaleTransition(
                     child: isPinned
                         ? M3EButton.icon(
                             key: const ValueKey(true),

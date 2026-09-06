@@ -4,33 +4,32 @@ import 'package:material_ui/material_ui.dart';
 import '../../../core/navigation/router_delegate.dart';
 import '../../../core/ui/tokens.dart';
 import '../../changelog/changelog.dart';
+import '../../common/widgets/app_button.dart';
 
 class ChangelogDialog extends StatelessWidget {
   const ChangelogDialog({super.key});
 
   @override
   Widget build(BuildContext context) {
+    if (changelogGen.isEmpty) return const SizedBox.shrink();
+    final entry = changelogGen.first;
     return AlertDialog(
       backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
       insetPadding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm * 2,
-        vertical: AppSpacing.sm * 6,
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.xxl * 3,
       ),
-      title: Text(changelogGen[0].title),
+      title: Text(entry.title),
       titleTextStyle: Theme.of(context).textTheme.headlineMedium,
-      content: Text(changelogGen[0].content),
+      content: SingleChildScrollView(child: Text(entry.content)),
       actions: [
-        SizedBox(
-          width: double.infinity,
-          child: M3EButton(
-            style: M3EButtonStyle.outlined,
-            size: M3EButtonSize.md,
-            onPressed: () {
-              Nav.back();
-              Nav.goChangelog();
-            },
-            child: const Text('Полный список'),
-          ),
+        AppButton(
+          style: M3EButtonStyle.outlined,
+          onPressed: () {
+            Nav.back();
+            Nav.goChangelog();
+          },
+          child: const Text('Полный список'),
         ),
       ],
     );

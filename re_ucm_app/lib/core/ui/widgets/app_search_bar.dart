@@ -2,19 +2,21 @@ import 'package:material_ui/material_ui.dart';
 
 import 'app_text_field.dart';
 
+/// Поисковая строка. Единственный источник истины — [controller]
+/// (внешний или внутренний). Раньше был второй флаг `searchQuery`,
+/// дублировавший `controller.text`, плюс ручная переподписка
+/// в `didUpdateWidget`.
 class AppSearchBar extends StatefulWidget {
   const AppSearchBar({
     super.key,
     this.controller,
     required this.hint,
-    this.searchQuery,
     this.onChanged,
     this.onClear,
   });
 
   final TextEditingController? controller;
   final String hint;
-  final String? searchQuery;
   final ValueChanged<String>? onChanged;
   final VoidCallback? onClear;
 
@@ -45,6 +47,8 @@ class _AppSearchBarState extends State<AppSearchBar> {
 
   @override
   void dispose() {
+    // Внешний контроллер принадлежит вызывающему — слушатель снимаем,
+    // dispose делает владелец.
     _effectiveController.removeListener(_onTextChange);
     _internalController?.dispose();
     super.dispose();
@@ -59,9 +63,6 @@ class _AppSearchBarState extends State<AppSearchBar> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final isNotEmpty =
-        (widget.searchQuery != null && widget.searchQuery!.isNotEmpty) ||
-        _effectiveController.text.isNotEmpty;
 
     return AppTextField(
       controller: _effectiveController,
@@ -72,7 +73,7 @@ class _AppSearchBarState extends State<AppSearchBar> {
         color: cs.onSurfaceVariant,
         size: 22,
       ),
-      suffixIcon: isNotEmpty
+      suffixIcon: _effectiveController.text.isNotEmpty
           ? IconButton(
               icon: const Icon(Icons.clear_rounded, size: 20),
               tooltip: 'Очистить',

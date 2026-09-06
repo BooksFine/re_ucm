@@ -38,23 +38,13 @@ class AppCounterRow extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          InkWell(
+          _StepButton(
+            icon: Icons.remove_rounded,
+            enabled: canDecrement,
             borderRadius: const BorderRadius.horizontal(
               left: Radius.circular(AppRadii.sm),
             ),
-            onTap: canDecrement
-                ? () => onChanged((value - 1).clamp(min, max))
-                : null,
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.sm),
-              child: Icon(
-                Icons.remove_rounded,
-                size: 18,
-                color: canDecrement
-                    ? theme.colorScheme.onSurface
-                    : theme.colorScheme.onSurface.withValues(alpha: 0.38),
-              ),
-            ),
+            onTap: () => onChanged((value - 1).clamp(min, max)),
           ),
           SizedBox(
             width: 30,
@@ -68,23 +58,13 @@ class AppCounterRow extends StatelessWidget {
               ),
             ),
           ),
-          InkWell(
+          _StepButton(
+            icon: Icons.add_rounded,
+            enabled: canIncrement,
             borderRadius: const BorderRadius.horizontal(
               right: Radius.circular(AppRadii.sm),
             ),
-            onTap: canIncrement
-                ? () => onChanged((value + 1).clamp(min, max))
-                : null,
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.sm),
-              child: Icon(
-                Icons.add_rounded,
-                size: 18,
-                color: canIncrement
-                    ? theme.colorScheme.onSurface
-                    : theme.colorScheme.onSurface.withValues(alpha: 0.38),
-              ),
-            ),
+            onTap: () => onChanged((value + 1).clamp(min, max)),
           ),
         ],
       ),
@@ -94,6 +74,39 @@ class AppCounterRow extends StatelessWidget {
       title: title,
       subtitle: subtitle,
       trailing: stepper,
+    );
+  }
+}
+
+class _StepButton extends StatelessWidget {
+  const _StepButton({
+    required this.icon,
+    required this.enabled,
+    required this.borderRadius,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final bool enabled;
+  final BorderRadius borderRadius;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return InkWell(
+      borderRadius: borderRadius,
+      onTap: enabled ? onTap : null,
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.sm),
+        child: Icon(
+          icon,
+          size: 18,
+          color: enabled
+              ? cs.onSurface
+              : cs.onSurface.withValues(alpha: 0.38),
+        ),
+      ),
     );
   }
 }

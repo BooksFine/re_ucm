@@ -2,6 +2,7 @@ import 'package:m3e_core/m3e_core.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'browser_refresh_button.dart';
+import 'browser_tooltips.dart';
 
 class BrowserBottomToolbar extends StatelessWidget {
   const BrowserBottomToolbar({
@@ -39,12 +40,12 @@ class BrowserBottomToolbar extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new),
                 onPressed: canGoBack ? onWebBack : null,
-                tooltip: 'Назад',
+                tooltip: BrowserTooltips.webBack,
               ),
               IconButton(
                 icon: const Icon(Icons.arrow_forward_ios),
                 onPressed: canGoForward ? onWebForward : null,
-                tooltip: 'Вперёд',
+                tooltip: BrowserTooltips.webForward,
               ),
               BrowserRefreshButton(isLoading: isLoading, onReload: onReload),
             ],

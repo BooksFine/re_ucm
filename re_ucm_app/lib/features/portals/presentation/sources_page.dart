@@ -7,14 +7,14 @@ import '../../../core/di.dart';
 import '../../../core/navigation/router_delegate.dart';
 import '../../../core/ui/centered_flexible_space_bar.dart';
 import '../../../core/ui/tokens.dart';
+import '../../../core/ui/widgets/app_search_bar.dart';
+import '../../../core/ui/widgets/app_section_header.dart';
 import '../../downloads/presentation/widgets/downloads_indicator_button.dart';
 import 'sources_controller.dart';
 import 'widgets/animated_collapse_slot.dart';
 import 'widgets/source_detail_view.dart';
 import 'widgets/source_item_tile.dart';
 import 'widgets/sources_empty_view.dart';
-import 'widgets/sources_list_section.dart';
-import 'widgets/sources_search_bar.dart';
 
 class SourcesPage extends StatefulWidget {
   const SourcesPage({super.key});
@@ -41,8 +41,7 @@ class _SourcesPageState extends State<SourcesPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final deps = AppDependencies.of(context);
-    _controller.initPinnedCodes(deps.settingsService.pinnedPortalCodes);
+    _controller.attachSettings(AppDependencies.of(context).settingsService);
   }
 
   @override
@@ -53,18 +52,11 @@ class _SourcesPageState extends State<SourcesPage> {
     super.dispose();
   }
 
-  void _togglePin(AppDependencies deps, String code) {
-    _controller.togglePin(code, deps.settingsService.togglePinPortal);
-  }
-
   Widget _buildSearchBar(List<Portal> allPortals) {
-    return Observer(
-      builder: (_) => SourcesSearchBar(
-        controller: _searchController,
-        totalCount: allPortals.length,
-        searchQuery: _controller.searchQuery,
-        onChanged: (val) => _controller.searchQuery = val,
-      ),
+    return AppSearchBar(
+      controller: _searchController,
+      hint: 'Поиск по ${allPortals.length} источникам...',
+      onChanged: (val) => _controller.searchQuery = val,
     );
   }
 
@@ -79,13 +71,19 @@ class _SourcesPageState extends State<SourcesPage> {
     required EdgeInsetsGeometry sectionHeaderPadding,
   }) {
     return Observer(builder: (_) {
-      final filteredPortals = _controller.filterPortals(allPortals);
-      if (filteredPortals.isEmpty) {
+      final visible = _controller.visiblePortals(allPortals);
+      if (visible.isEmpty) {
         return const SourcesEmptyView();
       }
+      // Паддинг зависит от поиска — считаем внутри Observer,
+      // чтобы отступ обновлялся вместе со списком.
+      final effectivePadding = _controller.searchQuery.isNotEmpty
+          ? padding.copyWith(top: 12)
+          : padding;
       return _buildPortalList(
         context,
-        padding: padding,
+        visible: visible,
+        padding: effectivePadding,
         keyPrefix: keyPrefix,
         showChevron: showChevron,
         onTap: onTap,
@@ -97,6 +95,7 @@ class _SourcesPageState extends State<SourcesPage> {
 
   Widget _buildPortalList(
     BuildContext context, {
+    required List<Portal> visible,
     required EdgeInsets padding,
     required String keyPrefix,
     required bool showChevron,
@@ -105,18 +104,27 @@ class _SourcesPageState extends State<SourcesPage> {
     required EdgeInsetsGeometry sectionHeaderPadding,
   }) {
     final deps = AppDependencies.of(context);
-    final allPortals = PortalFactory.portals;
-    final filteredPortals = _controller.filterPortals(allPortals);
-    final pinnedCodes = _controller.pinnedCodes;
-    final pinnedPortals = filteredPortals
-        .where((p) => pinnedCodes.contains(p.code))
-        .toList();
-    final otherPortals = filteredPortals
-        .where((p) => !pinnedCodes.contains(p.code))
-        .toList();
+    // Партиционирование уже посчитано вызывающим — здесь только рендер.
+    final pinnedPortals = _controller.pinnedVisible(visible);
+    final otherPortals = _controller.otherVisible(visible);
+    final showPinnedSection =
+        _controller.searchQuery.isEmpty && pinnedPortals.isNotEmpty;
 
-    if (filteredPortals.isEmpty) {
-      return const SourcesEmptyView();
+    Widget tile(
+      Portal portal, {
+      required String keySuffix,
+      required bool isPinned,
+    }) {
+      return SourceItemTile(
+        key: ValueKey('${keyPrefix}_${keySuffix}_${portal.code}'),
+        portal: portal,
+        session: deps.settingsService.sessionByCode(portal.code),
+        isPinned: isPinned,
+        showChevron: showChevron,
+        isSelected: isSelected?.call(portal.code) ?? false,
+        onTap: () => onTap(portal),
+        onTogglePin: () => _controller.togglePin(portal.code),
+      );
     }
 
     return Padding(
@@ -125,59 +133,41 @@ class _SourcesPageState extends State<SourcesPage> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           AnimatedCollapseSlot(
-            isVisible: _controller.searchQuery.isEmpty &&
-                pinnedPortals.isNotEmpty,
-            child: SourcesSectionHeader(
-              title: 'Закрепленные (${pinnedPortals.length})',
+            isVisible: showPinnedSection,
+            child: AppSectionHeader(
+              'Закрепленные (${pinnedPortals.length})',
               padding: sectionHeaderPadding,
             ),
           ),
-          for (final portal in allPortals)
+          for (final portal in pinnedPortals)
             AnimatedCollapseSlot(
               key: ValueKey('${keyPrefix}_pinned_slot_${portal.code}'),
-              isVisible: _controller.searchQuery.isEmpty &&
-                  pinnedCodes.contains(portal.code) &&
-                  filteredPortals.any((p) => p.code == portal.code),
+              isVisible:
+                  _controller.searchQuery.isEmpty, // скрытие — анимацией
               bottomPadding: 8,
-              child: SourceItemTile(
-                key: ValueKey('${keyPrefix}_pin_${portal.code}'),
-                portal: portal,
-                session: deps.settingsService.sessionByCode(portal.code),
-                isPinned: true,
-                showChevron: showChevron,
-                isSelected: isSelected?.call(portal.code) ?? false,
-                onTap: () => onTap(portal),
-                onTogglePin: () => _togglePin(deps, portal.code),
-              ),
+              child: tile(portal, keySuffix: 'pin', isPinned: true),
             ),
           AnimatedCollapseSlot(
-            isVisible: _controller.searchQuery.isEmpty &&
-                pinnedPortals.isNotEmpty,
+            isVisible: showPinnedSection,
             child: Padding(
               padding: const EdgeInsets.only(top: 8),
-              child: SourcesSectionHeader(
-                title: 'Все источники (${otherPortals.length})',
+              child: AppSectionHeader(
+                'Все источники (${otherPortals.length})',
                 padding: sectionHeaderPadding,
               ),
             ),
           ),
-          for (final portal in allPortals)
+          for (final portal in (_controller.searchQuery.isNotEmpty
+              ? visible
+              : otherPortals))
             AnimatedCollapseSlot(
               key: ValueKey('${keyPrefix}_other_slot_${portal.code}'),
-              isVisible: _controller.searchQuery.isNotEmpty
-                  ? filteredPortals.any((p) => p.code == portal.code)
-                  : (!pinnedCodes.contains(portal.code) &&
-                      filteredPortals.any((p) => p.code == portal.code)),
+              isVisible: true,
               bottomPadding: 8,
-              child: SourceItemTile(
-                key: ValueKey('${keyPrefix}_${portal.code}'),
-                portal: portal,
-                session: deps.settingsService.sessionByCode(portal.code),
-                isPinned: pinnedCodes.contains(portal.code),
-                showChevron: showChevron,
-                isSelected: isSelected?.call(portal.code) ?? false,
-                onTap: () => onTap(portal),
-                onTogglePin: () => _togglePin(deps, portal.code),
+              child: tile(
+                portal,
+                keySuffix: 'item',
+                isPinned: _controller.pinnedCodes.contains(portal.code),
               ),
             ),
         ],
@@ -194,7 +184,7 @@ class _SourcesPageState extends State<SourcesPage> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isWide = constraints.maxWidth >= 780;
+        final isWide = constraints.maxWidth >= AppBreakpoints.sourcesSplit;
 
         if (isWide) {
           return _buildWideLayout(context, theme, cs, deps, allPortals, constraints);
@@ -239,20 +229,20 @@ class _SourcesPageState extends State<SourcesPage> {
                 Expanded(
                   child: Observer(
                     builder: (_) {
-                      final filteredPortals = _controller.filterPortals(allPortals);
-                      if (filteredPortals.isEmpty) {
+                      final visible = _controller.visiblePortals(allPortals);
+                      if (visible.isEmpty) {
                         return const SourcesEmptyView();
                       }
 
-                      final validCode = filteredPortals.any((p) => p.code == _controller.selectedCode)
-                          ? _controller.selectedCode
-                          : filteredPortals.first.code;
+                      final validCode =
+                          _controller.validSelectedCode(visible);
 
                       return ListView(
                         controller: _masterScrollController,
                         children: [
                           _buildPortalList(
                             context,
+                            visible: visible,
                             padding: const EdgeInsets.fromLTRB(20, 4, 12, 4),
                             keyPrefix: 'master',
                             showChevron: false,
@@ -274,13 +264,11 @@ class _SourcesPageState extends State<SourcesPage> {
           Expanded(
             child: Observer(
               builder: (_) {
-                final filteredPortals = _controller.filterPortals(allPortals);
-                final validCode = filteredPortals.any((p) => p.code == _controller.selectedCode)
-                    ? _controller.selectedCode
-                    : (filteredPortals.isNotEmpty ? filteredPortals.first.code : null);
+                final visible = _controller.visiblePortals(allPortals);
+                final validCode = _controller.validSelectedCode(visible);
 
                 final selectedPortal = validCode != null
-                    ? filteredPortals.firstWhere((p) => p.code == validCode)
+                    ? visible.firstWhere((p) => p.code == validCode)
                     : null;
 
                 final pinnedCodes = _controller.pinnedCodes;
@@ -343,7 +331,8 @@ class _SourcesPageState extends State<SourcesPage> {
                           portal: selectedPortal,
                           session: deps.settingsService.sessionByCode(selectedPortal.code),
                           isPinned: pinnedCodes.contains(selectedPortal.code),
-                          onTogglePin: () => _togglePin(deps, selectedPortal.code),
+                          onTogglePin: () =>
+                              _controller.togglePin(selectedPortal.code),
                         ),
                 );
               },
@@ -399,7 +388,7 @@ class _SourcesPageState extends State<SourcesPage> {
                   allPortals: allPortals,
                   padding: EdgeInsets.fromLTRB(
                     AppSpacing.lg,
-                    _controller.searchQuery.isNotEmpty ? 12 : 0,
+                    0,
                     AppSpacing.lg,
                     bottomInset,
                   ),

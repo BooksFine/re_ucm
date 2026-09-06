@@ -1,10 +1,10 @@
-import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_core/re_ucm_core.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 import '../../../core/di.dart';
 import '../../../core/navigation/router_delegate.dart';
+import 'widgets/portal_badges.dart';
 import 'widgets/source_detail_view.dart';
 
 class SourceDetailPage extends StatefulWidget {
@@ -25,7 +25,15 @@ class _SourceDetailPageState extends State<SourceDetailPage> {
           orElse: () => null,
         );
     if (portal == null) {
-      return const Scaffold(body: SizedBox.shrink());
+      return Scaffold(
+        appBar: AppBar(leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          onPressed: Nav.back,
+        )),
+        body: Center(
+          child: Text('Источник «${widget.portalCode}» не найден'),
+        ),
+      );
     }
     final session = deps.settingsService.sessionByCode(widget.portalCode);
     final isPinned = deps.settingsService.isPortalPinned(widget.portalCode);
@@ -41,22 +49,9 @@ class _SourceDetailPageState extends State<SourceDetailPage> {
           onPressed: Nav.back,
         ),
         actions: [
-          IconButton(
-            icon: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 250),
-              transitionBuilder: (child, anim) => ScaleTransition(
-                scale: anim,
-                child: FadeTransition(opacity: anim, child: child),
-              ),
-              child: Icon(
-                isPinned ? Icons.star_rounded : Icons.star_outline_rounded,
-                key: ValueKey(isPinned),
-                color: isPinned ? Theme.of(context).colorScheme.primary : null,
-              ),
-            ),
-            tooltip: isPinned ? 'Открепить' : 'Закрепить',
-            onPressed: () {
-              HapticFeedback.lightImpact();
+          PortalPinIconButton(
+            isPinned: isPinned,
+            onTogglePin: () {
               setState(() {
                 deps.settingsService.togglePinPortal(portal.code);
               });

@@ -12,5 +12,7 @@ extension PortalDomainExtension on Portal {
   }
 
   /// Whether the portal supports authentication.
-  bool get hasAuth => code != 'ficbook';
+  /// Единая точка правды — [PortalAuthSupport.supportsAuth] в core.
+  /// Оставлено для совместимости, новым кодом использовать supportsAuth.
+  bool get hasAuth => supportsAuth;
 }

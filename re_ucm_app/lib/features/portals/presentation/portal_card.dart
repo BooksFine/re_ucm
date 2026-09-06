@@ -49,9 +49,61 @@ class PortalCard extends StatelessWidget {
     required Color color,
     required bool isActive,
   }) {
-    final theme = Theme.of(context);
     final appColors = context.appColors;
 
+    return PortalCardShell(
+      onTap: onTap,
+      label: portal.name,
+      labelColor: color,
+      logo: PortalLogoIcon(
+        portal: portal,
+        color: color,
+        opacity: isActive || !authIndication ? 1.0 : 0.5,
+      ),
+      badge: authIndication
+          ? Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isActive
+                    ? appColors.statusOnline
+                    : appColors.statusOffline,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(2),
+                child: Icon(
+                  isActive ? Icons.check : Icons.add,
+                  color: Colors.white,
+                  size: 10,
+                ),
+              ),
+            )
+          : null,
+    );
+  }
+}
+
+/// Общий каркас горизонтальной карточки портала (110px).
+/// Раньше `_AllSourcesCard` в `portals_list` дублировал его 1-в-1.
+class PortalCardShell extends StatelessWidget {
+  const PortalCardShell({
+    super.key,
+    required this.logo,
+    required this.label,
+    this.labelColor,
+    this.badge,
+    this.onTap,
+  });
+
+  final Widget logo;
+  final String label;
+  final Color? labelColor;
+  final Widget? badge;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = labelColor ?? theme.colorScheme.onSurface;
     return Card(
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
@@ -78,40 +130,19 @@ class PortalCard extends StatelessWidget {
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      Center(
-                        child: PortalLogoIcon(
-                          portal: portal,
-                          color: color,
-                          opacity: isActive || !authIndication ? 1.0 : 0.5,
-                        ),
-                      ),
-                      if (authIndication)
+                      Center(child: logo),
+                      if (badge != null)
                         Positioned(
                           right: 14,
                           bottom: 0,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: isActive
-                                  ? appColors.statusOnline
-                                  : appColors.statusOffline,
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(2),
-                              child: Icon(
-                                isActive ? Icons.check : Icons.add,
-                                color: Colors.white,
-                                size: 10,
-                              ),
-                            ),
-                          ),
+                          child: badge!,
                         ),
                     ],
                   ),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
-                  portal.name,
+                  label,
                   style: theme.textTheme.labelMedium?.copyWith(
                     color: color,
                     fontWeight: FontWeight.w600,

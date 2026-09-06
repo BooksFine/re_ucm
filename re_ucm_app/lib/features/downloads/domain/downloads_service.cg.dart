@@ -54,10 +54,9 @@ abstract class DownloadsServiceBase with Store {
     double sum = 0;
     int counted = 0;
     for (final t in active) {
-      final cur = t.progress.current;
-      final tot = t.progress.total;
-      if (cur != null && tot != null && tot > 0) {
-        sum += (cur / tot).clamp(0.0, 1.0);
+      final normalized = t.progress.normalized;
+      if (normalized != null) {
+        sum += normalized;
         counted++;
       }
     }

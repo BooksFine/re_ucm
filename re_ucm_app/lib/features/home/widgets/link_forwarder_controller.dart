@@ -1,15 +1,16 @@
 import 'package:dart_book/dart_book.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:mobx/mobx.dart';
 import 'package:re_ucm_core/re_ucm_core.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
-import '../../../core/di.dart';
-import '../../common/utils/uri_from_url.dart';
 import '../../downloads/domain/download_task.cg.dart';
-import '../../downloads/presentation/widgets/unauthorized_download_dialog.dart';
+import '../../downloads/domain/downloads_service.cg.dart';
+import 'link_parser.dart';
 
+/// Состояние + координация LinkForwarder.
+/// Намеренно без BuildContext внутри: сервисы передаются параметрами,
+/// UI-решения (диалоги, модалы, haptics) остаются во view.
 class LinkForwarderController {
   final Observable<bool> isEmpty = Observable(true);
   final Observable<SaveFormat?> selectedFormat = Observable(null);
@@ -32,20 +33,19 @@ class LinkForwarderController {
         loadingError.value = null;
       });
     }
-    checkAndAutoFetch(value);
   }
 
-  void checkAndAutoFetch(String value) {
+  /// Возвращает распарсенную ссылку, если автозагрузка уместна.
+  /// View сам решает, вызывать ли fetch.
+  ParsedBookLink? autoFetchCandidate(String value) {
     final text = value.trim();
-    if (text.isEmpty || isLoadingBook.value) return;
-    try {
-      final uri = uriFromUrl(text);
-      final portal = PortalFactory.fromUrl(uri);
-      final bookId = portal.service.getIdFromUrl(uri);
-      if (bookId.isNotEmpty && bookId != loadedBookId.value) {
-        fetchBookInfo(text: text, validate: () => true);
-      }
-    } catch (_) {}
+    if (text.isEmpty || isLoadingBook.value) return null;
+    final parsed = tryParseBookLink(text);
+    if (parsed == null) return null;
+    if (parsed.bookId.isEmpty || parsed.bookId == loadedBookId.value) {
+      return null;
+    }
+    return parsed;
   }
 
   void reset() {
@@ -64,29 +64,17 @@ class LinkForwarderController {
     runInAction(() => selectedFormat.value = format);
   }
 
-  Future<void> pasteFromClipboard({
-    required Future<void> Function(String text) onPasted,
-  }) async {
-    HapticFeedback.lightImpact();
+  /// Возвращает текст из буфера (или null). Haptics — во view.
+  Future<String?> readClipboardText() async {
     final data = await Clipboard.getData(Clipboard.kTextPlain);
     final text = data?.text?.trim() ?? '';
-    if (text.isNotEmpty) {
-      await onPasted(text);
-      fetchBookInfo(text: text, validate: () => true);
-    }
+    return text.isEmpty ? null : text;
   }
 
   Future<void> fetchBookInfo({
-    String? text,
-    required bool Function() validate,
+    required ParsedBookLink link,
+    required PortalSession session,
   }) async {
-    if (!validate()) return;
-
-    final url = text?.trim() ?? '';
-    final uri = uriFromUrl(url);
-    final portal = PortalFactory.fromUrl(uri);
-    final bookId = portal.service.getIdFromUrl(uri);
-
     runInAction(() {
       isLoadingBook.value = true;
       loadingError.value = null;
@@ -96,22 +84,14 @@ class LinkForwarderController {
     });
 
     try {
-      final ctx = _context;
-      if (ctx == null) return;
-      final deps = AppDependencies.of(ctx);
-      final session = deps.settingsService.sessionByCode(portal.code);
-      final meta = await session.getBookMetadata(bookId);
-
-      if (!ctx.mounted) return;
+      final meta = await session.getBookMetadata(link.bookId);
       runInAction(() {
         isLoadingBook.value = false;
         loadedMetadata.value = meta;
-        loadedPortal.value = portal;
-        loadedBookId.value = bookId;
+        loadedPortal.value = link.portal;
+        loadedBookId.value = link.bookId;
       });
     } catch (e) {
-      final ctx = _context;
-      if (ctx == null || !ctx.mounted) return;
       runInAction(() {
         isLoadingBook.value = false;
         loadingError.value = 'Не удалось загрузить данные книги: $e';
@@ -119,50 +99,28 @@ class LinkForwarderController {
     }
   }
 
-  BuildContext? _context;
-  void bindContext(BuildContext context) => _context = context;
-  void unbindContext() => _context = null;
+  /// Создаёт (или переиспользует) задачу. Возвращает null, если нечего качать.
+  /// Проверку auth и показ модала делает view — здесь только domain.
+  DownloadTask? buildDownloadTask({
+    required SettingsService settingsService,
+    required DownloadsService downloadsService,
+  }) {
+    final meta = loadedMetadata.value;
+    final portal = loadedPortal.value;
+    final bookId = loadedBookId.value;
+    if (meta == null || portal == null || bookId == null) return null;
 
-  Future<void> startDownload({
-    required SaveFormat defaultFormat,
-    required void Function(DownloadTask task) showModal,
-  }) async {
-    if (loadedMetadata.value == null ||
-        loadedPortal.value == null ||
-        loadedBookId.value == null) {
-      return;
-    }
-
-    final ctx = _context;
-    if (ctx == null || !ctx.mounted) return;
-
-    final deps = AppDependencies.of(ctx);
-    final session =
-        deps.settingsService.sessionByCode(loadedPortal.value!.code);
-
-    final shouldProceed = await checkAndConfirmUnauthorizedDownload(
-      context: ctx,
+    final session = settingsService.sessionByCode(portal.code);
+    final format = selectedFormat.value ?? settingsService.saveFormat;
+    final task = downloadsService.getOrCreateTask(
       session: session,
-      settingsService: deps.settingsService,
-    );
-    if (!shouldProceed || !ctx.mounted) return;
-
-    final format = selectedFormat.value ?? defaultFormat;
-
-    final task = deps.downloadsService.getOrCreateTask(
-      session: session,
-      bookId: loadedBookId.value!,
-      initialMetadata: loadedMetadata.value,
+      bookId: bookId,
+      initialMetadata: meta,
     );
     task.updateSaveFormat(format);
     if (!task.isActive) {
       task.start();
     }
-
-    reset();
-
-    if (ctx.mounted) {
-      showModal(task);
-    }
+    return task;
   }
 }

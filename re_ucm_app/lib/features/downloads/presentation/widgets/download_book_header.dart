@@ -1,11 +1,10 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dart_book/dart_book.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_core/re_ucm_core.dart';
 
 import '../../../../core/ui/tokens.dart';
 import '../../../common/widgets/shimmer.dart';
-import 'cover_fallback.dart';
+import '../../../recent_books/presentation/recent_book_shared.dart';
 
 class DownloadBookHeader extends StatelessWidget {
   const DownloadBookHeader({
@@ -23,9 +22,7 @@ class DownloadBookHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final coverUrl = book.cover?.ref.id;
-    final authors = book.contributors
-        .map((e) => e.name.toDisplayString())
-        .join(', ');
+    final authors = book.authorsDisplay;
 
     final coverWidth = isWide ? 85.0 : 72.0;
     final coverHeight = isWide ? 122.0 : 104.0;
@@ -33,28 +30,15 @@ class DownloadBookHeader extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Cover
-        if (coverUrl != null && coverUrl.isNotEmpty)
-          ClipRRect(
-            borderRadius: BorderRadius.circular(AppRadii.md),
-            child: CachedNetworkImage(
-              imageUrl: coverUrl,
-              width: coverWidth,
-              height: coverHeight,
-              fit: BoxFit.cover,
-              placeholder: (_, _) => ShimmerEffect(
-                Container(
-                  width: coverWidth,
-                  height: coverHeight,
-                  color: Colors.white,
-                ),
-              ),
-              errorWidget: (_, _, _) =>
-                  CoverFallback(width: coverWidth, height: coverHeight, iconSize: coverWidth * 0.4),
-            ),
-          )
-        else
-          CoverFallback(width: coverWidth, height: coverHeight, iconSize: coverWidth * 0.4),
+        // Cover — единый виджет (был скопирован в header/list/live).
+        BookCoverImage(
+          coverUrl: (coverUrl != null && coverUrl.isNotEmpty) ? coverUrl : null,
+          width: coverWidth,
+          height: coverHeight,
+          iconSize: coverWidth * 0.4,
+          errorIcon: Icons.book_rounded,
+          borderRadius: BorderRadius.circular(AppRadii.md),
+        ),
 
         const SizedBox(width: AppSpacing.lg),
 
@@ -132,7 +116,7 @@ class DownloadBookHeader extends StatelessWidget {
                       ),
                     if (book.textLength != null)
                       Text(
-                        '${_formatNumber(book.textLength!)} зн.',
+                        '${formatGrouped(book.textLength!)} зн.',
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant.withValues(
                             alpha: 0.8,
@@ -147,13 +131,6 @@ class DownloadBookHeader extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-
-  static String _formatNumber(int number) {
-    return number.toString().replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match match) => '${match.group(0)} ',
     );
   }
 }

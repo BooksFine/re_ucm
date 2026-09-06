@@ -15,8 +15,15 @@ class BookSharer {
     required SaveFormat format,
     required Portal portal,
     Book? resolvedBook,
+    PathTemplate? downloadPathTemplate,
+    String authorsPathSeparator = ', ',
   }) async {
-    final name = _buildShareFileName(metadata);
+    final name = _buildShareFileName(
+      metadata,
+      portal,
+      downloadPathTemplate: downloadPathTemplate,
+      authorsPathSeparator: authorsPathSeparator,
+    );
     final ext = format.ext;
     final mimeType = format.mimeType;
 
@@ -27,9 +34,7 @@ class BookSharer {
 
     final xfile = XFile(filePath, name: '$name$ext', mimeType: mimeType);
 
-    final authors = metadata.contributors
-        .map((e) => e.name.toDisplayString())
-        .join(', ');
+    final authors = metadata.authorsDisplay;
 
     final statusText = _buildStatusText(metadata, resolvedBook);
 
@@ -44,12 +49,29 @@ class BookSharer {
     );
   }
 
-  String _buildShareFileName(BookMetadata data) {
-    final primarySeries = data.primarySeries;
-    var name = primarySeries != null
-        ? '${primarySeries.name}–${primarySeries.number}'
-        : data.title;
-    return name.replaceAll(RegExp(r'[<>:"/\\|?*]'), '');
+  /// Имя шаримого файла — через тот же [TemplateFormatter], что и
+  /// сохранение на диск. Раньше здесь был упрощённый формат
+  /// (серия/тайтл + свой regex) — один и тот же файл назывался
+  /// по-разному в зависимости от пути отправки.
+  String _buildShareFileName(
+    BookMetadata data,
+    Portal portal, {
+    PathTemplate? downloadPathTemplate,
+    required String authorsPathSeparator,
+  }) {
+    final template = downloadPathTemplate;
+    if (template == null) {
+      final fallback = data.primarySeries != null
+          ? '${data.primarySeries!.name}–${data.primarySeries!.number}'
+          : data.title;
+      return fallback.replaceAll(TemplateFormatter.illegalChars, '');
+    }
+    return TemplateFormatter.buildTemplateFileName(
+      data,
+      portal,
+      downloadPathTemplate: template,
+      authorsPathSeparator: authorsPathSeparator,
+    );
   }
 
   String _buildStatusText(BookMetadata data, Book? resolvedBook) {
@@ -63,35 +85,8 @@ class BookSharer {
         ? sections[sections.length - 2]
         : (sections.isNotEmpty ? sections.first : null);
     final lastTitle = lastChapter != null
-        ? _inlinesToPlainText(lastChapter.title).trim()
+        ? bookInlinesToPlainText(lastChapter.title).trim()
         : '';
     return lastTitle.isNotEmpty ? '\n\nПо: «$lastTitle»' : '';
-  }
-
-  String _inlinesToPlainText(List<BookInline> inlines) {
-    final buffer = StringBuffer();
-    for (final inline in inlines) {
-      switch (inline) {
-        case BookText t:
-          buffer.write(t.text);
-        case BookEmphasis e:
-          buffer.write(_inlinesToPlainText(e.children));
-        case BookStrong s:
-          buffer.write(_inlinesToPlainText(s.children));
-        case BookStrike st:
-          buffer.write(_inlinesToPlainText(st.children));
-        case BookNamedStyle n:
-          buffer.write(_inlinesToPlainText(n.inlines));
-        case BookLink l:
-          buffer.write(_inlinesToPlainText(l.children));
-        case BookSuperscript sup:
-          buffer.write(_inlinesToPlainText(sup.children));
-        case BookSubscript sub:
-          buffer.write(_inlinesToPlainText(sub.children));
-        default:
-          break;
-      }
-    }
-    return buffer.toString();
   }
 }

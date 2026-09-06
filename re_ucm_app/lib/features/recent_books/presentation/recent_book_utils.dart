@@ -49,6 +49,36 @@ class RecentBookItemState {
     required this.downloadedAt,
   });
 
+  /// Кэш существования файлов: resolve вызывается в build каждой карточки,
+  /// дисковый I/O на каждый ребилд просаживает скролл. TTL 2с — баланс
+  /// между актуальностью (удаление/скачивание) и перфом.
+  static final Map<String, ({bool exists, int checkedAt})> _existsCache = {};
+
+  static bool _cachedExists(String path) {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final cached = _existsCache[path];
+    if (cached != null && now - cached.checkedAt < 2000) {
+      return cached.exists;
+    }
+    final exists = File(path).existsSync();
+    _existsCache[path] = (exists: exists, checkedAt: now);
+    // Защита от разрастания: чистим при >500 записей.
+    if (_existsCache.length > 500) {
+      _existsCache.remove(
+        _existsCache.keys.firstWhere(
+          (k) => k != path,
+          orElse: () => path,
+        ),
+      );
+    }
+    return exists;
+  }
+
+  /// Принудительно сбросить кэш для пути (после сохранения/удаления).
+  static void invalidateFileCache(String? path) {
+    if (path != null) _existsCache.remove(path);
+  }
+
   factory RecentBookItemState.resolve(
     RecentBook book,
     DownloadsService downloadsService,
@@ -59,7 +89,7 @@ class RecentBookItemState {
     final isCompleted = task?.isCompleted ?? false;
     final effectiveFilePath = task?.savedFilePath ?? book.savedFilePath;
     final fileExists =
-        effectiveFilePath != null && File(effectiveFilePath).existsSync();
+        effectiveFilePath != null && _cachedExists(effectiveFilePath);
     final downloadedAt =
         (task != null && isCompleted && task.savedFilePath != null)
             ? book.downloadedAt ?? DateTime.now()

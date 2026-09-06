@@ -5,8 +5,10 @@ import 'core/constants.dart';
 import 'core/di.dart';
 import 'core/logger.dart';
 import 'core/navigation/router.dart';
+import 'core/navigation/router_delegate.dart';
 import 'core/ui/theme.dart';
-import 'features/ota/ota_service.dart';
+import 'features/ota/presentation/changelog_dialog.dart';
+import 'features/ota/presentation/update_widget.dart';
 import 'features/share_receiver/share_receiver.dart';
 
 const e2eOverlayStyle = SystemUiOverlayStyle(
@@ -59,8 +61,16 @@ class _MainAppState extends State<MainApp> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      OTAService.firstLaunch(AppDependencies.of(context).otaService);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final ota = AppDependencies.of(context).otaService;
+      if (await ota.getIsFirstLaunch()) {
+        await Nav.pushDialog((_, _, _) => const ChangelogDialog());
+        ota.setLatestLaunchVersion();
+        return;
+      }
+      if (await ota.checkForUpdate()) {
+        Nav.pushBottomSheet(const UpdateWidget());
+      }
     });
   }
 

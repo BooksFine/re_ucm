@@ -21,6 +21,7 @@ abstract class GeneralSettings with _$GeneralSettings {
     @Default(4) int parallelChapterDownloads,
     @Default(<String>[]) List<String> pinnedPortalCodes,
     @Default(RecentBooksViewMode.compact) RecentBooksViewMode recentBooksViewMode,
+    @Default(true) bool warnUnauthorizedDownloads,
   }) = _GeneralSettings;
 
   factory GeneralSettings.initial() => GeneralSettings(

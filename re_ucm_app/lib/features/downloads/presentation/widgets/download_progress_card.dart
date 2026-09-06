@@ -24,8 +24,6 @@ class DownloadProgressCard extends StatelessWidget {
     return Observer(
       builder: (context) {
         final progress = task.progress;
-        final cur = progress.current ?? 0;
-        final tot = progress.total ?? 0;
         final double? progressVal = task.normalizedProgress;
 
         final stageTitle = progress.stage.title;
@@ -56,8 +54,8 @@ class DownloadProgressCard extends StatelessWidget {
 
         final hasDetails = hasChapters || hasImages;
 
-        final statusText = tot > 0
-            ? '$cur / $tot${progressVal != null ? ' (${(progressVal * 100).toInt()}%)' : ''}'
+        final statusText = progress.total != null && progress.total! > 0
+            ? progress.counterText
             : (progress.message ?? 'Инициализация...');
 
         final Widget? expandedContent = hasDetails

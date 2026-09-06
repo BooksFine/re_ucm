@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_core/models/portal.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
+import '../../../../core/ui/tokens.dart';
 import 'portal_domain_extension.dart';
 import 'source_detail_cards.dart';
 
@@ -22,7 +23,7 @@ class SourceDetailView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isWide = MediaQuery.sizeOf(context).width >= 600;
+    final isWide = MediaQuery.sizeOf(context).width >= AppBreakpoints.mobileNav;
     // Ensure floating bottom NavBar never covers content on mobile
     final bottomInset =
         isWide ? 24.0 : MediaQuery.paddingOf(context).bottom + 104;

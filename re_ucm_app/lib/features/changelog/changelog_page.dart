@@ -11,7 +11,7 @@ class ChangelogPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isWide = MediaQuery.sizeOf(context).width >= 600;
+    final isWide = MediaQuery.sizeOf(context).width >= AppBreakpoints.mobileNav;
 
     return Scaffold(
       appBar: MyAppBar(

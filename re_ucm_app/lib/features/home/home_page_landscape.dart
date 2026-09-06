@@ -1,13 +1,9 @@
 import 'package:material_ui/material_ui.dart';
 
-import '../../core/navigation/router_delegate.dart';
 import '../../core/ui/tokens.dart';
-import '../../core/ui/widgets/app_section_header.dart';
-import '../downloads/presentation/widgets/live_download_card.dart';
-import '../portals/presentation/portals_list.dart';
 import '../recent_books/presentation/recent_books_list.dart';
 import '../recent_books/presentation/widgets/recent_books_header.dart';
-import 'widgets/link_forwarder.dart';
+import 'widgets/home_action_hub.dart';
 
 /// Unified Tablet & Desktop Layout (>= 780dp).
 ///
@@ -76,28 +72,17 @@ class _HomePageLandscapeState extends State<HomePageLandscape> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             mainAxisSize: MainAxisSize.min,
-                            children: [
-                              // 1. Smart Link Bar
-                              const LinkForwarder(),
-                              const SizedBox(height: AppSpacing.lg),
-
-                              // 2. Quick Portals (Browser) - Stable, never jumps!
-                              const AppSectionHeader(
-                                'Браузер',
-                                padding: EdgeInsets.fromLTRB(
+                            children: const [
+                              // Action Hub: Smart Link Bar -> Portals -> Live Downloads
+                              HomeActionHub(
+                                isWide: true,
+                                headerPadding: EdgeInsets.fromLTRB(
                                   4,
                                   0,
                                   4,
                                   AppSpacing.sm,
                                 ),
                               ),
-                              PortalsList(
-                                onTap: (portal) => Nav.goBrowser(portal.code),
-                              ),
-                              const SizedBox(height: AppSpacing.md),
-
-                              // 3. Live Downloads Card (smoothly expands below without breaking navigation)
-                              const LiveDownloadCard(isWide: true),
                             ],
                           ),
                         ),

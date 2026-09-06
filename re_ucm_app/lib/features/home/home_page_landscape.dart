@@ -136,7 +136,7 @@ class _HomePageLandscapeState extends State<HomePageLandscape> {
                               ),
                             ),
                             const SliverToBoxAdapter(
-                              child: RecentBooksList(isWide: true),
+                              child: RecentBooksList(),
                             ),
                             SliverToBoxAdapter(
                               child: SizedBox(height: bottomInset),

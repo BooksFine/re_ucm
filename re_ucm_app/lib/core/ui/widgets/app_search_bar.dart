@@ -1,6 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
-import '../tokens.dart';
+import 'app_text_field.dart';
 
 class AppSearchBar extends StatefulWidget {
   const AppSearchBar({
@@ -58,59 +58,31 @@ class _AppSearchBarState extends State<AppSearchBar> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
+    final cs = Theme.of(context).colorScheme;
     final isNotEmpty =
         (widget.searchQuery != null && widget.searchQuery!.isNotEmpty) ||
         _effectiveController.text.isNotEmpty;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerHigh.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(AppRadii.card),
-        border: Border.all(
-          color: cs.outlineVariant.withValues(alpha: 0.4),
-          width: 0.5,
-        ),
+    return AppTextField(
+      controller: _effectiveController,
+      hint: widget.hint,
+      onChanged: widget.onChanged,
+      prefixIcon: Icon(
+        Icons.search_rounded,
+        color: cs.onSurfaceVariant,
+        size: 22,
       ),
-      child: TextField(
-        controller: _effectiveController,
-        onChanged: widget.onChanged,
-        style: theme.textTheme.bodyMedium?.copyWith(
-          color: cs.onSurface,
-        ),
-        decoration: InputDecoration(
-          hintText: widget.hint,
-          hintStyle: TextStyle(
-            color: cs.onSurfaceVariant.withValues(alpha: 0.7),
-            fontSize: 14,
-          ),
-          prefixIcon: Icon(
-            Icons.search_rounded,
-            color: cs.onSurfaceVariant,
-            size: 22,
-          ),
-          suffixIcon: isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear_rounded, size: 20),
-                  tooltip: 'Очистить',
-                  onPressed: () {
-                    _effectiveController.clear();
-                    widget.onChanged?.call('');
-                    widget.onClear?.call();
-                  },
-                )
-              : null,
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          filled: false,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg,
-            vertical: AppSpacing.md,
-          ),
-        ),
-      ),
+      suffixIcon: isNotEmpty
+          ? IconButton(
+              icon: const Icon(Icons.clear_rounded, size: 20),
+              tooltip: 'Очистить',
+              onPressed: () {
+                _effectiveController.clear();
+                widget.onChanged?.call('');
+                widget.onClear?.call();
+              },
+            )
+          : null,
     );
   }
 }

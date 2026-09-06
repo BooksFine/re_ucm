@@ -107,7 +107,6 @@ class _CenteredFlexibleSpaceBarState extends State<CenteredFlexibleSpaceBar> {
           t,
         )!;
 
-        final double blurAmount = 16.0 * t;
         final double bgAlpha = 0.85 * t;
 
         return ClipRect(
@@ -119,14 +118,15 @@ class _CenteredFlexibleSpaceBarState extends State<CenteredFlexibleSpaceBar> {
                   left: 0,
                   right: 0,
                   height: topInset,
-                  child: ClipRect(
-                    child: BackdropFilter(
-                      filter: ui.ImageFilter.blur(
-                        sigmaX: blurAmount,
-                        sigmaY: blurAmount,
-                      ),
-                      child: Container(
-                        color: theme.colorScheme.surface.withValues(alpha: bgAlpha),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          theme.colorScheme.surface.withValues(alpha: bgAlpha),
+                          theme.colorScheme.surface.withValues(alpha: 0.0),
+                        ],
                       ),
                     ),
                   ),

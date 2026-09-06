@@ -11,12 +11,10 @@ class AnimatedRecentBookCard extends StatefulWidget {
     required this.book,
     required this.onDelete,
     required this.isFirst,
-    this.isWide = false,
     this.viewMode = RecentBooksViewMode.compact,
   });
   final RecentBook book;
   final bool isFirst;
-  final bool isWide;
   final RecentBooksViewMode viewMode;
   final Function(RecentBook book) onDelete;
 
@@ -74,7 +72,6 @@ class _AnimatedRecentBookCardState extends State<AnimatedRecentBookCard>
               : RecentBookCard(
                   onDelete: deleteBook,
                   book: widget.book,
-                  isWide: widget.isWide,
                 ),
         ),
       ),

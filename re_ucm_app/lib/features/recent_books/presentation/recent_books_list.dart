@@ -11,9 +11,7 @@ import '../../settings/presentation/settings_controller.cg.dart';
 import 'animated_recent_book_card.dart';
 
 class RecentBooksList extends StatefulWidget {
-  const RecentBooksList({super.key, this.isWide = false});
-
-  final bool isWide;
+  const RecentBooksList({super.key});
 
   @override
   State<RecentBooksList> createState() => _RecentBooksListState();
@@ -118,7 +116,6 @@ class _RecentBooksListState extends State<RecentBooksList> {
                   return AnimatedRecentBookCard(
                     key: ValueKey(service.recentBooks[i].id + service.recentBooks[i].portal.code),
                     book: service.recentBooks[i],
-                    isWide: widget.isWide,
                     viewMode: viewMode,
                     onDelete: (book) {
                       showUndoSnackBar(book);

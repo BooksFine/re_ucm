@@ -5,6 +5,7 @@ import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 import '../../../core/di.dart';
 import '../../../core/ui/tokens.dart';
+import '../../../core/ui/widgets/app_text_field.dart';
 import '../../common/utils/uri_from_url.dart';
 import '../../downloads/presentation/download_modal.dart';
 import '../../downloads/presentation/widgets/download_book_header.dart';
@@ -90,94 +91,43 @@ class _LinkForwarderState extends State<LinkForwarder> {
           children: [
             Form(
               key: _formKey,
-              child: TextFormField(
+              child: AppTextField(
                 focusNode: _focusNode,
                 controller: _textController,
                 textInputAction: TextInputAction.go,
                 onFieldSubmitted: (_) => _fetchBookInfo(),
                 onChanged: _onChanged,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
-                ),
-                decoration: InputDecoration(
-                  hintText: 'Вставьте ссылку на книгу...',
-                  hintStyle: theme.textTheme.bodyMedium?.copyWith(
-                    color: cs.onSurfaceVariant.withValues(alpha: 0.7),
-                  ),
-                  prefixIcon: Icon(
-                    Icons.link_rounded,
-                    color: cs.primary,
-                    size: 22,
-                  ),
-                  suffixIcon: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (_controller.isLoadingBook.value)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: M3ECircularWavyProgressIndicator(
-                              size: 18,
-                              strokeWidth: 2,
-                              color: cs.primary,
-                            ),
-                          ),
-                        )
-                      else if (!_controller.isEmpty.value)
-                        IconButton(
-                          tooltip: 'Очистить',
-                          icon: Icon(
-                            Icons.clear_rounded,
-                            color: cs.onSurfaceVariant,
-                            size: 20,
-                          ),
-                          onPressed: _reset,
-                        )
-                      else
-                        IconButton(
-                          tooltip: 'Вставить из буфера',
-                          icon: Icon(
-                            Icons.content_paste_rounded,
+                hint: 'Вставьте ссылку на книгу...',
+                prefixIcon: Icon(Icons.link_rounded, size: 22),
+                suffixIcon: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_controller.isLoadingBook.value)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: M3ECircularWavyProgressIndicator(
+                            size: 18,
+                            strokeWidth: 2,
                             color: cs.primary,
-                            size: 20,
                           ),
-                          onPressed: _pasteFromClipboard,
                         ),
-                    ],
-                  ),
-                  filled: true,
-                  fillColor: cs.surfaceContainerHigh,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.lg,
-                    vertical: 14,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppRadii.card),
-                    borderSide: BorderSide.none,
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppRadii.card),
-                    borderSide: BorderSide(
-                      color: cs.outlineVariant.withValues(alpha: 0.3),
-                      width: 0.8,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppRadii.card),
-                    borderSide: BorderSide(
-                      color: cs.primary,
-                      width: 1.5,
-                    ),
-                  ),
-                  errorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppRadii.card),
-                    borderSide: BorderSide(
-                      color: cs.error,
-                      width: 1.2,
-                    ),
-                  ),
+                      )
+                    else if (!_controller.isEmpty.value)
+                      IconButton(
+                        tooltip: 'Очистить',
+                        icon: Icon(Icons.clear_rounded, size: 20),
+                        onPressed: _reset,
+                      )
+                    else
+                      IconButton(
+                        tooltip: 'Вставить из буфера',
+                        icon: Icon(Icons.content_paste_rounded, size: 20),
+                        onPressed: _pasteFromClipboard,
+                      ),
+                  ],
                 ),
                 validator: (url) {
                   if (url == null || url.trim().isEmpty) {
@@ -216,12 +166,18 @@ class _LinkForwarderState extends State<LinkForwarder> {
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: Row(
                   children: [
-                    Icon(Icons.error_outline_rounded, size: 16, color: cs.error),
+                    Icon(
+                      Icons.error_outline_rounded,
+                      size: 16,
+                      color: cs.error,
+                    ),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
                         _controller.loadingError.value!,
-                        style: theme.textTheme.bodySmall?.copyWith(color: cs.error),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: cs.error,
+                        ),
                       ),
                     ),
                   ],
@@ -229,7 +185,8 @@ class _LinkForwarderState extends State<LinkForwarder> {
               ),
             ],
 
-            if (_controller.loadedMetadata.value != null && _controller.loadedPortal.value != null) ...[
+            if (_controller.loadedMetadata.value != null &&
+                _controller.loadedPortal.value != null) ...[
               const SizedBox(height: AppSpacing.md),
               Container(
                 padding: const EdgeInsets.all(AppSpacing.md),
@@ -286,9 +243,13 @@ class _LinkForwarderState extends State<LinkForwarder> {
                                   ),
                                   selected: fmt == currentFormat,
                                   visualDensity: VisualDensity.compact,
-                                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                  ),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(AppRadii.full),
+                                    borderRadius: BorderRadius.circular(
+                                      AppRadii.full,
+                                    ),
                                   ),
                                   onSelected: (selected) {
                                     if (selected) {

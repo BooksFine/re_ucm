@@ -31,6 +31,7 @@ class _RecentBookCompactTileState extends State<RecentBookCompactTile> {
     final settingsService = deps.settingsService;
 
     final session = settingsService.sessionByCode(widget.book.portal.code);
+    final isWide = MediaQuery.sizeOf(context).width >= 1024;
 
     return Observer(
       builder: (context) {
@@ -38,7 +39,10 @@ class _RecentBookCompactTileState extends State<RecentBookCompactTile> {
           widget.book,
           downloadsService,
         );
-        final effectiveFormat = getEffectiveFormat(widget.book, settingsService);
+        final effectiveFormat = getEffectiveFormat(
+          widget.book,
+          settingsService,
+        );
         final task = state.task;
         final effectiveFilePath = state.effectiveFilePath;
 
@@ -122,7 +126,8 @@ class _RecentBookCompactTileState extends State<RecentBookCompactTile> {
                                 context,
                                 downloadedAt: state.downloadedAt,
                                 isVisible: state.fileExists,
-                              ) case final badge?)
+                              )
+                              case final badge?)
                             badge
                           else if (state.isDownloading)
                             Text(
@@ -167,17 +172,38 @@ class _RecentBookCompactTileState extends State<RecentBookCompactTile> {
                     onPressed: () => task?.cancel(),
                   ),
                 ] else ...[
-                  // Primary "Скачать" button — full-width/prominent with text and icon
-                  M3EButton.icon(
-                    style: M3EButtonStyle.tonal,
-                    size: M3EButtonSize.xs,
-                    shape: M3EButtonShape.round,
-                    icon: const Icon(Icons.download_rounded),
-                    label: const Text('Скачать'),
-                    onPressed: () {
-                      startDownload(context, session, effectiveFormat, widget.book.id);
-                    },
-                  ),
+                  // Primary "Скачать" button — labeled in wide mode, icon-only otherwise
+                  if (isWide)
+                    M3EButton.icon(
+                      style: M3EButtonStyle.tonal,
+                      size: M3EButtonSize.xs,
+                      shape: M3EButtonShape.round,
+                      icon: const Icon(Icons.download_rounded),
+                      label: const Text('Скачать'),
+                      onPressed: () {
+                        startDownload(
+                          context,
+                          session,
+                          effectiveFormat,
+                          widget.book.id,
+                        );
+                      },
+                    )
+                  else
+                    M3EButton(
+                      style: M3EButtonStyle.tonal,
+                      size: M3EButtonSize.xs,
+                      shape: M3EButtonShape.round,
+                      child: const Icon(Icons.download_rounded),
+                      onPressed: () {
+                        startDownload(
+                          context,
+                          session,
+                          effectiveFormat,
+                          widget.book.id,
+                        );
+                      },
+                    ),
 
                   // More popup menu
                   _buildMoreMenu(

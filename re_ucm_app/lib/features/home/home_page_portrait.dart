@@ -126,7 +126,7 @@ class _HomePagePortraitState extends State<HomePagePortrait> {
                     bottomInset,
                   ),
                   sliver: const SliverToBoxAdapter(
-                    child: RecentBooksList(isWide: false),
+                    child: RecentBooksList(),
                   ),
                 ),
               ],

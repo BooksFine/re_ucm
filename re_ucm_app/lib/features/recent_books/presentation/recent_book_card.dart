@@ -9,19 +9,14 @@ import '../../../core/di.dart';
 import '../../../core/navigation/router_delegate.dart';
 import '../../../core/ui/tokens.dart';
 import '../../../core/ui/widgets/m3e_spring_popup.dart';
+import '../../downloads/domain/download_task.cg.dart';
 import 'recent_book_actions.dart';
 
 class RecentBookCard extends StatefulWidget {
-  const RecentBookCard({
-    super.key,
-    required this.book,
-    this.onDelete,
-    this.isWide = false,
-  });
+  const RecentBookCard({super.key, required this.book, this.onDelete});
 
   final RecentBook book;
   final VoidCallback? onDelete;
-  final bool isWide;
 
   @override
   State<RecentBookCard> createState() => _RecentBookCardState();
@@ -37,6 +32,7 @@ class _RecentBookCardState extends State<RecentBookCard> {
     final settingsService = deps.settingsService;
 
     final session = settingsService.sessionByCode(widget.book.portal.code);
+    final isWide = MediaQuery.sizeOf(context).width >= 1024;
 
     return Observer(
       builder: (context) {
@@ -44,7 +40,10 @@ class _RecentBookCardState extends State<RecentBookCard> {
           widget.book,
           downloadsService,
         );
-        final effectiveFormat = getEffectiveFormat(widget.book, settingsService);
+        final effectiveFormat = getEffectiveFormat(
+          widget.book,
+          settingsService,
+        );
         final task = state.task;
         final effectiveFilePath = state.effectiveFilePath;
 
@@ -79,148 +78,229 @@ class _RecentBookCardState extends State<RecentBookCard> {
                   ),
                   const SizedBox(width: AppSpacing.md),
 
-                  // Book Information and Actions
+                  // Book Information
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Top row: Title and More actions button
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  TextBalancer(
-                                    widget.book.title,
-                                    style: theme.textTheme.titleMedium
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 15,
-                                          height: 1.2,
-                                        ),
-                                  ),
-                                  const SizedBox(height: 3),
-                                  Text(
-                                    widget.book.authors,
-                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                      color: cs.onSurfaceVariant,
-                                      fontSize: 13,
+                    child: isWide
+                        ? Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    TextBalancer(
+                                      widget.book.title,
+                                      style: theme.textTheme.titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 15,
+                                            height: 1.2,
+                                          ),
                                     ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                                    const SizedBox(height: 3),
+                                    Text(
+                                      widget.book.authors,
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            color: cs.onSurfaceVariant,
+                                            fontSize: 13,
+                                          ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+
+                                    // Series info if present
+                                    if (widget.book.seriesName != null) ...[
+                                      const SizedBox(height: 3),
+                                      Text(
+                                        '${widget.book.seriesName!} #${widget.book.seriesNumber ?? 1}',
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                              color: cs.onSurfaceVariant,
+                                              fontSize: 12,
+                                            ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+
+                                    // Badges row
+                                    const SizedBox(height: 6),
+                                    Wrap(
+                                      spacing: 6,
+                                      runSpacing: 4,
+                                      crossAxisAlignment:
+                                          WrapCrossAlignment.center,
+                                      children: [
+                                        buildPortalBadge(
+                                          context,
+                                          widget.book.portal,
+                                        ),
+                                        if (buildDownloadedBadge(
+                                              context,
+                                              downloadedAt: state.downloadedAt,
+                                              isVisible: state.fileExists,
+                                              prefix: 'Скачано',
+                                            )
+                                            case final badge?)
+                                          badge,
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: AppSpacing.sm),
+
+                              Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      if (state.fileExists)
+                                        IconButton(
+                                          tooltip: 'Поделиться',
+                                          icon: Icon(
+                                            Icons.share_outlined,
+                                            size: 20,
+                                            color: cs.onSurfaceVariant,
+                                          ),
+                                          padding: EdgeInsets.zero,
+                                          constraints: const BoxConstraints(
+                                            minWidth: 40,
+                                            minHeight: 40,
+                                          ),
+                                          onPressed: () => shareBook(
+                                            context,
+                                            task,
+                                            effectiveFilePath,
+                                            widget.book,
+                                          ),
+                                        ),
+                                      _buildMoreMenu(context, cs),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  _buildActions(
+                                    context,
+                                    state: state,
+                                    task: task,
+                                    effectiveFilePath: effectiveFilePath,
+                                    effectiveFormat: effectiveFormat,
+                                    session: session,
+                                    iconOnlyRead: true,
                                   ),
                                 ],
                               ),
-                            ),
-                            const SizedBox(width: AppSpacing.sm),
-
-                            // Quick Share button (always accessible with ergonomic touch target)
-                            IconButton(
-                              tooltip: 'Поделиться',
-                              icon: Icon(
-                                Icons.share_outlined,
-                                size: 20,
-                                color: cs.onSurfaceVariant,
-                              ),
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(
-                                minWidth: 40,
-                                minHeight: 40,
-                              ),
-                              onPressed: () => shareBook(
-                                context,
-                                task,
-                                effectiveFilePath,
-                                widget.book,
-                              ),
-                            ),
-
-                            // More options menu (Open in browser, Delete)
-                            _buildMoreMenu(context, cs),
-                          ],
-                        ),
-
-                        // Series info if present (placed above badges)
-                        if (widget.book.seriesName != null) ...[
-                          const SizedBox(height: 3),
-                          Text(
-                            '${widget.book.seriesName!} #${widget.book.seriesNumber ?? 1}',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: cs.onSurfaceVariant,
-                              fontSize: 12,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-
-                        // Badges row: Portal badge and Downloaded date badge
-                        const SizedBox(height: 6),
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: 4,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            buildPortalBadge(context, widget.book.portal),
-                            if (buildDownloadedBadge(
-                                  context,
-                                  downloadedAt: state.downloadedAt,
-                                  isVisible: state.fileExists,
-                                  prefix: 'Скачано',
-                                ) case final badge?)
-                              badge,
-                          ],
-                        ),
-
-                        const SizedBox(height: 10),
-
-                        // Bottom Actions: Read file button (if available) and Split Download Button
-                        Builder(
-                          builder: (context) {
-                            return Wrap(
-                              alignment: WrapAlignment.spaceBetween,
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              spacing: AppSpacing.xs,
-                              runSpacing: AppSpacing.xs,
-                              children: [
-                                if (state.fileExists)
-                                  M3EButton.icon(
-                                    style: M3EButtonStyle.tonal,
-                                    size: M3EButtonSize.sm,
-                                    shape: M3EButtonShape.round,
-                                    icon: const Icon(Icons.menu_book_rounded),
-                                    label: const Text('Читать'),
-                                    onPressed: () => openBook(
-                                      context,
-                                      task: task,
-                                      effectiveFilePath: effectiveFilePath,
+                            ],
+                          )
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        TextBalancer(
+                                          widget.book.title,
+                                          style: theme.textTheme.titleMedium
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 15,
+                                                height: 1.2,
+                                              ),
+                                        ),
+                                        const SizedBox(height: 3),
+                                        Text(
+                                          widget.book.authors,
+                                          style: theme.textTheme.bodyMedium
+                                              ?.copyWith(
+                                                color: cs.onSurfaceVariant,
+                                                fontSize: 13,
+                                              ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
                                     ),
                                   ),
+                                  const SizedBox(width: AppSpacing.sm),
+                                  if (state.fileExists)
+                                    IconButton(
+                                      tooltip: 'Поделиться',
+                                      icon: Icon(
+                                        Icons.share_outlined,
+                                        size: 20,
+                                        color: cs.onSurfaceVariant,
+                                      ),
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(
+                                        minWidth: 40,
+                                        minHeight: 40,
+                                      ),
+                                      onPressed: () => shareBook(
+                                        context,
+                                        task,
+                                        effectiveFilePath,
+                                        widget.book,
+                                      ),
+                                    ),
+                                  _buildMoreMenu(context, cs),
+                                ],
+                              ),
 
-                                // Primary Action: M3E Split Button for download & format
-                                M3EButton.icon(
-                                  style: M3EButtonStyle.tonal,
-                                  size: M3EButtonSize.sm,
-                                  shape: M3EButtonShape.round,
-                                  icon: const Icon(Icons.download_rounded),
-                                  label: const Text('Скачать'),
-                                  onPressed: () {
-                                    startDownload(
-                                      context,
-                                      session,
-                                      effectiveFormat,
-                                      widget.book.id,
-                                    );
-                                  },
+                              // Series info if present
+                              if (widget.book.seriesName != null) ...[
+                                const SizedBox(height: 3),
+                                Text(
+                                  '${widget.book.seriesName!} #${widget.book.seriesNumber ?? 1}',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: cs.onSurfaceVariant,
+                                    fontSize: 12,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ],
-                            );
-                          },
-                        ),
-                      ],
-                    ),
+
+                              // Badges row
+                              const SizedBox(height: 6),
+                              Wrap(
+                                spacing: 6,
+                                runSpacing: 4,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  buildPortalBadge(context, widget.book.portal),
+                                  ?buildDownloadedBadge(
+                                    context,
+                                    downloadedAt: state.downloadedAt,
+                                    isVisible: state.fileExists,
+                                    prefix: 'Скачано',
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 10),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: _buildActions(
+                                  context,
+                                  state: state,
+                                  task: task,
+                                  effectiveFilePath: effectiveFilePath,
+                                  effectiveFormat: effectiveFormat,
+                                  session: session,
+                                ),
+                              ),
+                            ],
+                          ),
                   ),
                 ],
               ),
@@ -228,6 +308,63 @@ class _RecentBookCardState extends State<RecentBookCard> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildActions(
+    BuildContext context, {
+    required RecentBookItemState state,
+    required DownloadTask? task,
+    required String? effectiveFilePath,
+    required SaveFormat effectiveFormat,
+    required PortalSession session,
+    bool iconOnlyRead = false,
+  }) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (state.fileExists) ...[
+          if (iconOnlyRead)
+            Tooltip(
+              message: 'Читать',
+              child: M3EButton(
+                style: M3EButtonStyle.tonal,
+                size: M3EButtonSize.sm,
+                shape: M3EButtonShape.round,
+                child: const Icon(Icons.menu_book_rounded),
+                onPressed: () => openBook(
+                  context,
+                  task: task,
+                  effectiveFilePath: effectiveFilePath,
+                ),
+              ),
+            )
+          else
+            M3EButton.icon(
+              style: M3EButtonStyle.tonal,
+              size: M3EButtonSize.sm,
+              shape: M3EButtonShape.round,
+              icon: const Icon(Icons.menu_book_rounded),
+              label: const Text('Читать'),
+              onPressed: () => openBook(
+                context,
+                task: task,
+                effectiveFilePath: effectiveFilePath,
+              ),
+            ),
+          const SizedBox(width: AppSpacing.xs),
+        ],
+        M3EButton.icon(
+          style: M3EButtonStyle.tonal,
+          size: M3EButtonSize.sm,
+          shape: M3EButtonShape.round,
+          icon: const Icon(Icons.download_rounded),
+          label: const Text('Скачать'),
+          onPressed: () {
+            startDownload(context, session, effectiveFormat, widget.book.id);
+          },
+        ),
+      ],
     );
   }
 

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 class TagEditingController extends TextEditingController {
@@ -153,7 +153,10 @@ class TagEditingController extends TextEditingController {
       padding: const EdgeInsets.symmetric(horizontal: 1.5),
       child: Text(
         label,
-        style: style.copyWith(color: ColorScheme.of(context).surfaceTint),
+        style: style.copyWith(
+          color: ColorScheme.of(context).primary,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }

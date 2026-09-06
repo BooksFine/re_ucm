@@ -1,9 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../core/navigation/router_delegate.dart';
 import '../../core/ui/constants.dart';
 import '../common/widgets/appbar.dart';
-import '../settings/presentation/settings_dialog.dart';
 import 'changelog.dart';
 import 'changelog_card.dart';
 
@@ -12,6 +11,8 @@ class ChangelogPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isWide = MediaQuery.sizeOf(context).width >= 600;
+
     return Scaffold(
       appBar: MyAppBar(
         title: 'История изменений',
@@ -22,17 +23,17 @@ class ChangelogPage extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
-            onPressed: () => openSettingsDialog(context),
+            onPressed: Nav.pushSettings,
           ),
         ],
       ),
       body: ListView.separated(
-        padding:
-            const EdgeInsets.symmetric(
-              horizontal: appPadding * 2,
-              vertical: appPadding,
-            ) +
-            EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
+        padding: EdgeInsets.only(
+          left: isWide ? 0 : appPadding * 2,
+          right: appPadding * 2,
+          top: appPadding,
+          bottom: MediaQuery.paddingOf(context).bottom,
+        ),
         itemCount: changelogGen.length,
         itemBuilder: (context, index) {
           return Center(

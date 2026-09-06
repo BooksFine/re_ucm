@@ -1,15 +1,16 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 import 'package:zikzak_share_handler/zikzak_share_handler.dart';
 
+import '../../core/di.dart';
 import '../../core/logger.dart';
 import '../../core/navigation/router.dart';
-import '../../core/navigation/router_delegate.dart';
 import '../common/utils/uri_from_url.dart';
 import '../common/widgets/snack.dart';
+import '../downloads/presentation/download_modal.dart';
 
 class ShareReceiverService {
   static StreamSubscription<SharedMedia>? _subscription;
@@ -27,14 +28,17 @@ class ShareReceiverService {
     });
 
     // 2. Handle cold start share
-    handler.getInitialSharedMedia().then((media) {
-      if (media != null) {
-        _processMedia(media);
-        handler.resetInitialSharedMedia();
-      }
-    }).catchError((e) {
-      logger.e('Failed to get initial shared media', error: e);
-    });
+    handler
+        .getInitialSharedMedia()
+        .then((media) {
+          if (media != null) {
+            _processMedia(media);
+            handler.resetInitialSharedMedia();
+          }
+        })
+        .catchError((e) {
+          logger.e('Failed to get initial shared media', error: e);
+        });
   }
 
   static void dispose() {
@@ -62,7 +66,13 @@ class ShareReceiverService {
       final portal = PortalFactory.fromUrl(uri);
       final bookId = portal.service.getIdFromUrl(uri);
 
-      Nav.book(portal.code, bookId);
+      final ctx = rootNavigationKey.currentContext;
+      if (ctx == null || !ctx.mounted) return;
+
+      final session = AppDependencies.of(
+        ctx,
+      ).settingsService.sessionByCode(portal.code);
+      showDownloadModal(ctx, session: session, bookId: bookId);
     } catch (e) {
       logger.e('Failed to open shared book: $content', error: e);
 

@@ -1,5 +1,5 @@
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Виджет-контейнер, инкапсулирующий попиксельное скрытие/появление
 /// нижней плавающей панели (пилюли) при вертикальном скролле.
@@ -40,14 +40,15 @@ class _ScrollToHideBottomBarState extends State<ScrollToHideBottomBar>
   @override
   void initState() {
     super.initState();
-    _animController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 220),
-    )..addListener(() {
-        if (_offsetAnimation != null) {
-          _translate.value = _offsetAnimation!.value;
-        }
-      });
+    _animController =
+        AnimationController(
+          vsync: this,
+          duration: const Duration(milliseconds: 220),
+        )..addListener(() {
+          if (_offsetAnimation != null) {
+            _translate.value = _offsetAnimation!.value;
+          }
+        });
   }
 
   @override
@@ -63,12 +64,10 @@ class _ScrollToHideBottomBarState extends State<ScrollToHideBottomBar>
       return;
     }
     _animController.stop();
-    _offsetAnimation = Tween<double>(
-      begin: _translate.value,
-      end: target,
-    ).animate(
-      CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic),
-    );
+    _offsetAnimation = Tween<double>(begin: _translate.value, end: target)
+        .animate(
+          CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic),
+        );
     _animController.forward(from: 0.0);
   }
 
@@ -138,8 +137,10 @@ class _ScrollToHideBottomBarState extends State<ScrollToHideBottomBar>
       _animController.stop();
       final dy = -event.scrollDelta.dy;
       _lastDirection = dy;
-      final newTranslate =
-          (_translate.value - dy * 0.5).clamp(0.0, _maxBottomOffset);
+      final newTranslate = (_translate.value - dy * 0.5).clamp(
+        0.0,
+        _maxBottomOffset,
+      );
       _translate.value = newTranslate;
       _snap();
     }

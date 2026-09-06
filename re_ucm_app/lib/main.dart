@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
+
 import 'core/constants.dart';
 import 'core/di.dart';
 import 'core/logger.dart';
@@ -14,6 +15,7 @@ const e2eOverlayStyle = SystemUiOverlayStyle(
   systemNavigationBarDividerColor: Colors.transparent,
 );
 
+/// Предотвращает сброс кэша обложек и изображений при сворачивании приложения в фон.
 class MyWidgetsBinding extends WidgetsFlutterBinding {
   @override
   // ignore: must_call_super
@@ -70,6 +72,7 @@ class _MainAppState extends State<MainApp> {
         title: appName,
         darkTheme: darkTheme,
         theme: lightTheme,
+        themeMode: ThemeMode.system,
         routerConfig: router,
         debugShowCheckedModeBanner: false,
       ),

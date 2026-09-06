@@ -25,4 +25,6 @@ targets:
         generate_for:
           include:
             - lib/**.cg.dart
+        options:
+          explicit_to_json: true
 

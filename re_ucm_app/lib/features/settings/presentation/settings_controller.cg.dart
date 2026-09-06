@@ -1,9 +1,6 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:mobx/mobx.dart';
-import 'package:re_ucm_core/models/portal.dart';
-
 import 'package:re_ucm_lib/re_ucm_lib.dart';
-import 'package:re_ucm_lib/settings/domain/save_format.dart';
-import 'settings_states.dart';
 
 part '../../../.gen/features/settings/presentation/settings_controller.cg.g.dart';
 
@@ -12,34 +9,28 @@ class SettingsController = SettingsControllerBase with _$SettingsController;
 abstract class SettingsControllerBase with Store {
   final SettingsService service;
 
-  SettingsControllerBase({required this.service});
-
-  @observable
-  SettingsPageState page = SettingsMainPage();
-
-  @action
-  void setSelectedSession(PortalSession session) {
-    final current = page;
-
-    if (current is SettingsMainPage && current.selectedSession == session) {
-      page = SettingsMainPage();
-    } else {
-      page = SettingsMainPage(selectedSession: session);
-    }
+  SettingsControllerBase({required this.service}) {
+    saveFormat = service.saveFormat;
+    downloadPathTemplate = service.downloadPathTemplate;
+    authorsPathSeparator = service.authorsPathSeparator;
+    saveDirectory = service.saveDirectory;
+    autoSaveOnComplete = service.autoSaveOnComplete;
+    parallelImageDownloads = service.parallelImageDownloads;
+    parallelChapterDownloads = service.parallelChapterDownloads;
+    recentBooksViewMode = service.recentBooksViewMode;
   }
 
-  @action
-  void openSaveSettings() => page = SettingsSaveSettingsPage();
+  @observable
+  late RecentBooksViewMode recentBooksViewMode;
 
   @action
-  void openMain() => page = SettingsMainPage();
-
-  PortalSession sessionByCode(String code) => service.sessionByCode(code);
-
-  //Save settings
+  void updateRecentBooksViewMode(RecentBooksViewMode mode) {
+    recentBooksViewMode = mode;
+    service.updateRecentBooksViewMode(mode);
+  }
 
   @observable
-  late SaveFormat saveFormat = service.saveFormat;
+  late SaveFormat saveFormat;
 
   @action
   void updateSaveFormat(SaveFormat format) {
@@ -47,14 +38,81 @@ abstract class SettingsControllerBase with Store {
     service.updateSaveFormat(format);
   }
 
-  PathTemplate get downloadPathTemplate => service.downloadPathTemplate;
-  void updateDownloadPathTemplate(PathTemplate template) =>
-      service.updateDownloadPathTemplate(template);
+  @observable
+  late PathTemplate downloadPathTemplate;
 
-  String get authorsPathSeparator => service.authorsPathSeparator;
-  void updateAuthorsPathSeparator(String separator) =>
-      service.updateAuthorsPathSeparator(separator);
+  @action
+  void updateDownloadPathTemplate(PathTemplate template) {
+    downloadPathTemplate = template;
+    service.updateDownloadPathTemplate(template);
+  }
 
-  String? get saveDirectory => service.saveDirectory;
-  void updateSaveDirectory(String? path) => service.updateSaveDirectory(path);
+  @observable
+  late String authorsPathSeparator;
+
+  @action
+  void updateAuthorsPathSeparator(String separator) {
+    authorsPathSeparator = separator;
+    service.updateAuthorsPathSeparator(separator);
+  }
+
+  @observable
+  String? saveDirectory;
+
+  @action
+  void updateSaveDirectory(String? path) {
+    saveDirectory = path;
+    service.updateSaveDirectory(path);
+  }
+
+  @observable
+  late bool autoSaveOnComplete;
+
+  @action
+  void updateAutoSaveOnComplete(bool value) {
+    autoSaveOnComplete = value;
+    service.updateAutoSaveOnComplete(value);
+  }
+
+  @observable
+  late int parallelImageDownloads;
+
+  @action
+  void updateParallelImageDownloads(int value) {
+    parallelImageDownloads = value.clamp(1, 16);
+    service.updateParallelImageDownloads(parallelImageDownloads);
+  }
+
+  @observable
+  late int parallelChapterDownloads;
+
+  @action
+  void updateParallelChapterDownloads(int value) {
+    parallelChapterDownloads = value.clamp(1, 16);
+    service.updateParallelChapterDownloads(parallelChapterDownloads);
+  }
+
+  bool isPickingDirectory = false;
+
+  Future<void> pickSaveDirectory() async {
+    if (isPickingDirectory) return;
+    isPickingDirectory = true;
+    try {
+      final result = await FilePicker.getDirectoryPath();
+      if (result != null) {
+        updateSaveDirectory(result);
+      }
+    } finally {
+      isPickingDirectory = false;
+    }
+  }
+
+  void setAlwaysAskDirectory(bool alwaysAsk) {
+    if (alwaysAsk) {
+      updateSaveDirectory(null);
+      updateAutoSaveOnComplete(false);
+    } else {
+      pickSaveDirectory();
+    }
+  }
 }

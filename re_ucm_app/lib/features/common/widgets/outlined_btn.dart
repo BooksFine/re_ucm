@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
-import '../../../core/ui/constants.dart';
+import 'package:m3e_core/m3e_core.dart';
+import 'package:material_ui/material_ui.dart';
 
 class OutlinedButton1 extends StatelessWidget {
   const OutlinedButton1({
@@ -17,37 +16,37 @@ class OutlinedButton1 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: func != null
-              ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).disabledColor,
-        ),
-        borderRadius: BorderRadius.circular(cardBorderRadius),
-      ),
+    final theme = Theme.of(context);
+    return SizedBox(
       height: height ?? 48,
       width: double.infinity,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(cardBorderRadius),
-        onTap: isLoading ? null : func,
-        child: Center(
-          child: isLoading
-              ? LoadingAnimationWidget.progressiveDots(
-                  color: Theme.of(context).colorScheme.primary,
-                  size: 60,
-                )
-              : Text(
-                  text,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.normal,
-                    color: func != null
-                        ? Theme.of(context).colorScheme.primary
-                        : Theme.of(context).disabledColor,
-                  ),
-                ),
+      child: M3EButton(
+        onPressed: isLoading ? null : func,
+        style: M3EButtonStyle.outlined,
+        size: M3EButtonSize.md,
+        decoration: M3EButtonDecoration.styleFrom(
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
+        child: isLoading
+            ? SizedBox(
+                width: 20,
+                height: 20,
+                child: M3ECircularWavyProgressIndicator(
+                  size: 20,
+                  strokeWidth: 2,
+                  color: theme.colorScheme.primary,
+                ),
+              )
+            : Text(
+                text,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: func != null
+                      ? theme.colorScheme.primary
+                      : theme.disabledColor,
+                ),
+              ),
       ),
     );
   }

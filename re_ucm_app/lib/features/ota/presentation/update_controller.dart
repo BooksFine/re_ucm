@@ -123,7 +123,9 @@ class UpdateController {
 
       final openResult = await OpenFile.open(
         filePath,
-        type: Platform.isAndroid ? 'application/vnd.android.package-archive' : null,
+        type: Platform.isAndroid
+            ? 'application/vnd.android.package-archive'
+            : null,
       );
       if (openResult.type != ResultType.done) {
         logger.w('OpenFile result: ${openResult.message} (${openResult.type})');

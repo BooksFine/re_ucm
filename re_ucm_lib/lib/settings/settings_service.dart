@@ -1,8 +1,12 @@
+import 'package:re_ucm_core/logger.dart';
+
 import '../portals/portal_session.cg.dart';
 import '../portals/portal_factory.dart';
 import 'data/settings_storage.dart';
 import 'data/settings_storage_sembast.dart';
+import 'domain/general_settings.cg.dart';
 import 'domain/path_template.cg.dart';
+import 'domain/recent_books_view_mode.dart';
 import 'domain/save_format.dart';
 
 class SettingsService {
@@ -10,6 +14,7 @@ class SettingsService {
 
   late final SettingsStorage storage;
   late final List<PortalSession> _sessions;
+  late GeneralSettings _settings;
 
   static Future<SettingsService> init(String databaseDirectory) async {
     final service = SettingsService._();
@@ -23,39 +28,77 @@ class SettingsService {
   PortalSession sessionByCode(String code) =>
       _sessions.firstWhere((s) => s.code == code);
 
-  late SaveFormat _saveFormat;
-  SaveFormat get saveFormat => _saveFormat;
+  GeneralSettings get generalSettings => _settings;
+
+  void _saveSettings(GeneralSettings newSettings) {
+    _settings = newSettings;
+    storage.setGeneralSettings(newSettings).catchError((Object e, StackTrace st) {
+      logger.e('Failed to persist general settings', error: e, stackTrace: st);
+    });
+  }
+
+  void updateSettings(GeneralSettings Function(GeneralSettings current) updater) {
+    _saveSettings(updater(_settings));
+  }
+
+  SaveFormat get saveFormat => _settings.saveFormat;
   void updateSaveFormat(SaveFormat format) {
-    _saveFormat = format;
-    storage.setSaveFormat(format);
+    _saveSettings(_settings.copyWith(saveFormat: format));
   }
 
-  late String? _saveDirectory;
-  String? get saveDirectory => _saveDirectory;
+  String? get saveDirectory => _settings.saveDirectory;
   void updateSaveDirectory(String? path) {
-    _saveDirectory = path;
-    storage.setSaveDirectory(path);
+    _saveSettings(_settings.copyWith(saveDirectory: path));
   }
 
-  late PathTemplate _downloadPathTemplate;
-  PathTemplate get downloadPathTemplate => _downloadPathTemplate;
+  PathTemplate get downloadPathTemplate => _settings.downloadPathTemplate;
   void updateDownloadPathTemplate(PathTemplate template) {
-    _downloadPathTemplate = template;
-    storage.setDownloadPathTemplate(template);
+    _saveSettings(_settings.copyWith(downloadPathTemplate: template));
   }
 
-  late String _authorsPathSeparator;
-  String get authorsPathSeparator => _authorsPathSeparator;
+  String get authorsPathSeparator => _settings.authorsPathSeparator;
   void updateAuthorsPathSeparator(String separator) {
-    _authorsPathSeparator = separator;
-    storage.setAuthorsPathSeparator(separator);
+    _saveSettings(_settings.copyWith(authorsPathSeparator: separator));
+  }
+
+  bool get autoSaveOnComplete => _settings.autoSaveOnComplete;
+  void updateAutoSaveOnComplete(bool value) {
+    _saveSettings(_settings.copyWith(autoSaveOnComplete: value));
+  }
+
+  int get parallelImageDownloads => _settings.parallelImageDownloads;
+  void updateParallelImageDownloads(int value) {
+    _saveSettings(_settings.copyWith(parallelImageDownloads: value.clamp(1, 16)));
+  }
+
+  int get parallelChapterDownloads => _settings.parallelChapterDownloads;
+  void updateParallelChapterDownloads(int value) {
+    _saveSettings(
+      _settings.copyWith(parallelChapterDownloads: value.clamp(1, 16)),
+    );
+  }
+
+  List<String> get pinnedPortalCodes => _settings.pinnedPortalCodes;
+
+  bool isPortalPinned(String code) => pinnedPortalCodes.contains(code);
+
+  void togglePinPortal(String code) {
+    final list = List<String>.from(pinnedPortalCodes);
+    if (list.contains(code)) {
+      list.remove(code);
+    } else {
+      list.add(code);
+    }
+    _saveSettings(_settings.copyWith(pinnedPortalCodes: list));
+  }
+
+  RecentBooksViewMode get recentBooksViewMode => _settings.recentBooksViewMode;
+  void updateRecentBooksViewMode(RecentBooksViewMode mode) {
+    _saveSettings(_settings.copyWith(recentBooksViewMode: mode));
   }
 
   Future<void> loadSettings() async {
-    _downloadPathTemplate = await storage.getDownloadPathTemplate();
-    _authorsPathSeparator = await storage.getAuthorsPathSeparator();
-    _saveDirectory = await storage.getSaveDirectory();
-    _saveFormat = await storage.getSaveFormat() ?? SaveFormat.fb2Zip;
+    _settings = await storage.getGeneralSettings();
 
     final portalSettingsByCode = await storage.getPortalsSettings();
     _sessions = PortalFactory.portals.map((portal) {

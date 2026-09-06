@@ -1,21 +1,25 @@
 import 'dart:math';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
-import '../../../core/ui/constants.dart';
+import '../../../core/ui/tokens.dart';
 
 void overlaySnackMessage(BuildContext context, String message) {
-  final overlay = Overlay.of(context);
-  final overlayEntry = OverlayEntry(
+  final overlay = Overlay.maybeOf(context);
+  if (overlay == null) return;
+
+  late final OverlayEntry overlayEntry;
+  overlayEntry = OverlayEntry(
     builder: (context) => _OverlaySnackMessage(message: message),
   );
 
   overlay.insert(overlayEntry);
 
-  Future.delayed(
-    const Duration(milliseconds: 5500),
-    () => overlayEntry.remove(),
-  );
+  Future.delayed(const Duration(milliseconds: 5500), () {
+    if (overlayEntry.mounted) {
+      overlayEntry.remove();
+    }
+  });
 }
 
 class _OverlaySnackMessage extends StatefulWidget {
@@ -67,7 +71,7 @@ class __OverlaySnackMessageState extends State<_OverlaySnackMessage>
     );
 
     return Positioned(
-      bottom: appPadding * 4 + bottomInset,
+      bottom: AppSpacing.xxl * 2 + bottomInset,
       right: 0,
       child: FadeTransition(
         opacity: _animation,
@@ -76,16 +80,16 @@ class __OverlaySnackMessageState extends State<_OverlaySnackMessage>
           child: Material(
             color: Colors.transparent,
             child: Container(
-              width: MediaQuery.of(context).size.width - appPadding * 4,
+              width: MediaQuery.of(context).size.width - AppSpacing.xxl * 2,
               constraints: const BoxConstraints(maxWidth: 500),
               padding: const EdgeInsets.symmetric(
-                horizontal: appPadding * 3,
-                vertical: appPadding * 2,
+                horizontal: AppSpacing.lg,
+                vertical: AppSpacing.md,
               ),
-              margin: const EdgeInsets.symmetric(horizontal: appPadding * 2),
+              margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.onSurface,
-                borderRadius: BorderRadius.circular(8.0),
+                borderRadius: BorderRadius.circular(AppRadii.md),
               ),
               child: Text(
                 widget.message,

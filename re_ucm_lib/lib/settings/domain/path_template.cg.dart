@@ -1,25 +1,25 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'path_placeholders.dart';
 import 'template_formatter.dart';
 
 part '../../.gen/settings/domain/path_template.cg.freezed.dart';
 part '../../.gen/settings/domain/path_template.cg.g.dart';
 
 @freezed
-@JsonSerializable()
-class PathTemplate with _$PathTemplate {
-  PathTemplate({required this.path, required this.seriesPath});
+abstract class PathTemplate with _$PathTemplate {
+  const PathTemplate._();
 
-  @override
-  final String path;
-  @override
-  final String seriesPath;
+  const factory PathTemplate({
+    required String path,
+    required String seriesPath,
+  }) = _PathTemplate;
 
   static String initialPathPlaceholder =
-      '${TemplateFormatter.startTagChar}Название${TemplateFormatter.endTagChar}';
+      '${TemplateFormatter.startTagChar}${PathPlaceholders.name.label}${TemplateFormatter.endTagChar}';
 
   static String initialSeriesPathPlaceholder =
-      '${TemplateFormatter.startTagChar}Серия${TemplateFormatter.endTagChar} — ${TemplateFormatter.startTagChar}Номер в серии${TemplateFormatter.endTagChar}';
+      '${TemplateFormatter.startTagChar}${PathPlaceholders.series.label}${TemplateFormatter.endTagChar} — ${TemplateFormatter.startTagChar}${PathPlaceholders.seriesNumber.label}${TemplateFormatter.endTagChar}';
 
   factory PathTemplate.initial() => PathTemplate(
     path: initialPathPlaceholder,
@@ -28,6 +28,4 @@ class PathTemplate with _$PathTemplate {
 
   factory PathTemplate.fromJson(Map<String, dynamic> json) =>
       _$PathTemplateFromJson(json);
-
-  Map<String, dynamic> toJson() => _$PathTemplateToJson(this);
 }

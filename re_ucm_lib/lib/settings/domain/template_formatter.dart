@@ -3,7 +3,6 @@ import 'package:re_ucm_core/models/portal.dart';
 
 import 'path_placeholders.dart';
 import 'path_template.cg.dart';
-import '../settings_service.dart';
 
 class TemplateFormatter {
   // Инвертированные скобки "панцирь черепахи" для максимальной уникальности
@@ -19,19 +18,25 @@ class TemplateFormatter {
 
   static String buildTemplateFileName(
     BookMetadata data,
-    Portal portal,
-    SettingsService settings,
-  ) {
+    Portal portal, {
+    required PathTemplate downloadPathTemplate,
+    required String authorsPathSeparator,
+  }) {
     var template = data.primarySeries != null
-        ? settings.downloadPathTemplate.seriesPath.trim()
-        : settings.downloadPathTemplate.path.trim();
+        ? downloadPathTemplate.seriesPath.trim()
+        : downloadPathTemplate.path.trim();
 
     if (template.isEmpty) {
       template = data.primarySeries != null
           ? PathTemplate.initialSeriesPathPlaceholder
           : PathTemplate.initialPathPlaceholder;
     }
-    final rendered = renderTemplate(template, data, portal, settings).trim();
+    final rendered = renderTemplate(
+      template,
+      data,
+      portal,
+      authorsPathSeparator: authorsPathSeparator,
+    ).trim();
 
     return rendered;
   }
@@ -39,17 +44,17 @@ class TemplateFormatter {
   static String renderTemplate(
     String template,
     BookMetadata data,
-    Portal portal,
-    SettingsService settings,
-  ) {
-    final separator = settings.authorsPathSeparator;
-    final authorsSeparator = separator.isEmpty ? ', ' : separator;
+    Portal portal, {
+    required String authorsPathSeparator,
+  }) {
+    final separator = authorsPathSeparator.trim();
+    final effectiveSeparator = separator.isEmpty ? ', ' : separator;
 
     return template.replaceAllMapped(tagRegExp, (match) {
       final label = match.group(1) ?? '';
       final placeholder = PathPlaceholders.fromLabel(label);
       if (placeholder == null) return '';
-      final value = placeholder.resolve(data, portal, authorsSeparator);
+      final value = placeholder.resolve(data, portal, effectiveSeparator);
       return value.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
     });
   }

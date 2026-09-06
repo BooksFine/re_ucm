@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
-import '../../../../core/ui/constants.dart';
+import '../common/settings_input_decoration.dart';
 import 'placeholder_button.dart';
 import 'tag_editing_controller.dart';
 
@@ -40,10 +40,30 @@ class _PathTemplateFieldState extends State<PathTemplateField> {
     super.initState();
     pathController = TagEditingController(text: widget.initialPath);
     isPathEmpty = pathController.text.isEmpty;
+    focus.addListener(_handleFocusChange);
+  }
+
+  void _handleFocusChange() {
+    if (!focus.hasFocus && isEditing) {
+      if (mounted) {
+        setState(() => isEditing = false);
+      }
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant PathTemplateField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialPath != oldWidget.initialPath && !isEditing) {
+      pathController.text = widget.initialPath;
+      path = widget.initialPath;
+      isPathEmpty = widget.initialPath.isEmpty;
+    }
   }
 
   @override
   void dispose() {
+    focus.removeListener(_handleFocusChange);
     pathController.dispose();
     focus.dispose();
     super.dispose();
@@ -79,102 +99,110 @@ class _PathTemplateFieldState extends State<PathTemplateField> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(height: appPadding * 1.6),
         TextField(
           readOnly: !isEditing,
-          groupId: 'test',
-          scrollPadding: const EdgeInsets.all(0),
+          scrollPadding: EdgeInsets.zero,
           controller: pathController,
           focusNode: focus,
           maxLines: 1,
+          onTap: () {
+            if (!isEditing) {
+              setState(() => isEditing = true);
+              focus.requestFocus();
+            }
+          },
           onChanged: onPathChanged,
-          onTapOutside: (v) {},
-          style: TextStyle(color: ColorScheme.of(context).onSurfaceVariant),
-
-          decoration: InputDecoration(
-            visualDensity: VisualDensity.compact,
-            floatingLabelStyle: TextStyle(
-              fontSize: 20,
-              color: ColorScheme.of(context).onSurfaceVariant,
-            ),
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w500,
+            color: theme.colorScheme.onSurface,
+          ),
+          decoration: settingsInputDecoration(
+            context,
             labelText: widget.title,
-            labelStyle: TextStyle(
-              fontSize: 16,
-              color: ColorScheme.of(context).onSurfaceVariant,
-            ),
             errorText: pathError,
+            isEditing: isEditing,
             contentPadding: const EdgeInsets.symmetric(
-              horizontal: appPadding * 2,
+              horizontal: 12,
+              vertical: 11,
             ),
-            border: InputBorder.none,
-            suffixIcon: Row(
-              mainAxisSize: .min,
-              children: [
-                if (isEditing) ...[
-                  if (!isPathEmpty)
-                    TapRegion(
-                      groupId: 'test',
-                      child: IconButton(
-                        icon: Icon(
-                          Icons.clear,
-                          color: ColorScheme.of(context).onSurfaceVariant,
-                        ),
+            suffixIcon: Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isEditing) ...[
+                    if (!isPathEmpty)
+                      IconButton(
+                        padding: .zero,
+                        icon: const Icon(Icons.clear_rounded, size: 20),
+                        tooltip: 'Очистить',
                         onPressed: () {
                           pathController.clear();
                           onPathChanged('');
                         },
                       ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.check_circle_rounded,
+                        size: 22,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      tooltip: 'Применить',
+                      onPressed: onPathSaved,
                     ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.save_as_outlined,
-                      color: ColorScheme.of(context).onSurfaceVariant,
+                  ] else
+                    IconButton(
+                      icon: const Icon(Icons.edit_outlined, size: 20),
+                      tooltip: 'Редактировать',
+                      onPressed: () {
+                        setState(() => isEditing = true);
+                        focus.requestFocus();
+                      },
                     ),
-                    onPressed: onPathSaved,
-                  ),
-                ] else
-                  IconButton(
-                    onPressed: () => setState(() => isEditing = true),
-                    icon: Icon(
-                      Icons.edit_outlined,
-                      color: ColorScheme.of(context).onSurfaceVariant,
-                    ),
-                  ),
-
-                SizedBox(width: appPadding * 1.5),
-              ],
+                ],
+              ),
             ),
           ),
         ),
-        if (pathError != null) SizedBox(height: 16),
         AnimatedSize(
           duration: Durations.short4,
-          alignment: .topCenter,
+          alignment: Alignment.topCenter,
           child: isEditing
-              ? SizedBox(
-                  height: 40,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: appPadding * 1.5,
-                    ),
-                    itemCount: widget.placeholders.length,
-                    itemBuilder: (context, index) {
-                      final tag = widget.placeholders[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: PlaceholderButton(
-                          title: tag.label,
-                          groupId: 'test',
-                          onTap: () => insertTemplateTag(tag.label),
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4, bottom: 6),
+                        child: Text(
+                          'Доступные переменные (нажмите для вставки):',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      );
-                    },
+                      ),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          for (final tag in widget.placeholders)
+                            PlaceholderButton(
+                              title: tag.label,
+                              onTap: () => insertTemplateTag(tag.label),
+                            ),
+                        ],
+                      ),
+                    ],
                   ),
                 )
-              : SizedBox.shrink(),
+              : const SizedBox.shrink(),
         ),
       ],
     );

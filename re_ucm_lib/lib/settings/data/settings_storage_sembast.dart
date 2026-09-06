@@ -1,9 +1,10 @@
 import 'package:path/path.dart' as path;
 import 'package:re_ucm_core/logger.dart';
-import 'package:re_ucm_lib/settings/domain/save_format.dart';
 import 'package:sembast/sembast_io.dart';
 
+import '../domain/general_settings.cg.dart';
 import '../domain/path_template.cg.dart';
+import '../domain/save_format.dart';
 import 'settings_storage.dart';
 
 class SettingsStorageSembast implements SettingsStorage {
@@ -13,10 +14,12 @@ class SettingsStorageSembast implements SettingsStorage {
     'PortalSettings',
   );
 
+  static const _generalSettingsKey = 'generalSettings';
+
   SettingsStorageSembast._();
 
   static Future<SettingsStorageSembast> init(String databaseDirectory) async {
-    var repo = SettingsStorageSembast._();
+    final repo = SettingsStorageSembast._();
 
     repo.db = await databaseFactoryIo.openDatabase(
       path.join(databaseDirectory, 'settings.db'),
@@ -29,53 +32,79 @@ class SettingsStorageSembast implements SettingsStorage {
   }
 
   @override
-  Future<void> setDownloadPathTemplate(PathTemplate template) async {
-    await _store.record('downloadPathTemplate').put(db, template.toJson());
+  Future<void> setGeneralSettings(GeneralSettings settings) async {
+    await _store.record(_generalSettingsKey).put(db, settings.toJson());
   }
 
   @override
-  Future<PathTemplate> getDownloadPathTemplate() async {
+  Future<GeneralSettings> getGeneralSettings() async {
     try {
-      final record = await _store.record('downloadPathTemplate').get(db);
+      final record = await _store.record(_generalSettingsKey).get(db);
       if (record is Map) {
-        return PathTemplate.fromJson(Map<String, dynamic>.from(record));
+        return GeneralSettings.fromJson(Map<String, dynamic>.from(record));
       }
-      return PathTemplate.initial();
     } catch (e, trace) {
       logger.w(
-        'Failed to deserialize downloadPathTemplate, resetting to initial',
+        'Failed to deserialize generalSettings, falling back to legacy or default',
         error: e,
         stackTrace: trace,
       );
-      return PathTemplate.initial();
     }
+
+    final legacySettings = await _readLegacySettings();
+    await setGeneralSettings(legacySettings);
+    return legacySettings;
   }
 
-  @override
-  Future<void> setAuthorsPathSeparator(String separator) async {
-    await _store.record('authorsPathSeparator').put(db, separator);
-  }
+  Future<GeneralSettings> _readLegacySettings() async {
+    var settings = GeneralSettings.initial();
 
-  @override
-  Future<String> getAuthorsPathSeparator() async {
-    final val = await _store.record('authorsPathSeparator').get(db);
-    return val is String ? val : ', ';
-  }
+    try {
+      final record = await _store.record('downloadPathTemplate').get(db);
+      if (record is Map) {
+        settings = settings.copyWith(
+          downloadPathTemplate: PathTemplate.fromJson(
+            Map<String, dynamic>.from(record),
+          ),
+        );
+      }
+    } catch (_) {}
 
-  @override
-  Future<void> setSaveDirectory(String? dirPath) async {
-    final record = _store.record('saveDirectory');
-    if (dirPath == null) {
-      await record.delete(db);
-    } else {
-      await record.put(db, dirPath);
-    }
-  }
+    try {
+      final val = await _store.record('authorsPathSeparator').get(db);
+      if (val is String) settings = settings.copyWith(authorsPathSeparator: val);
+    } catch (_) {}
 
-  @override
-  Future<String?> getSaveDirectory() async {
-    final val = await _store.record('saveDirectory').get(db);
-    return val is String ? val : null;
+    try {
+      final val = await _store.record('saveDirectory').get(db);
+      if (val is String) settings = settings.copyWith(saveDirectory: val);
+    } catch (_) {}
+
+    try {
+      final formatStr = await _store.record('saveFormat').get(db) as String?;
+      if (formatStr != null) {
+        settings = settings.copyWith(saveFormat: SaveFormat.fromJson(formatStr));
+      }
+    } catch (_) {}
+
+    try {
+      final val = await _store.record('autoSaveOnComplete').get(db);
+      if (val is bool) settings = settings.copyWith(autoSaveOnComplete: val);
+    } catch (_) {}
+
+    try {
+      final val = await _store.record('parallelImageDownloads').get(db);
+      if (val is int) settings = settings.copyWith(parallelImageDownloads: val);
+    } catch (_) {}
+
+    try {
+      final val = await _store.record('parallelChapterDownloads').get(db);
+      if (val is int) {
+        settings = settings.copyWith(parallelChapterDownloads: val);
+      }
+    } catch (_) {}
+
+    return settings;
   }
 
   @override
@@ -90,26 +119,5 @@ class SettingsStorageSembast implements SettingsStorage {
       map[record.key] = record.value;
     }
     return map;
-  }
-
-  @override
-  Future<void> setSaveFormat(SaveFormat format) async =>
-      await _store.record('saveFormat').put(db, format.toJson());
-
-  @override
-  Future<SaveFormat?> getSaveFormat() async {
-    final formatStr = await _store.record('saveFormat').get(db) as String?;
-    if (formatStr == null) return null;
-    try {
-      return SaveFormat.fromJson(formatStr);
-    } catch (e, trace) {
-      logger.w(
-        'Failed to deserialize saveFormat, deleting corrupted record',
-        error: e,
-        stackTrace: trace,
-      );
-      await _store.record('saveFormat').delete(db);
-      return null;
-    }
   }
 }

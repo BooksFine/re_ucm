@@ -3,7 +3,7 @@ import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:dart_book/dart_book.dart';
-import 'package:re_ucm_core/models/progress.dart';
+import 'package:re_ucm_core/re_ucm_core.dart';
 
 import '../settings/domain/save_format.dart';
 
@@ -23,8 +23,20 @@ class BookExporter {
     bool includeAfterword = true,
     int maxConcurrentDownloads = 4,
     void Function(Progress progress)? onProgress,
+    CancellationToken? cancelToken,
   }) async {
-    onProgress?.call(Progress(stage: .analyzing));
+    if (cancelToken?.isCancelled == true) {
+      return ResolvedBookResult(
+        book: Book(
+          metadata: metadata,
+          content: content,
+          resources: initialResources,
+        ),
+        failedTasks: const [],
+      );
+    }
+
+    onProgress?.call(Progress(stage: Stages.analyzing));
 
     final blocks = List<BookBlock>.from(content.blocks);
 
@@ -46,10 +58,14 @@ class BookExporter {
     var lastStates = <BookResourceDownloadState>[];
 
     final resolvedBook = await initialBook.resolveResources(
-      resourceResolver,
+      (request, {onByteProgress}) async {
+        if (cancelToken?.isCancelled == true) return null;
+        return resourceResolver(request, onByteProgress: onByteProgress);
+      },
       baseUri: metadata.source,
       maxConcurrent: maxConcurrentDownloads,
       onProgress: (completed, total, states) {
+        if (cancelToken?.isCancelled == true) return;
         lastStates = states;
         onProgress?.call(
           Progress(

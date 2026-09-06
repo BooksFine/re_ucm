@@ -55,10 +55,12 @@ abstract class PortalSessionBase<T extends PortalSettings> with Store {
   Future<BookContent> getBookContent(
     String id, {
     void Function(Progress progress)? onProgress,
+    CancellationToken? cancelToken,
   }) => portal.service.getBookContent(
     id,
     settings: settings,
     onProgress: onProgress,
+    cancelToken: cancelToken,
   );
 
   BookResourceResolver getResourceResolver() =>

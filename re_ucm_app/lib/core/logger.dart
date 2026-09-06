@@ -1,9 +1,9 @@
+import 'dart:developer' as developer;
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 import 'package:path/path.dart' as path;
-
 import 'package:path_provider/path_provider.dart';
 
 late final Logger logger;
@@ -20,6 +20,24 @@ Future<File> _getLogFile() async {
   return File(path.join(logDir.path, 'session_log.txt'));
 }
 
+/// Custom output that forwards errors to Dart developer log and DevTools
+class _DeveloperLogOutput extends LogOutput {
+  @override
+  void output(OutputEvent event) {
+    if (event.level.value >= Level.error.value) {
+      for (final line in event.lines) {
+        developer.log(
+          line,
+          name: 'ReUCM',
+          level: 1000,
+          error: event.origin.error,
+          stackTrace: event.origin.stackTrace,
+        );
+      }
+    }
+  }
+}
+
 Future<void> loggerInit() async {
   final logFile = await _getLogFile();
   final fileOutput = FileOutput(file: logFile, overrideExisting: true);
@@ -27,7 +45,7 @@ Future<void> loggerInit() async {
   logger = Logger(
     level: Level.all,
     printer: PrettyPrinter(),
-    output: MultiOutput([ConsoleOutput(), fileOutput]),
+    output: MultiOutput([ConsoleOutput(), fileOutput, _DeveloperLogOutput()]),
     filter: ProductionFilter(),
   );
 
@@ -37,10 +55,12 @@ Future<void> loggerInit() async {
       error: details.exception,
       stackTrace: details.stack,
     );
+    // Crucial: keep presentError so DevTools and MCP get_runtime_errors capture it!
+    FlutterError.presentError(details);
   };
 
   PlatformDispatcher.instance.onError = (error, stack) {
     logger.e("Platform Error: $error", error: error, stackTrace: stack);
-    return true;
+    return false; // Allows standard reporting
   };
 }

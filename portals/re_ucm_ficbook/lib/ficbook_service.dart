@@ -44,27 +44,24 @@ class FicbookService implements PortalService<FBSettings> {
   @override
   List<PortalSettingItem> buildSettingsSchema(FBSettings settings) {
     return [
-      const PortalSettingSectionTitle('Ficbook'),
       PortalSettingGroup([
         PortalSettingTextField(
           actionId: changeMirrorAction,
           title: 'Зеркало сайта',
-          hint: settings.mirrorUrl == defaultMirrorFB
-              ? defaultMirrorFB
-              : 'Текущее: ${settings.mirrorUrl}',
+          value: settings.mirrorUrl,
+          hint: defaultMirrorFB,
           onSubmit: (s, value) async {
             final mirror = value.trim().isEmpty
                 ? defaultMirrorFB
                 : value.trim();
             final updated = (s as FBSettings).copyWith(mirrorUrl: mirror);
-            onSettingsChanged?.call(updated);
             return updated;
           },
         ),
         PortalSettingNumberField(
           actionId: 'change_concurrent',
-          title: 'Количество параллельных потоков',
-          subtitle: 'Одновременная загрузка глав (от 1 до 20)',
+          title: 'Потоков загрузки глав',
+          subtitle: 'Количество одновременных запросов (1–20)',
           value: settings.maxConcurrentDownloads,
           min: 1,
           max: 20,
@@ -73,7 +70,6 @@ class FicbookService implements PortalService<FBSettings> {
             final updated = (s as FBSettings).copyWith(
               maxConcurrentDownloads: clamped,
             );
-            onSettingsChanged?.call(updated);
             return updated;
           },
         ),
@@ -150,7 +146,17 @@ class FicbookService implements PortalService<FBSettings> {
     String id, {
     required FBSettings settings,
     void Function(Progress progress)? onProgress,
+    CancellationToken? cancelToken,
   }) async {
+    if (cancelToken?.isCancelled == true) {
+      return const BookContent(blocks: []);
+    }
+
+    final dioCancelToken = CancelToken();
+    cancelToken?.attach(() {
+      dioCancelToken.cancel('Cancelled by user');
+    });
+
     final mirror = _normalizeUrl(settings.mirrorUrl);
     final baseUri = Uri.parse(mirror);
     final targetUrl = '$mirror/readfic/$id';
@@ -159,13 +165,26 @@ class FicbookService implements PortalService<FBSettings> {
       Progress(stage: Stages.downloading, message: 'Получение оглавления...'),
     );
 
-    final mainRes = await _dio.get<String>(
-      targetUrl,
-      options: Options(
-        responseType: ResponseType.plain,
-        headers: {'user-agent': userAgentFB},
-      ),
-    );
+    final Response<String> mainRes;
+    try {
+      mainRes = await _dio.get<String>(
+        targetUrl,
+        cancelToken: dioCancelToken,
+        options: Options(
+          responseType: ResponseType.plain,
+          headers: {'user-agent': userAgentFB},
+        ),
+      );
+    } catch (e) {
+      if (cancelToken?.isCancelled == true) {
+        return const BookContent(blocks: []);
+      }
+      rethrow;
+    }
+
+    if (cancelToken?.isCancelled == true) {
+      return const BookContent(blocks: []);
+    }
 
     final mainHtml = mainRes.data ?? '';
     final (metadata, toc) = await _runIsolated(_parseMainTask, (
@@ -173,6 +192,10 @@ class FicbookService implements PortalService<FBSettings> {
       id: id,
       baseUri: baseUri,
     ));
+
+    if (cancelToken?.isCancelled == true) {
+      return const BookContent(blocks: []);
+    }
 
     final chapterTasks = List.generate(
       toc.length,
@@ -187,6 +210,7 @@ class FicbookService implements PortalService<FBSettings> {
     final totalCount = toc.length;
 
     void emitProgress() {
+      if (cancelToken?.isCancelled == true) return;
       onProgress?.call(
         Progress(
           stage: Stages.downloading,
@@ -206,6 +230,7 @@ class FicbookService implements PortalService<FBSettings> {
 
     Future<void> worker() async {
       while (true) {
+        if (cancelToken?.isCancelled == true) break;
         if (nextIndex >= toc.length) break;
         final cur = nextIndex++;
         final chapter = toc[cur];
@@ -218,11 +243,14 @@ class FicbookService implements PortalService<FBSettings> {
         try {
           final chapterRes = await _dio.get<String>(
             chapter.url.toString(),
+            cancelToken: dioCancelToken,
             options: Options(
               responseType: ResponseType.plain,
               headers: {'user-agent': userAgentFB},
             ),
           );
+
+          if (cancelToken?.isCancelled == true) return;
 
           final htmlData = chapterRes.data ?? '';
           final chapterTitle = chapter.title;
@@ -235,6 +263,7 @@ class FicbookService implements PortalService<FBSettings> {
             status: ChapterDownloadStatus.completed,
           );
         } catch (e, trace) {
+          if (cancelToken?.isCancelled == true) return;
           logger.w(
             'Failed to download chapter ${chapter.title}',
             error: e,
@@ -244,14 +273,20 @@ class FicbookService implements PortalService<FBSettings> {
             status: ChapterDownloadStatus.failed,
           );
         } finally {
-          completedCount++;
-          emitProgress();
+          if (cancelToken?.isCancelled != true) {
+            completedCount++;
+            emitProgress();
+          }
         }
       }
     }
 
     final workerCount = maxConcurrent.clamp(1, toc.length);
     await Future.wait(List.generate(workerCount, (_) => worker()));
+
+    if (cancelToken?.isCancelled == true) {
+      return const BookContent(blocks: []);
+    }
 
     final sections = results.whereType<BookSection>().toList();
     return BookContent(blocks: sections);

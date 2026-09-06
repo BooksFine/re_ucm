@@ -30,22 +30,21 @@ class AuthorTodayService implements PortalService<ATSettings> {
   @override
   List<PortalSettingItem> buildSettingsSchema(ATSettings settings) {
     return [
-      const PortalSettingSectionTitle('Author.Today'),
       PortalSettingStateSwitcher<bool>(
         currentState: isAuthorized(settings),
         states: {
           true: PortalSettingActionButton(
             actionId: logoutAction,
-            title: 'Выйти из аккаунта',
+            title: 'Выйти',
             subtitle: settings.userId == null
                 ? null
-                : 'Вы залогинены как id${settings.userId}',
+                : 'Вы вошли как id${settings.userId}',
             onTap: (s) => _logout(s as ATSettings),
           ),
           false: PortalSettingGroup([
             PortalSettingWebAuthButton(
               actionId: loginByWebAction,
-              title: 'Вход через web',
+              title: 'Войти через браузер',
               startUrl: '$urlAT/account/login',
               successUrl: '$urlAT/',
               cookieName: 'LoginCookie',
@@ -59,13 +58,13 @@ class AuthorTodayService implements PortalService<ATSettings> {
               states: {
                 true: PortalSettingTextField(
                   actionId: loginByTokenAction,
-                  title: 'Вход с помощью токена',
-                  hint: 'Вставьте токен',
+                  title: 'Войти по токену',
+                  hint: 'Введите токен',
                   onSubmit: (s, v) => _loginByToken(s as ATSettings, v),
                 ),
                 false: PortalSettingActionButton(
                   actionId: startTokenAuthAction,
-                  title: 'Вход с помощью токена',
+                  title: 'Войти по токену',
                   onTap: (s) => _startTokenAuth(s as ATSettings),
                 ),
               },
@@ -184,17 +183,42 @@ class AuthorTodayService implements PortalService<ATSettings> {
     String id, {
     required ATSettings settings,
     void Function(Progress progress)? onProgress,
+    CancellationToken? cancelToken,
   }) async {
+    if (cancelToken?.isCancelled == true) {
+      return const BookContent(blocks: []);
+    }
+
     final token = settings.token;
     final userId = settings.userId;
+    final dio = Dio();
+    cancelToken?.attach(() {
+      dio.close(force: true);
+    });
+
     final api = AuthorTodayAPI.create(
       token: token,
       onRelogin: () => _relogin(settings),
+      dio: dio,
     );
     onProgress?.call(
       Progress(stage: Stages.downloading, message: 'Загрузка текста...'),
     );
-    final res = await api.getManyTexts(id);
+
+    final res = await () async {
+      try {
+        return await api.getManyTexts(id);
+      } catch (e) {
+        if (cancelToken?.isCancelled == true) {
+          return null;
+        }
+        rethrow;
+      }
+    }();
+
+    if (res == null || cancelToken?.isCancelled == true) {
+      return const BookContent(blocks: []);
+    }
 
     final successfulEntries = res.data
         .where((entry) => entry.isSuccessful)
@@ -216,6 +240,10 @@ class AuthorTodayService implements PortalService<ATSettings> {
       chapters: rawChapters,
       userId: userId,
     ));
+
+    if (cancelToken?.isCancelled == true) {
+      return const BookContent(blocks: []);
+    }
 
     return BookContent(blocks: sections);
   }

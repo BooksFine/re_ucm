@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
-import '../../../core/ui/constants.dart';
+import 'package:m3e_core/m3e_core.dart';
+import 'package:material_ui/material_ui.dart';
 
 class ElevatedButton1 extends StatelessWidget {
   const ElevatedButton1({
@@ -17,33 +16,35 @@ class ElevatedButton1 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      borderRadius: BorderRadius.circular(cardBorderRadius),
-      color: func != null
-          ? Theme.of(context).colorScheme.primary
-          : Theme.of(context).disabledColor,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(cardBorderRadius),
-        onTap: isLoading ? null : func,
-        child: SizedBox(
-          height: height ?? 48,
-          width: double.infinity,
-          child: Center(
-            child: isLoading
-                ? LoadingAnimationWidget.progressiveDots(
-                    color: Colors.white,
-                    size: 60,
-                  )
-                : DefaultTextStyle(
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.normal,
-                      color: Theme.of(context).colorScheme.onPrimary,
-                    ),
-                    child: child,
-                  ),
-          ),
+    final theme = Theme.of(context);
+    return SizedBox(
+      height: height ?? 48,
+      width: double.infinity,
+      child: M3EButton(
+        onPressed: isLoading ? null : func,
+        style: M3EButtonStyle.filled,
+        size: M3EButtonSize.md,
+        decoration: M3EButtonDecoration.styleFrom(
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
+        child: isLoading
+            ? SizedBox(
+                width: 20,
+                height: 20,
+                child: M3ECircularWavyProgressIndicator(
+                  size: 20,
+                  strokeWidth: 2,
+                  color: theme.colorScheme.onPrimary,
+                ),
+              )
+            : DefaultTextStyle(
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: theme.colorScheme.onPrimary,
+                ),
+                child: child,
+              ),
       ),
     );
   }

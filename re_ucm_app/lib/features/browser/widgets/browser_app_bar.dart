@@ -1,5 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:m3e_core/m3e_core.dart';
+import 'package:material_ui/material_ui.dart';
 import '../../common/widgets/appbar.dart';
+import '../../downloads/presentation/widgets/downloads_indicator_button.dart';
 import 'browser_refresh_button.dart';
 
 class BrowserAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -89,20 +91,16 @@ class BrowserAppBar extends StatelessWidget implements PreferredSizeWidget {
                 icon: const Icon(Icons.arrow_back_ios_new),
               ),
         actions: [
+          const DownloadsIndicatorButton(),
           if (isWide) ...[
-            SizedBox(
-              height: 40,
-              child: FilledButton.tonalIcon(
-                onPressed: hasBook ? onDownload : null,
-                icon: const Icon(Icons.download),
-                label: const Text('Скачать'),
-                style: FilledButton.styleFrom(
-                  shape: const StadiumBorder(),
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                ),
-              ),
-            ),
             const SizedBox(width: 8),
+            M3EButton.icon(
+              style: M3EButtonStyle.tonal,
+              size: M3EButtonSize.sm,
+              onPressed: hasBook ? onDownload : null,
+              icon: const Icon(Icons.download, size: 18),
+              label: const Text('Скачать'),
+            ),
           ],
           IconButton(
             icon: const Icon(Icons.settings),

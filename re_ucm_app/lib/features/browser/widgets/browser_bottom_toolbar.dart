@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:m3e_core/m3e_core.dart';
+import 'package:material_ui/material_ui.dart';
+
 import 'browser_refresh_button.dart';
 
 class BrowserBottomToolbar extends StatelessWidget {
@@ -45,29 +46,16 @@ class BrowserBottomToolbar extends StatelessWidget {
                 onPressed: canGoForward ? onWebForward : null,
                 tooltip: 'Вперёд',
               ),
-              BrowserRefreshButton(
-                isLoading: isLoading,
-                onReload: onReload,
-              ),
+              BrowserRefreshButton(isLoading: isLoading, onReload: onReload),
             ],
           ),
         ),
         const SizedBox(width: M3EFloatingToolbarDefaults.toolbarToFabGap),
-        FloatingActionButton(
-          heroTag: 'browser_download_fab',
+        M3EFab(
           onPressed: hasBook ? onDownload : null,
-          backgroundColor: hasBook
-              ? Theme.of(context).colorScheme.primaryContainer
-              : Theme.of(context).colorScheme.surfaceContainerHighest,
-          foregroundColor: hasBook
-              ? Theme.of(context).colorScheme.onPrimaryContainer
-              : Theme.of(context)
-                  .colorScheme
-                  .onSurfaceVariant
-                  .withValues(alpha: 0.38),
-          elevation: hasBook ? 2 : 0,
+          color: hasBook ? M3EFabColor.primary : M3EFabColor.surface,
           tooltip: hasBook ? 'Скачать книгу' : null,
-          child: const Icon(Icons.download),
+          icon: const Icon(Icons.download),
         ),
       ],
     );

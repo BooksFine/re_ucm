@@ -17,6 +17,7 @@ abstract interface class PortalService<T extends PortalSettings> {
     String id, {
     required T settings,
     void Function(Progress progress)? onProgress,
+    CancellationToken? cancelToken,
   });
 
   BookResourceResolver getResourceResolver(T settings);

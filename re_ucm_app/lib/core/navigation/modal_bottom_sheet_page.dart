@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:m3e_core/m3e_core.dart';
+import 'package:material_ui/material_ui.dart';
 
 const double _defaultScrollControlDisabledMaxHeightRatio = 9.0 / 16.0;
 
@@ -45,8 +46,17 @@ class ModalBottomSheetPage extends Page {
   @override
   Route createRoute(BuildContext context) {
     return ModalBottomSheetRoute(
-      builder: (_) => child,
-      backgroundColor: backgroundColor,
+      builder: (_) {
+        if (child is M3EBottomSheet) {
+          return child;
+        }
+        return M3EBottomSheet(
+          showDragHandle: showDragHandle ?? false,
+          backgroundColor: backgroundColor,
+          child: child,
+        );
+      },
+      backgroundColor: Colors.transparent,
       barrierLabel: barrierLabel,
       elevation: elevation,
       shape: shape,
@@ -57,7 +67,7 @@ class ModalBottomSheetPage extends Page {
       scrollControlDisabledMaxHeightRatio: scrollControlDisabledMaxHeightRatio,
       isDismissible: isDismissible,
       enableDrag: enableDrag,
-      showDragHandle: showDragHandle,
+      showDragHandle: false,
       useSafeArea: useSafeArea,
       transitionAnimationController: transitionAnimationController,
       anchorPoint: anchorPoint,

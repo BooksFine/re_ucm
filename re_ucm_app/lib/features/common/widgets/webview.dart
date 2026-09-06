@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:m3e_core/m3e_core.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:webview_all/webview_all.dart';
 
 import '../utils/external_launcher.dart';
@@ -27,10 +28,7 @@ class AppWebView extends StatefulWidget {
     NavigationRequest request,
   )?
   shouldOverrideUrlLoading;
-  final void Function(
-    WebViewController controller,
-    Uri? url,
-  )?
+  final void Function(WebViewController controller, Uri? url)?
   onUpdateVisitedHistory;
   final void Function(WebViewController controller, Uri? url)? onLoadStart;
   final void Function(WebViewController controller, Uri? url)? onLoadStop;
@@ -135,8 +133,11 @@ class _AppWebViewState extends State<AppWebView> {
           TweenAnimationBuilder<double>(
             tween: Tween<double>(begin: 0, end: progress),
             duration: Durations.short4,
-            builder: (_, v, _) =>
-                LinearProgressIndicator(value: v == 0 ? null : v, minHeight: 3),
+            builder: (_, v, _) => M3ELinearWavyProgressIndicator(
+              value: v == 0 ? null : v,
+              height: 6,
+              strokeWidth: 3,
+            ),
           ),
       ],
     );

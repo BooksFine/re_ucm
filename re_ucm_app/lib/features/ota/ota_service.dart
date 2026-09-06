@@ -14,11 +14,7 @@ class ReleaseAsset {
   final String downloadUrl;
   final int? size;
 
-  ReleaseAsset({
-    required this.name,
-    required this.downloadUrl,
-    this.size,
-  });
+  ReleaseAsset({required this.name, required this.downloadUrl, this.size});
 }
 
 class OTAService {
@@ -77,65 +73,63 @@ class OTAService {
   String? getPlatformDownloadUrl() {
     if (Platform.isAndroid) {
       final apkAsset = assets.cast<ReleaseAsset?>().firstWhere(
-            (a) => a?.name == 'ReUCM_android_arm64-v8a.apk',
-            orElse: () => assets.cast<ReleaseAsset?>().firstWhere(
-                  (a) => a?.name == 'ReUCM_android.apk',
-                  orElse: () => assets.cast<ReleaseAsset?>().firstWhere(
-                        (a) => a?.name.toLowerCase().endsWith('.apk') ?? false,
-                        orElse: () => null,
-                      ),
-                ),
-          );
+        (a) => a?.name == 'ReUCM_android_arm64-v8a.apk',
+        orElse: () => assets.cast<ReleaseAsset?>().firstWhere(
+          (a) => a?.name == 'ReUCM_android.apk',
+          orElse: () => assets.cast<ReleaseAsset?>().firstWhere(
+            (a) => a?.name.toLowerCase().endsWith('.apk') ?? false,
+            orElse: () => null,
+          ),
+        ),
+      );
       return apkAsset?.downloadUrl ?? otaHost;
     } else if (Platform.isWindows) {
       final exeAsset = assets.cast<ReleaseAsset?>().firstWhere(
-            (a) => a?.name == 'ReUCM_windows.exe',
-            orElse: () => assets.cast<ReleaseAsset?>().firstWhere(
-                  (a) => a?.name.toLowerCase().endsWith('.exe') ?? false,
-                  orElse: () => null,
-                ),
-          );
+        (a) => a?.name == 'ReUCM_windows.exe',
+        orElse: () => assets.cast<ReleaseAsset?>().firstWhere(
+          (a) => a?.name.toLowerCase().endsWith('.exe') ?? false,
+          orElse: () => null,
+        ),
+      );
       return exeAsset?.downloadUrl ?? windowsOTAHost;
     } else if (Platform.isLinux) {
-      final isAppImage = Platform.environment['APPIMAGE'] != null ||
+      final isAppImage =
+          Platform.environment['APPIMAGE'] != null ||
           Platform.environment['APPDIR'] != null;
       final isDebInstalled = Platform.resolvedExecutable.contains('/usr/');
 
       ReleaseAsset? linuxAsset;
       if (isAppImage) {
         linuxAsset = assets.cast<ReleaseAsset?>().firstWhere(
-              (a) => a?.name.toLowerCase().endsWith('.appimage') ?? false,
-              orElse: () => null,
-            );
+          (a) => a?.name.toLowerCase().endsWith('.appimage') ?? false,
+          orElse: () => null,
+        );
       } else if (isDebInstalled) {
         linuxAsset = assets.cast<ReleaseAsset?>().firstWhere(
-              (a) => a?.name.toLowerCase().endsWith('.deb') ?? false,
-              orElse: () => null,
-            );
+          (a) => a?.name.toLowerCase().endsWith('.deb') ?? false,
+          orElse: () => null,
+        );
       }
 
       linuxAsset ??= assets.cast<ReleaseAsset?>().firstWhere(
-            (a) => a?.name == 'ReUCM_linux_amd64.deb',
+        (a) => a?.name == 'ReUCM_linux_amd64.deb',
+        orElse: () => assets.cast<ReleaseAsset?>().firstWhere(
+          (a) => a?.name.toLowerCase().endsWith('.deb') ?? false,
+          orElse: () => assets.cast<ReleaseAsset?>().firstWhere(
+            (a) => a?.name.toLowerCase().endsWith('.appimage') ?? false,
             orElse: () => assets.cast<ReleaseAsset?>().firstWhere(
-                  (a) => a?.name.toLowerCase().endsWith('.deb') ?? false,
-                  orElse: () => assets.cast<ReleaseAsset?>().firstWhere(
-                        (a) => a?.name.toLowerCase().endsWith('.appimage') ?? false,
-                        orElse: () => assets.cast<ReleaseAsset?>().firstWhere(
-                              (a) => a?.name.toLowerCase().endsWith('.tar.gz') ?? false,
-                              orElse: () => null,
-                            ),
-                      ),
-                ),
-          );
+              (a) => a?.name.toLowerCase().endsWith('.tar.gz') ?? false,
+              orElse: () => null,
+            ),
+          ),
+        ),
+      );
       return linuxAsset?.downloadUrl;
     } else if (Platform.isMacOS) {
-      final macAsset = assets.cast<ReleaseAsset?>().firstWhere(
-            (a) {
-              final name = a?.name.toLowerCase() ?? '';
-              return name.endsWith('.dmg') || name.endsWith('.zip');
-            },
-            orElse: () => null,
-          );
+      final macAsset = assets.cast<ReleaseAsset?>().firstWhere((a) {
+        final name = a?.name.toLowerCase() ?? '';
+        return name.endsWith('.dmg') || name.endsWith('.zip');
+      }, orElse: () => null);
       return macAsset?.downloadUrl;
     }
     return null;

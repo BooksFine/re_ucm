@@ -1,11 +1,10 @@
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../core/constants.dart';
 import '../../../core/ui/constants.dart';
-import '../../common/widgets/icon_button.dart';
-import '../../settings/presentation/settings_dialog.dart';
+import '../../downloads/presentation/widgets/downloads_indicator_button.dart';
 
 final _logoKey = GlobalKey();
 
@@ -48,16 +47,7 @@ class HomeAppbar extends StatelessWidget {
                   ],
                 ),
               ),
-              Hero(
-                tag: 'Settings',
-                createRectTween: (begin, end) {
-                  return RectTween(begin: begin, end: end);
-                },
-                child: MyIconButton(
-                  icon: const Icon(Icons.settings),
-                  onTap: () => openSettingsDialog(context),
-                ),
-              ),
+              const DownloadsIndicatorButton(),
             ],
           ),
         ),

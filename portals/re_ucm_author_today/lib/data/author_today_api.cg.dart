@@ -14,15 +14,16 @@ abstract class AuthorTodayAPI {
   static AuthorTodayAPI create({
     String? token,
     Future<String?> Function()? onRelogin,
+    Dio? dio,
   }) {
-    final dio = Dio()
-      ..interceptors.add(
-        ATInterceptor(
-          token: token,
-          onRelogin: onRelogin ?? () async => throw Exception('Token expired'),
-        ),
-      );
-    return AuthorTodayAPI(dio);
+    final effectiveDio = dio ?? Dio();
+    effectiveDio.interceptors.add(
+      ATInterceptor(
+        token: token,
+        onRelogin: onRelogin ?? () async => throw Exception('Token expired'),
+      ),
+    );
+    return AuthorTodayAPI(effectiveDio);
   }
 
   @GET('https://author.today/account/bearer-token')

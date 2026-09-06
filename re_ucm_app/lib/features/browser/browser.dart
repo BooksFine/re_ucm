@@ -1,11 +1,12 @@
-import 'package:flutter/material.dart';
 import 'package:m3e_core/m3e_core.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_core/models/portal.dart';
 import 'package:webview_all/webview_all.dart';
 
+import '../../core/di.dart';
 import '../../core/navigation/router_delegate.dart';
 import '../common/widgets/webview.dart';
-import '../settings/presentation/settings_dialog.dart';
+import '../downloads/presentation/download_modal.dart';
 import 'widgets/browser_app_bar.dart';
 import 'widgets/browser_bottom_toolbar.dart';
 import 'widgets/scroll_to_hide_bottom_bar.dart';
@@ -64,7 +65,10 @@ class _BrowserState extends State<Browser> {
 
   void _onDownloadPressed() {
     if (_currentBookId == null) return;
-    Nav.bookFromBrowser(widget.portal.code, _currentBookId!);
+    final session = AppDependencies.of(
+      context,
+    ).settingsService.sessionByCode(widget.portal.code);
+    showDownloadModal(context, session: session, bookId: _currentBookId!);
   }
 
   Widget _buildWebView({required bool isWide}) {
@@ -123,7 +127,7 @@ class _BrowserState extends State<Browser> {
           onWebForward: _webViewController?.goForward,
           onReload: _reload,
           onDownload: _onDownloadPressed,
-          onOpenSettings: () => openSettingsDialog(context),
+          onOpenSettings: Nav.pushSettings,
         ),
         body: isWide
             ? _buildWebView(isWide: true)

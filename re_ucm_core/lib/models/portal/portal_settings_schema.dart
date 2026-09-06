@@ -47,6 +47,7 @@ final class PortalSettingTextField extends PortalSettingItem {
   const PortalSettingTextField({
     required this.actionId,
     required this.title,
+    this.value,
     this.hint,
     this.onChanged,
     this.onSubmit,
@@ -54,6 +55,7 @@ final class PortalSettingTextField extends PortalSettingItem {
 
   final String actionId;
   final String title;
+  final String? value;
   final String? hint;
   final PortalSettingsTextFieldHandler? onChanged;
   final PortalSettingsTextFieldHandler? onSubmit;

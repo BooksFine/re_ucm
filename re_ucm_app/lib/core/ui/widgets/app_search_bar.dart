@@ -1,0 +1,116 @@
+import 'package:material_ui/material_ui.dart';
+
+import '../tokens.dart';
+
+class AppSearchBar extends StatefulWidget {
+  const AppSearchBar({
+    super.key,
+    this.controller,
+    required this.hint,
+    this.searchQuery,
+    this.onChanged,
+    this.onClear,
+  });
+
+  final TextEditingController? controller;
+  final String hint;
+  final String? searchQuery;
+  final ValueChanged<String>? onChanged;
+  final VoidCallback? onClear;
+
+  @override
+  State<AppSearchBar> createState() => _AppSearchBarState();
+}
+
+class _AppSearchBarState extends State<AppSearchBar> {
+  TextEditingController? _internalController;
+  TextEditingController get _effectiveController =>
+      widget.controller ?? (_internalController ??= TextEditingController());
+
+  @override
+  void initState() {
+    super.initState();
+    _effectiveController.addListener(_onTextChange);
+  }
+
+  @override
+  void didUpdateWidget(AppSearchBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.controller != oldWidget.controller) {
+      (oldWidget.controller ?? _internalController)
+          ?.removeListener(_onTextChange);
+      _effectiveController.addListener(_onTextChange);
+    }
+  }
+
+  @override
+  void dispose() {
+    _effectiveController.removeListener(_onTextChange);
+    _internalController?.dispose();
+    super.dispose();
+  }
+
+  void _onTextChange() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isNotEmpty =
+        (widget.searchQuery != null && widget.searchQuery!.isNotEmpty) ||
+        _effectiveController.text.isNotEmpty;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHigh.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        border: Border.all(
+          color: cs.outlineVariant.withValues(alpha: 0.4),
+          width: 0.5,
+        ),
+      ),
+      child: TextField(
+        controller: _effectiveController,
+        onChanged: widget.onChanged,
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: cs.onSurface,
+        ),
+        decoration: InputDecoration(
+          hintText: widget.hint,
+          hintStyle: TextStyle(
+            color: cs.onSurfaceVariant.withValues(alpha: 0.7),
+            fontSize: 14,
+          ),
+          prefixIcon: Icon(
+            Icons.search_rounded,
+            color: cs.onSurfaceVariant,
+            size: 22,
+          ),
+          suffixIcon: isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear_rounded, size: 20),
+                  tooltip: 'Очистить',
+                  onPressed: () {
+                    _effectiveController.clear();
+                    widget.onChanged?.call('');
+                    widget.onClear?.call();
+                  },
+                )
+              : null,
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          filled: false,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.md,
+          ),
+        ),
+      ),
+    );
+  }
+}

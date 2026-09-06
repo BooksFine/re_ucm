@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 import '../../../core/ui/constants.dart';
 import 'recent_book_card.dart';
+import 'recent_book_compact_tile.dart';
 
 class AnimatedRecentBookCard extends StatefulWidget {
   const AnimatedRecentBookCard({
@@ -10,9 +11,13 @@ class AnimatedRecentBookCard extends StatefulWidget {
     required this.book,
     required this.onDelete,
     required this.isFirst,
+    this.isWide = false,
+    this.viewMode = RecentBooksViewMode.compact,
   });
   final RecentBook book;
   final bool isFirst;
+  final bool isWide;
+  final RecentBooksViewMode viewMode;
   final Function(RecentBook book) onDelete;
 
   @override
@@ -60,8 +65,17 @@ class _AnimatedRecentBookCardState extends State<AnimatedRecentBookCard>
         axis: .vertical,
         alignment: .topCenter,
         child: Padding(
-          padding: .only(top: widget.isFirst ? 0 : appPadding),
-          child: RecentBookCard(onDelete: deleteBook, book: widget.book),
+          padding: .only(top: widget.isFirst ? 0 : (widget.viewMode == RecentBooksViewMode.compact ? 2 : appPadding)),
+          child: widget.viewMode == RecentBooksViewMode.compact
+              ? RecentBookCompactTile(
+                  onDelete: deleteBook,
+                  book: widget.book,
+                )
+              : RecentBookCard(
+                  onDelete: deleteBook,
+                  book: widget.book,
+                  isWide: widget.isWide,
+                ),
         ),
       ),
     );

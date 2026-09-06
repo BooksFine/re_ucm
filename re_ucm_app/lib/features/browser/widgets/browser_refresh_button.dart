@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:m3e_core/m3e_core.dart';
+import 'package:material_ui/material_ui.dart';
 
 class BrowserRefreshButton extends StatelessWidget {
   const BrowserRefreshButton({
@@ -17,7 +18,10 @@ class BrowserRefreshButton extends StatelessWidget {
         icon: const SizedBox(
           width: 20,
           height: 20,
-          child: CircularProgressIndicator(strokeWidth: 2.2),
+          child: M3ECircularWavyProgressIndicator(
+            size: 20,
+            strokeWidth: 2.2,
+          ),
         ),
         onPressed: onReload,
         tooltip: 'Загрузка...',

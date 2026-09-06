@@ -1,6 +1,9 @@
 // Settings
+export 'settings/domain/general_settings.cg.dart';
 export 'settings/domain/path_placeholders.dart';
 export 'settings/domain/path_template.cg.dart';
+export 'settings/domain/save_format.dart';
+export 'settings/domain/recent_books_view_mode.dart';
 export 'settings/settings_service.dart';
 export 'settings/domain/template_formatter.dart';
 

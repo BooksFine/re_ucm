@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:m3e_core/m3e_core.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../core/navigation/router_delegate.dart';
 import '../../../core/ui/constants.dart';
 import '../../changelog/changelog.dart';
-import '../../common/widgets/outlined_btn.dart';
 
 class ChangelogDialog extends StatelessWidget {
   const ChangelogDialog({super.key});
@@ -21,13 +21,15 @@ class ChangelogDialog extends StatelessWidget {
       content: Text(changelogGen[0].content),
       actions: [
         SizedBox(
-          height: 54,
-          child: OutlinedButton1(
-            text: 'Полный список',
-            func: () {
+          width: double.infinity,
+          child: M3EButton(
+            style: M3EButtonStyle.outlined,
+            size: M3EButtonSize.md,
+            onPressed: () {
               Nav.back();
               Nav.goChangelog();
             },
+            child: const Text('Полный список'),
           ),
         ),
       ],

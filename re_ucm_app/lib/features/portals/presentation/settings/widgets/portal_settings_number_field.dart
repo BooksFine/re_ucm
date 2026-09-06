@@ -1,7 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
-import '../../../../../core/ui/constants.dart';
-import '../../../../settings/presentation/common/settings_counter_row.dart';
+import '../../../../../core/ui/widgets/app_counter_row.dart';
 
 class PortalSettingsNumberField extends StatelessWidget {
   const PortalSettingsNumberField({
@@ -25,7 +24,7 @@ class PortalSettingsNumberField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: SettingsCounterRow(
+      child: AppCounterRow(
         title: title,
         subtitle: subtitle,
         value: value,
@@ -36,4 +35,3 @@ class PortalSettingsNumberField extends StatelessWidget {
     );
   }
 }
-

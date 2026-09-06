@@ -1,0 +1,261 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dart_book/dart_book.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:re_ucm_core/re_ucm_core.dart';
+
+import '../../../../core/ui/tokens.dart';
+import '../../../common/widgets/shimmer.dart';
+
+class DownloadBookHeader extends StatelessWidget {
+  const DownloadBookHeader({
+    super.key,
+    required this.book,
+    required this.portal,
+    this.isWide = false,
+  });
+
+  final BookMetadata book;
+  final Portal portal;
+  final bool isWide;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final coverUrl = book.cover?.ref.id;
+    final authors = book.contributors
+        .map((e) => e.name.toDisplayString())
+        .join(', ');
+
+    final coverWidth = isWide ? 85.0 : 72.0;
+    final coverHeight = isWide ? 122.0 : 104.0;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Cover
+        if (coverUrl != null && coverUrl.isNotEmpty)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadii.md),
+            child: CachedNetworkImage(
+              imageUrl: coverUrl,
+              width: coverWidth,
+              height: coverHeight,
+              fit: BoxFit.cover,
+              placeholder: (_, _) => ShimmerEffect(
+                Container(
+                  width: coverWidth,
+                  height: coverHeight,
+                  color: Colors.white,
+                ),
+              ),
+              errorWidget: (_, _, _) =>
+                  _FallbackCover(width: coverWidth, height: coverHeight),
+            ),
+          )
+        else
+          _FallbackCover(width: coverWidth, height: coverHeight),
+
+        const SizedBox(width: AppSpacing.lg),
+
+        // Info
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Portal badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.secondaryContainer,
+                  borderRadius: BorderRadius.circular(AppRadii.sm),
+                ),
+                child: Text(
+                  portal.name,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSecondaryContainer,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 6),
+
+              // Title
+              Text(
+                book.title,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  height: 1.2,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 4),
+
+              // Authors
+              Text(
+                authors.isNotEmpty ? authors : 'Автор не указан',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+
+              // Series and / or text length
+              if (book.primarySeries != null || book.textLength != null) ...[
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    if (book.primarySeries != null)
+                      Flexible(
+                        child: Text(
+                          '${book.primarySeries!.name} #${book.primarySeries!.number ?? 1}',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    if (book.primarySeries != null && book.textLength != null)
+                      Text(
+                        ' • ',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant.withValues(
+                            alpha: 0.6,
+                          ),
+                        ),
+                      ),
+                    if (book.textLength != null)
+                      Text(
+                        '${_formatNumber(book.textLength!)} зн.',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant.withValues(
+                            alpha: 0.8,
+                          ),
+                          fontSize: 11,
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  static String _formatNumber(int number) {
+    return number.toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match match) => '${match.group(0)} ',
+    );
+  }
+}
+
+class DownloadBookHeaderSkeleton extends StatelessWidget {
+  const DownloadBookHeaderSkeleton({super.key, this.isWide = false});
+
+  final bool isWide;
+
+  @override
+  Widget build(BuildContext context) {
+    final coverWidth = isWide ? 85.0 : 72.0;
+    final coverHeight = isWide ? 122.0 : 104.0;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ShimmerEffect(
+          Container(
+            width: coverWidth,
+            height: coverHeight,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppRadii.md),
+              color: Colors.white,
+            ),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.lg),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ShimmerEffect(
+                Container(
+                  width: 55,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(AppRadii.sm),
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              ShimmerEffect(
+                Container(
+                  width: double.infinity,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(AppRadii.xs),
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 6),
+              ShimmerEffect(
+                Container(
+                  width: 130,
+                  height: 14,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(AppRadii.xs),
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              ShimmerEffect(
+                Container(
+                  width: 85,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(AppRadii.xs),
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _FallbackCover extends StatelessWidget {
+  const _FallbackCover({required this.width, required this.height});
+
+  final double width;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(AppRadii.md),
+      ),
+      child: Icon(
+        Icons.book,
+        size: width * 0.4,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
+    );
+  }
+}

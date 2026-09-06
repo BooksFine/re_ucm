@@ -1,7 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_core/models/portal.dart';
-import '../../../core/ui/constants.dart';
+
+import '../../../core/ui/app_colors_extension.dart';
+import '../../../core/ui/tokens.dart';
+import 'widgets/portal_logo_icon.dart';
 
 class PortalCard extends StatelessWidget {
   const PortalCard({
@@ -29,7 +31,7 @@ class PortalCard extends StatelessWidget {
           end: isActive ? 1 : 0.5,
         ),
         builder: (_, v, child) {
-          var color = Theme.of(
+          final color = Theme.of(
             context,
           ).colorScheme.onSurface.withValues(alpha: v);
 
@@ -71,15 +73,28 @@ class PortalCardBase extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final appColors = context.appColors;
+
     return Card(
       margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        side: BorderSide(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+          width: 0.8,
+        ),
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(cardBorderRadius),
+        borderRadius: BorderRadius.circular(AppRadii.card),
         child: SizedBox(
           width: 110,
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: appPadding * 2),
+            padding: const EdgeInsets.symmetric(
+              vertical: AppSpacing.md,
+              horizontal: AppSpacing.xs,
+            ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -88,31 +103,29 @@ class PortalCardBase extends StatelessWidget {
                     alignment: Alignment.center,
                     children: [
                       Center(
-                        child: SvgPicture(
-                          SvgAssetLoader(
-                            portal.logo.assetPath,
-                            packageName: portal.logo.packageName,
-                          ),
-                          colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+                        child: PortalLogoIcon(
+                          portal: portal,
+                          color: color,
+                          opacity: isActive || authIndication != true ? 1.0 : 0.5,
                         ),
                       ),
                       if (authIndication == true)
                         Positioned(
-                          right: 20,
+                          right: 14,
                           bottom: 0,
                           child: Container(
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: isActive
-                                  ? Colors.green[400]
-                                  : Colors.grey[600],
+                                  ? appColors.statusOnline
+                                  : appColors.statusOffline,
                             ),
                             child: Padding(
-                              padding: const EdgeInsets.all(1),
+                              padding: const EdgeInsets.all(2),
                               child: Icon(
                                 isActive ? Icons.check : Icons.add,
                                 color: Colors.white,
-                                size: 12,
+                                size: 10,
                               ),
                             ),
                           ),
@@ -120,8 +133,17 @@ class PortalCardBase extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: appPadding),
-                Text(portal.name, style: TextStyle(color: color)),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  portal.name,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                ),
               ],
             ),
           ),

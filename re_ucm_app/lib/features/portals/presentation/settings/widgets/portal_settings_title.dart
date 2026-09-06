@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
-class SettingsTitle extends StatelessWidget {
-  const SettingsTitle(this.title, {super.key});
+class PortalSettingsTitle extends StatelessWidget {
+  const PortalSettingsTitle(this.title, {super.key});
 
   final String title;
 

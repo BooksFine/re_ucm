@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
-class SettingsAnimatedSwitcher extends StatelessWidget {
-  const SettingsAnimatedSwitcher({super.key, required this.child});
+class PortalAnimatedSwitcher extends StatelessWidget {
+  const PortalAnimatedSwitcher({super.key, required this.child});
 
   final Widget child;
 
@@ -15,12 +15,12 @@ class SettingsAnimatedSwitcher extends StatelessWidget {
       transitionBuilder: (child, animation) =>
           FadeTransition(opacity: animation, child: child),
       layoutBuilder: (child, previousChildren) => Stack(
-        alignment: .topCenter,
+        alignment: Alignment.topCenter,
         children: [
           ...previousChildren.map(
             (child) => Positioned.fill(
               child: OverflowBox(
-                alignment: .topCenter,
+                alignment: Alignment.topCenter,
                 maxHeight: double.infinity,
                 child: IgnorePointer(child: child),
               ),

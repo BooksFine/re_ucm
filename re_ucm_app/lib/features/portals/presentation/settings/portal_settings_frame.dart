@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_core/models/portal.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 import 'package:webview_all/webview_all.dart';
@@ -7,11 +7,11 @@ import 'package:webview_all/webview_all.dart';
 import '../../../../core/navigation/router_delegate.dart';
 import '../../../../core/ui/constants.dart';
 import '../../../common/widgets/overlay_snack.dart';
-import '../common/settings_animated_switcher.dart';
-import '../common/settings_button.dart';
-import '../common/settings_number_field.dart';
-import '../common/settings_text_field.dart';
-import '../common/settings_title.dart';
+import 'widgets/portal_animated_switcher.dart';
+import 'widgets/portal_settings_button.dart';
+import 'widgets/portal_settings_number_field.dart';
+import 'widgets/portal_settings_text_field.dart';
+import 'widgets/portal_settings_title.dart';
 
 class PortalSettingsFrame extends StatefulWidget {
   const PortalSettingsFrame({super.key, required this.session});
@@ -57,8 +57,13 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
   ({TextEditingController controller, bool isLoading}) _getOrInitFieldData(
     PortalSettingTextField field,
   ) {
-    return _textFieldsData[field.actionId] ??= (
-      controller: TextEditingController(),
+    final existing = _textFieldsData[field.actionId];
+    if (existing != null) {
+      return existing;
+    }
+    final controller = TextEditingController(text: field.value ?? '');
+    return _textFieldsData[field.actionId] = (
+      controller: controller,
       isLoading: false,
     );
   }
@@ -84,7 +89,7 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
         await field.onCookieObtained(widget.session.settings, cookie),
       );
       if (!mounted) return;
-      overlaySnackMessage(context, ('Вы успешно авторизовались'));
+      overlaySnackMessage(context, 'Вы успешно авторизовались');
     } catch (e) {
       if (!mounted) return;
       overlaySnackMessage(context, 'Ошибка: $e');
@@ -113,11 +118,15 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
   }
 
   Widget renderField(PortalSettingItem field) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
     return switch (field) {
       PortalSettingGroup() => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [for (final child in field.children) renderField(child)],
       ),
-      PortalSettingStateSwitcher() => SettingsAnimatedSwitcher(
+      PortalSettingStateSwitcher() => PortalAnimatedSwitcher(
         child: field.states.containsKey(field.currentState)
             ? KeyedSubtree(
                 key: ValueKey(field.currentState),
@@ -125,18 +134,31 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
               )
             : const SizedBox.shrink(),
       ),
-      PortalSettingSectionTitle() => Padding(
-        padding: const EdgeInsets.only(top: appPadding * 2),
-        child: SettingsTitle(field.title),
-      ),
-      PortalSettingTextField() => SettingsTextField(
+      PortalSettingSectionTitle() =>
+        (field.title.toLowerCase() == widget.session.name.toLowerCase() ||
+                field.title.toLowerCase() == widget.session.code.toLowerCase())
+            ? const SizedBox.shrink()
+            : Padding(
+                padding: const EdgeInsets.only(left: 12, top: 12, bottom: 4),
+                child: Text(
+                  field.title,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: cs.primary,
+                  ),
+                ),
+              ),
+      PortalSettingTextField() => PortalSettingsTextField(
         title: field.title,
         hint: field.hint ?? 'Введите значение',
         controller: _getOrInitFieldData(field).controller,
         isLoading: _getOrInitFieldData(field).isLoading,
+        onChanged: field.onChanged != null
+            ? (v) => field.onChanged!(widget.session.settings, v)
+            : null,
         onSubmit: (v) => onTextFieldSubmit(field, v),
       ),
-      PortalSettingNumberField() => SettingsNumberField(
+      PortalSettingNumberField() => PortalSettingsNumberField(
         title: field.title,
         subtitle: field.subtitle,
         value: field.value,
@@ -144,15 +166,70 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
         max: field.max,
         onChanged: (v) => onNumberFieldChanged(field, v),
       ),
-      PortalSettingActionButton() => SettingsButton(
+      PortalSettingActionButton() => PortalSettingsButton(
         title: field.title,
         subtitle: field.subtitle,
+        isDestructive: field.actionId == 'logout',
+        leading: field.actionId == 'logout'
+            ? Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: cs.errorContainer.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.logout_rounded,
+                  size: 20,
+                  color: cs.error,
+                ),
+              )
+            : (field.actionId.contains('token') ||
+                    field.actionId.contains('sid'))
+                ? Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: cs.surfaceContainerHigh,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      Icons.key_rounded,
+                      size: 20,
+                      color: cs.primary,
+                    ),
+                  )
+                : null,
+        trailing: field.actionId == 'logout'
+            ? Icon(
+                Icons.chevron_right_rounded,
+                size: 20,
+                color: cs.error.withValues(alpha: 0.7),
+              )
+            : null,
         onTap: () => onActionButtonTap(field),
       ),
-      PortalSettingWebAuthButton() => SettingsButton(
+      PortalSettingWebAuthButton() => PortalSettingsButton(
         title: field.title,
+        subtitle: 'Вход через встроенный браузер сервиса',
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: cs.primaryContainer,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            Icons.open_in_browser_rounded,
+            size: 20,
+            color: cs.onPrimaryContainer,
+          ),
+        ),
+        trailing: Icon(
+          Icons.arrow_forward_rounded,
+          size: 20,
+          color: cs.onSurfaceVariant,
+        ),
         onTap: () => onWebAuthButtonTap(field),
       ),
     };
   }
 }
+

@@ -11,6 +11,33 @@ class AppButton extends StatelessWidget {
     required this.child,
   });
 
+  factory AppButton.icon({
+    Key? key,
+    required VoidCallback? onPressed,
+    M3EButtonStyle style = M3EButtonStyle.filled,
+    M3EButtonSize size = M3EButtonSize.md,
+    bool isLoading = false,
+    required Widget icon,
+    required Widget label,
+  }) {
+    return AppButton(
+      key: key,
+      onPressed: onPressed,
+      style: style,
+      size: size,
+      isLoading: isLoading,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          icon,
+          const SizedBox(width: 8),
+          label,
+        ],
+      ),
+    );
+  }
+
   final VoidCallback? onPressed;
   final M3EButtonStyle style;
   final M3EButtonSize size;
@@ -31,17 +58,32 @@ class AppButton extends StatelessWidget {
       decoration: M3EButtonDecoration.styleFrom(
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
-      child: isLoading
-          ? SizedBox(
-              width: 20,
-              height: 20,
-              child: M3ECircularWavyProgressIndicator(
-                size: 20,
-                strokeWidth: 2,
-                color: indicatorColor,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Visibility(
+            visible: !isLoading,
+            maintainSize: true,
+            maintainAnimation: true,
+            maintainState: true,
+            child: child,
+          ),
+          if (isLoading)
+            Positioned.fill(
+              child: Center(
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: M3ECircularWavyProgressIndicator(
+                    size: 20,
+                    strokeWidth: 2,
+                    color: indicatorColor,
+                  ),
+                ),
               ),
-            )
-          : child,
+            ),
+        ],
+      ),
     );
   }
 }

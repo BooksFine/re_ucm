@@ -165,12 +165,12 @@ class SourceHeroCard extends StatelessWidget {
   }
 }
 
-class SourceAccountCard extends StatelessWidget {
-  const SourceAccountCard({
+class SourceSettingsCard extends StatelessWidget {
+  const SourceSettingsCard({
     super.key,
     required this.portal,
     required this.session,
-    required this.isAuth,
+    this.isAuth = false,
   });
 
   final Portal portal;
@@ -179,36 +179,15 @@ class SourceAccountCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final (IconData icon, String title) = switch ((portal.supportsAuth, isAuth)) {
+      (true, true) => (Icons.account_circle_rounded, 'Управление аккаунтом'),
+      (true, false) => (Icons.lock_outline_rounded, 'Авторизация'),
+      (false, _) => (Icons.tune_rounded, 'Параметры источника'),
+    };
+
     return AppCard(
-      icon: isAuth ? Icons.account_circle_rounded : Icons.lock_outline_rounded,
-      titleWidget: AppCardTitle.text(
-        isAuth ? 'Управление аккаунтом' : 'Авторизация',
-      ),
-      children: [
-        PortalSettingsFrame(
-          key: ValueKey('detail_auth_${portal.code}'),
-          session: session,
-        ),
-      ],
-    );
-  }
-}
-
-class SourceSettingsCard extends StatelessWidget {
-  const SourceSettingsCard({
-    super.key,
-    required this.portal,
-    required this.session,
-  });
-
-  final Portal portal;
-  final PortalSession session;
-
-  @override
-  Widget build(BuildContext context) {
-    return AppCard(
-      icon: Icons.tune_rounded,
-      titleWidget: AppCardTitle.text('Параметры источника'),
+      icon: icon,
+      titleWidget: AppCardTitle.text(title),
       children: [
         PortalSettingsFrame(
           key: ValueKey('detail_settings_${portal.code}'),

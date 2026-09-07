@@ -40,7 +40,7 @@ class RecentBookMoreMenu extends StatelessWidget {
             color: cs.onSurfaceVariant,
           ),
           padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+          constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
           onPressed: () async {
             HapticFeedback.lightImpact();
             final action = await showM3ESpringPopup<String>(

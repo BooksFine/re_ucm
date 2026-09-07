@@ -44,12 +44,11 @@ class LiveDownloadCard extends StatelessWidget {
                         'Идет скачивание (${activeTasks.length})',
                         padding: EdgeInsets.fromLTRB(4, 0, 4, AppSpacing.sm),
                       ),
-                      // Task cards — единый DownloadListTile(compact).
+                      // Task cards — компактный LiveDownloadCompactTile.
                       for (final task in activeTasks)
-                        DownloadListTile(
+                        LiveDownloadCompactTile(
                           key: downloadTileKey(task),
                           task: task,
-                          compact: true,
                           onTap: () =>
                               showDownloadModalForTask(context, task),
                         ),

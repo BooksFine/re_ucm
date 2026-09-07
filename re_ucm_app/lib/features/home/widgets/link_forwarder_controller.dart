@@ -4,12 +4,40 @@ import 'package:mobx/mobx.dart';
 import 'package:re_ucm_core/re_ucm_core.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
+import '../../common/utils/book_link_parser.dart';
 import '../../downloads/domain/download_task.cg.dart';
 import '../../downloads/domain/downloads_service.cg.dart';
-import 'link_parser.dart';
 
 /// Состояние превью ссылки для [LinkForwarder].
-enum LinkForwarderViewState { idle, loading, error, loaded }
+sealed class LinkForwarderState {
+  const LinkForwarderState();
+}
+
+final class LinkForwarderIdle extends LinkForwarderState {
+  const LinkForwarderIdle();
+}
+
+final class LinkForwarderLoading extends LinkForwarderState {
+  const LinkForwarderLoading();
+}
+
+final class LinkForwarderLoaded extends LinkForwarderState {
+  const LinkForwarderLoaded({
+    required this.metadata,
+    required this.portal,
+    required this.bookId,
+  });
+
+  final BookMetadata metadata;
+  final Portal portal;
+  final String bookId;
+}
+
+final class LinkForwarderError extends LinkForwarderState {
+  const LinkForwarderError(this.message);
+
+  final String message;
+}
 
 /// Состояние + координация LinkForwarder.
 /// Намеренно без BuildContext внутри: сервисы передаются параметрами,
@@ -28,37 +56,41 @@ class LinkForwarderController {
   /// чтобы быстрый ввод не показывал чужое превью.
   int _fetchSeq = 0;
 
+  final Observable<LinkForwarderState> state = Observable(
+    const LinkForwarderIdle(),
+  );
   final Observable<bool> isEmpty = Observable(true);
   final Observable<SaveFormat?> selectedFormat = Observable(null);
-  final Observable<bool> isLoadingBook = Observable(false);
-  final Observable<String?> loadingError = Observable(null);
-  final Observable<BookMetadata?> loadedMetadata = Observable(null);
-  final Observable<Portal?> loadedPortal = Observable(null);
-  final Observable<String?> loadedBookId = Observable(null);
 
-  /// Единый view-state для одного Observer+switch во view.
-  /// Читает observables — вызывать только внутри Observer.
-  LinkForwarderViewState get viewState {
-    if (isLoadingBook.value) return LinkForwarderViewState.loading;
-    if (loadingError.value != null) return LinkForwarderViewState.error;
-    if (loadedMetadata.value != null && loadedPortal.value != null) {
-      return LinkForwarderViewState.loaded;
-    }
-    return LinkForwarderViewState.idle;
-  }
+  bool get isLoading => state.value is LinkForwarderLoading;
+
+  LinkForwarderLoaded? get loadedState => switch (state.value) {
+    final LinkForwarderLoaded loaded => loaded,
+    _ => null,
+  };
+
+  BookMetadata? get loadedMetadata => loadedState?.metadata;
+  Portal? get loadedPortal => loadedState?.portal;
+  String? get loadedBookId => loadedState?.bookId;
+  String? get loadingError => switch (state.value) {
+    final LinkForwarderError error => error.message,
+    _ => null,
+  };
 
   void onTextChanged(String value) {
     final newIsEmpty = value.trim().isEmpty;
     if (isEmpty.value != newIsEmpty) {
       runInAction(() => isEmpty.value = newIsEmpty);
     }
-    if (loadedMetadata.value != null || loadingError.value != null) {
-      runInAction(() {
-        loadedMetadata.value = null;
-        loadedPortal.value = null;
-        loadedBookId.value = null;
-        loadingError.value = null;
-      });
+    final current = state.value;
+    if (current is LinkForwarderLoaded) {
+      final parsed = tryParseBookLink(value);
+      if (parsed == null || parsed.bookId != current.bookId) {
+        _fetchSeq++;
+        runInAction(() => state.value = const LinkForwarderIdle());
+      }
+    } else if (current is LinkForwarderError) {
+      runInAction(() => state.value = const LinkForwarderIdle());
     }
   }
 
@@ -66,23 +98,20 @@ class LinkForwarderController {
   /// View сам решает, вызывать ли fetch.
   ParsedBookLink? autoFetchCandidate(String value) {
     final text = value.trim();
-    if (text.isEmpty || isLoadingBook.value) return null;
+    if (text.isEmpty || isLoading) return null;
     final parsed = tryParseBookLink(text);
     if (parsed == null) return null;
-    if (parsed.bookId.isEmpty || parsed.bookId == loadedBookId.value) {
+    if (parsed.bookId.isEmpty || parsed.bookId == loadedBookId) {
       return null;
     }
     return parsed;
   }
 
   void reset() {
+    _fetchSeq++;
     runInAction(() {
       isEmpty.value = true;
-      isLoadingBook.value = false;
-      loadingError.value = null;
-      loadedMetadata.value = null;
-      loadedPortal.value = null;
-      loadedBookId.value = null;
+      state.value = const LinkForwarderIdle();
       selectedFormat.value = null;
     });
   }
@@ -96,62 +125,40 @@ class LinkForwarderController {
     final reader = clipboardReader;
     if (reader != null) {
       final text = ((await reader()) ?? '').trim();
-      if (text.isEmpty) return null;
-      return text;
+      return text.isEmpty ? null : text;
     }
     final data = await Clipboard.getData(Clipboard.kTextPlain);
     final text = data?.text?.trim() ?? '';
     return text.isEmpty ? null : text;
   }
 
-  /// Грузит метаданные. Возвращает `true`, если результат применён,
-  /// `false` — если ответ устарел (текст уже изменился) и выброшен.
-  ///
-  /// Stale-guard: после await сверяем текущий текст view
-  /// ([currentTextReader]) с загруженным bookId — чужое превью
-  /// не показываем. View при `false` может повторить фетч для
-  /// актуального текста, чтобы повторный ввод не терялся.
+  /// Загрузка метаданных книги.
+  /// Возвращает `true`, если результат применён, `false` — если запрос был отменён/устарел.
   Future<bool> fetchBookInfo({
     required ParsedBookLink link,
     required PortalSession session,
-    String? Function()? currentTextReader,
   }) async {
     final seq = ++_fetchSeq;
     runInAction(() {
-      isLoadingBook.value = true;
-      loadingError.value = null;
-      loadedMetadata.value = null;
-      loadedPortal.value = null;
-      loadedBookId.value = null;
+      state.value = const LinkForwarderLoading();
     });
 
     try {
       final loader = metadataLoader ?? session.getBookMetadata;
       final meta = await loader(link.bookId);
-      // Проиграли гонку более новому запросу — молча выходим,
-      // observables трогать нельзя (их уже перезаписал новый фетч).
       if (seq != _fetchSeq) return false;
-      // Текст изменился, пока грузили — чужое превью не показываем.
-      final current = currentTextReader?.call();
-      if (current != null &&
-          tryParseBookLink(current)?.bookId != link.bookId) {
-        runInAction(() {
-          isLoadingBook.value = false;
-        });
-        return false;
-      }
       runInAction(() {
-        isLoadingBook.value = false;
-        loadedMetadata.value = meta;
-        loadedPortal.value = link.portal;
-        loadedBookId.value = link.bookId;
+        state.value = LinkForwarderLoaded(
+          metadata: meta,
+          portal: link.portal,
+          bookId: link.bookId,
+        );
       });
       return true;
     } catch (e) {
       if (seq != _fetchSeq) return false;
       runInAction(() {
-        isLoadingBook.value = false;
-        loadingError.value = _friendlyMetadataError(e);
+        state.value = LinkForwarderError(_friendlyMetadataError(e));
       });
       return true;
     }
@@ -165,20 +172,22 @@ class LinkForwarderController {
     required SettingsService settingsService,
     required DownloadsService downloadsService,
   }) {
-    final meta = loadedMetadata.value;
-    final portal = loadedPortal.value;
-    final bookId = loadedBookId.value;
-    if (meta == null || portal == null || bookId == null) return null;
+    final loaded = loadedState;
+    if (loaded == null) return null;
 
-    final session = settingsService.sessionByCode(portal.code);
+    final session = settingsService.sessionByCode(loaded.portal.code);
     final format = selectedFormat.value ?? settingsService.saveFormat;
     final task = downloadsService.getOrCreateTask(
       session: session,
-      bookId: bookId,
-      initialMetadata: meta,
+      bookId: loaded.bookId,
+      initialMetadata: loaded.metadata,
     );
     task.updateSaveFormat(format);
     return task;
+  }
+
+  void dispose() {
+    _fetchSeq++;
   }
 }
 

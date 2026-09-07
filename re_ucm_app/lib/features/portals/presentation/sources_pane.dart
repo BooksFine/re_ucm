@@ -2,11 +2,13 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_core/models/portal.dart';
 
+import '../../../core/ui/tokens.dart';
 import '../../../core/ui/widgets/app_tile.dart';
 import 'sources_controller.dart';
 import 'sources_detail_pane.dart';
 import 'sources_page.dart';
 import 'widgets/sources_empty_view.dart';
+import 'widgets/sources_list_view.dart';
 
 class MasterPaneHost extends StatelessWidget {
   const MasterPaneHost({
@@ -16,7 +18,6 @@ class MasterPaneHost extends StatelessWidget {
     required this.searchBar,
     required this.masterScrollController,
     required this.controller,
-    required this.portalListBuilder,
   });
 
   final List<Portal> allPortals;
@@ -24,16 +25,6 @@ class MasterPaneHost extends StatelessWidget {
   final Widget searchBar;
   final ScrollController masterScrollController;
   final SourcesController controller;
-  final Widget Function({
-    required BuildContext context,
-    required SourcesView view,
-    required EdgeInsets padding,
-    required String keyPrefix,
-    required AppTileChevron chevron,
-    required void Function(Portal portal) onTap,
-    bool Function(String code)? isSelected,
-    required EdgeInsetsGeometry sectionHeaderPadding,
-  }) portalListBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -61,18 +52,19 @@ class MasterPaneHost extends StatelessWidget {
                   scrollController: masterScrollController,
                   listBody: view.visible.isEmpty
                       ? const SourcesEmptyView()
-                      : portalListBuilder(
-                          context: context,
+                      : SourcesListView(
                           view: view,
-                          padding:
-                              const EdgeInsets.fromLTRB(20, 4, 12, 4),
                           keyPrefix: 'master',
                           chevron: AppTileChevron.hide,
+                          padding: const EdgeInsets.fromLTRB(20, 4, 12, 4),
+                          sectionHeaderPadding: const EdgeInsets.only(
+                            left: 4,
+                            bottom: AppSpacing.sm,
+                          ),
                           isSelected: (code) => code == view.validCode,
                           onTap: (portal) =>
                               controller.selectPortal(portal.code),
-                          sectionHeaderPadding:
-                              const EdgeInsets.only(left: 4, bottom: 8),
+                          onTogglePin: controller.togglePin,
                         ),
                 ),
               ),

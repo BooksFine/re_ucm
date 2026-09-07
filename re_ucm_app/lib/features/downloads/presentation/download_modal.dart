@@ -122,24 +122,18 @@ class DownloadModalContent extends StatelessWidget {
             },
           ),
 
-          // Failed tasks card (smooth collapse/expand)
+          // Failed tasks card
           Observer(
             builder: (_) {
-              return AnimatedSize(
-                duration: AppDurations.expand,
-                curve: Curves.easeInOutCubic,
-                alignment: Alignment.topCenter,
-                child: task.failedTasks.isNotEmpty
-                    ? Padding(
-                        padding: const EdgeInsets.only(top: 10),
-                        child: FailedTasksCard(
-                          tasks: task.failedTasks,
-                          isLoading: task.isActive,
-                          onRetry: task.retryFailedImages,
-                          onIgnore: task.ignoreFailedTasks,
-                        ),
-                      )
-                    : const SizedBox.shrink(),
+              if (task.failedTasks.isEmpty) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: FailedTasksCard(
+                  tasks: task.failedTasks,
+                  isLoading: task.isActive,
+                  onRetry: task.retryFailedImages,
+                  onIgnore: task.ignoreFailedTasks,
+                ),
               );
             },
           ),

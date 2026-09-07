@@ -37,6 +37,7 @@ class AuthorTodayService implements PortalService<ATSettings> {
           true: PortalSettingActionButton(
             actionId: logoutAction,
             title: 'Выйти',
+            isDestructive: true,
             subtitle: settings.userId == null
                 ? null
                 : 'Вы вошли как id${settings.userId}',

@@ -41,10 +41,26 @@ class _PathTemplateFieldState extends State<PathTemplateField> {
     focus.addListener(_handleFocusChange);
   }
 
+  void _savePath() {
+    if (pathError != null) {
+      pathController.text = path;
+      pathError = null;
+      isPathEmpty = path.isEmpty;
+    } else {
+      if (isPathEmpty) {
+        pathController.text = path;
+      } else if (pathController.text != path) {
+        path = pathController.text;
+        widget.onChanged(path);
+      }
+    }
+    isEditing = false;
+  }
+
   void _handleFocusChange() {
     if (!focus.hasFocus && isEditing) {
       if (mounted) {
-        setState(() => isEditing = false);
+        setState(() => _savePath());
       }
     }
   }
@@ -82,10 +98,7 @@ class _PathTemplateFieldState extends State<PathTemplateField> {
 
   void onPathSaved() {
     if (pathError != null) return;
-    if (isPathEmpty) pathController.text = path;
-    widget.onChanged(pathController.text);
-    path = pathController.text;
-    isEditing = false;
+    _savePath();
     focus.unfocus();
     setState(() {});
   }

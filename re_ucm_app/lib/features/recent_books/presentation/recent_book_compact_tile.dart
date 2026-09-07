@@ -12,7 +12,6 @@ import 'recent_book_badges.dart';
 import 'recent_book_controls.dart';
 import 'recent_book_more_menu.dart';
 import 'recent_book_shared.dart';
-import 'recent_book_utils.dart';
 
 class RecentBookCompactTile extends StatelessWidget {
   const RecentBookCompactTile({super.key, required this.book, this.onDelete});
@@ -26,7 +25,8 @@ class RecentBookCompactTile extends StatelessWidget {
     final isWide = MediaQuery.sizeOf(context).width >= AppBreakpoints.wideCards;
 
     final deps = AppDependencies.of(context);
-    final session = deps.settingsService.sessionByCode(book.portal.code);
+    final session = deps.settingsService.sessionByCodeOrNull(book.portal.code);
+
     return Observer(
       builder: (context) {
         final state = RecentBookItemState.resolve(
@@ -36,6 +36,16 @@ class RecentBookCompactTile extends StatelessWidget {
         final effectiveFormat = getEffectiveFormat(book, deps.settingsService);
         final task = state.task;
         final seriesLine = formatSeriesLine(book);
+
+        void handleDownload() {
+          startDownload(
+            context,
+            session,
+            effectiveFormat,
+            book.id,
+          );
+        }
+
         return RecentBookContainer(
           isDownloading: state.isDownloading,
           margin: const EdgeInsets.symmetric(vertical: 3),
@@ -94,14 +104,7 @@ class RecentBookCompactTile extends StatelessWidget {
                 DownloadButton(
                   iconOnly: !isWide,
                   size: M3EButtonSize.xs,
-                  onPressed: () {
-                    startDownload(
-                      context,
-                      session,
-                      effectiveFormat,
-                      book.id,
-                    );
-                  },
+                  onPressed: session == null ? null : handleDownload,
                 ),
                 RecentBookMoreMenu(
                   book: book,

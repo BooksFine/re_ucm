@@ -1,8 +1,10 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/ui/tokens.dart';
+import '../recent_books/presentation/recent_books_list.dart';
+import '../recent_books/presentation/widgets/recent_books_header.dart';
 import 'widgets/home_action_hub.dart';
-import 'widgets/recent_books_section.dart';
+import 'widgets/link_forwarder_controller.dart';
 
 /// Unified Tablet & Desktop Layout (>= 780dp).
 ///
@@ -12,7 +14,14 @@ import 'widgets/recent_books_section.dart';
 ///   - Left pane (Action Hub): Fixed in place (LinkForwarder -> PortalsList -> LiveDownloadCard).
 ///   - Right pane (Library): Independently scrollable recent books list with its own Scrollbar.
 class HomePageLandscape extends StatefulWidget {
-  const HomePageLandscape({super.key});
+  const HomePageLandscape({
+    super.key,
+    this.forwarderController,
+    this.textController,
+  });
+
+  final LinkForwarderController? forwarderController;
+  final TextEditingController? textController;
 
   @override
   State<HomePageLandscape> createState() => _HomePageLandscapeState();
@@ -50,91 +59,103 @@ class _HomePageLandscapeState extends State<HomePageLandscape> {
         centerTitle: false,
         forceMaterialTransparency: true,
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final totalWidth = constraints.maxWidth;
-          final leftWidth = homeLeftPaneWidth(totalWidth);
+      body: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final totalWidth = constraints.maxWidth;
+            final leftWidth = homeLeftPaneWidth(totalWidth);
 
-          return Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1280),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Left Column: Action Hub (Input -> Portals -> Live Downloads at bottom)
-                    SizedBox(
-                      width: leftWidth,
-                      child: Scrollbar(
-                        controller: _actionHubScrollController,
-                        child: SingleChildScrollView(
+            return Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1280),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Left Column: Action Hub (Input -> Portals -> Live Downloads at bottom)
+                      SizedBox(
+                        width: leftWidth,
+                        child: Scrollbar(
                           controller: _actionHubScrollController,
-                          padding: EdgeInsets.only(
-                            top: topInset,
-                            bottom: bottomInset,
+                          child: SingleChildScrollView(
+                            controller: _actionHubScrollController,
+                            padding: EdgeInsets.only(
+                              top: topInset,
+                              bottom: bottomInset,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Action Hub: Smart Link Bar -> Portals -> Live Downloads
+                                HomeActionHub(
+                                  isWide: true,
+                                  forwarderController: widget.forwarderController,
+                                  textController: widget.textController,
+                                  headerPadding: const EdgeInsets.fromLTRB(
+                                    4,
+                                    0,
+                                    4,
+                                    AppSpacing.sm,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            mainAxisSize: MainAxisSize.min,
-                            children: const [
-                              // Action Hub: Smart Link Bar -> Portals -> Live Downloads
-                              HomeActionHub(
-                                isWide: true,
-                                headerPadding: EdgeInsets.fromLTRB(
-                                  4,
-                                  0,
-                                  4,
-                                  AppSpacing.sm,
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.xl),
+
+                      // Vertical Divider
+                      VerticalDivider(
+                        width: 1,
+                        thickness: 1,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.outlineVariant.withValues(alpha: 0.3),
+                      ),
+                      const SizedBox(width: AppSpacing.xl),
+
+                      // Right Column: Recent Books Library (Independently scrollable, reaches right up to AppBar)
+                      Expanded(
+                        child: Scrollbar(
+                          controller: _libraryScrollController,
+                          child: CustomScrollView(
+                            controller: _libraryScrollController,
+                            slivers: [
+                              SliverPadding(
+                                padding: EdgeInsets.only(top: topInset),
+                                sliver: const SliverToBoxAdapter(
+                                  child: RecentBooksHeader(
+                                    padding: EdgeInsets.fromLTRB(
+                                      4,
+                                      0,
+                                      4,
+                                      AppSpacing.sm,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SliverPadding(
+                                padding: EdgeInsets.only(bottom: bottomInset),
+                                sliver: const SliverToBoxAdapter(
+                                  child: RecentBooksList(),
                                 ),
                               ),
                             ],
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: AppSpacing.xl),
-
-                    // Vertical Divider
-                    VerticalDivider(
-                      width: 1,
-                      thickness: 1,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.outlineVariant.withValues(alpha: 0.3),
-                    ),
-                    const SizedBox(width: AppSpacing.xl),
-
-                    // Right Column: Recent Books Library (Independently scrollable, reaches right up to AppBar)
-                    Expanded(
-                      child: Scrollbar(
-                        controller: _libraryScrollController,
-                        child: CustomScrollView(
-                          controller: _libraryScrollController,
-                          slivers: [
-                            RecentBooksSection(
-                              headerOuterPadding: EdgeInsets.only(
-                                top: topInset,
-                              ),
-                              headerInnerPadding:
-                                  const EdgeInsets.fromLTRB(
-                                    4,
-                                    0,
-                                    4,
-                                    AppSpacing.sm,
-                                  ),
-                              bottomSpacing: bottomInset,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

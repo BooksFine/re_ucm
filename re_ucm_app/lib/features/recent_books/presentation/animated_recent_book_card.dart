@@ -59,11 +59,34 @@ class _AnimatedRecentBookCardState extends State<AnimatedRecentBookCard>
     widget.onDelete(widget.book);
   }
 
+  Widget _buildDismissBackground(BuildContext context, {required bool isSecondary}) {
+    final cs = Theme.of(context).colorScheme;
+    final topPadding = widget.isFirst
+        ? 0.0
+        : (widget.viewMode == RecentBooksViewMode.compact ? 2.0 : AppSpacing.sm);
+
+    return Container(
+      margin: EdgeInsets.only(top: topPadding),
+      alignment: isSecondary ? Alignment.centerRight : Alignment.centerLeft,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: cs.error,
+        borderRadius: BorderRadius.circular(AppRadii.card),
+      ),
+      child: Icon(
+        Icons.delete_outline_rounded,
+        color: cs.onError,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Dismissible(
       key: ValueKey(RecentBook.keyFor(widget.book.portal.code, widget.book.id)),
       onDismissed: (_) => onDismissed(),
+      background: _buildDismissBackground(context, isSecondary: false),
+      secondaryBackground: _buildDismissBackground(context, isSecondary: true),
       child: SizeTransition(
         sizeFactor: _sizeAnimation,
         axis: .vertical,

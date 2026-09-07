@@ -32,12 +32,14 @@ final class PortalSettingActionButton extends PortalSettingItem {
     required this.title,
     required this.onTap,
     this.subtitle,
+    this.isDestructive = false,
   });
 
   final String actionId;
   final String title;
   final PortalSettingsActionHandler onTap;
   final String? subtitle;
+  final bool isDestructive;
 }
 
 typedef PortalSettingsActionHandler =

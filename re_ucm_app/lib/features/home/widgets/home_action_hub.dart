@@ -6,6 +6,7 @@ import '../../../core/ui/widgets/app_section_header.dart';
 import '../../downloads/presentation/widgets/live_download_card.dart';
 import '../../portals/presentation/portals_list.dart';
 import 'link_forwarder.dart';
+import 'link_forwarder_controller.dart';
 
 /// Общий состав главной: ссылка → браузер → живые загрузки.
 /// Layout (Row vs slivers, внешние паддинги) остаётся в
@@ -18,11 +19,15 @@ class HomeActionHub extends StatelessWidget {
   const HomeActionHub({
     super.key,
     required this.isWide,
+    this.forwarderController,
+    this.textController,
     this.headerPadding = EdgeInsets.zero,
     this.contentPadding = EdgeInsets.zero,
   });
 
   final bool isWide;
+  final LinkForwarderController? forwarderController;
+  final TextEditingController? textController;
   final EdgeInsetsGeometry headerPadding;
   final EdgeInsetsGeometry contentPadding;
 
@@ -34,7 +39,11 @@ class HomeActionHub extends StatelessWidget {
       children: [
         Padding(
           padding: contentPadding,
-          child: LinkForwarder(isWide: isWide),
+          child: LinkForwarder(
+            isWide: isWide,
+            controller: forwarderController,
+            textController: textController,
+          ),
         ),
         const SizedBox(height: AppSpacing.lg),
         AppSectionHeader('Браузер', padding: headerPadding),

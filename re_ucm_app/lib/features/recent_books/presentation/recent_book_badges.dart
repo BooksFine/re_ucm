@@ -1,11 +1,13 @@
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_core/re_ucm_core.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 import '../../../core/ui/tokens.dart';
 import '../../../core/ui/widgets/portal_badge.dart';
+import '../../downloads/domain/download_task.cg.dart';
 import '../domain/recent_book_item_state.dart';
-import 'recent_book_utils.dart';
+import 'recent_book_shared.dart';
 
 class DownloadedBadge extends StatelessWidget {
   const DownloadedBadge({
@@ -82,21 +84,32 @@ class RecentBookBadgesRow extends StatelessWidget {
             prefix: downloadedPrefix,
           )
         else if (showDownloadProgress && state.isDownloading)
-          _buildDownloadProgress(context),
+          _DownloadProgressBadge(task: state.task),
       ],
     );
   }
+}
 
-  Widget _buildDownloadProgress(BuildContext context) {
-    final pct = state.task?.progress.normalized;
-    final theme = Theme.of(context);
-    return Text(
-      pct != null ? 'Загрузка ${(pct * 100).toInt()}%' : 'Загрузка...',
-      style: theme.textTheme.labelSmall?.copyWith(
-        fontSize: 10,
-        color: theme.colorScheme.primary,
-        fontWeight: FontWeight.w600,
-      ),
+class _DownloadProgressBadge extends StatelessWidget {
+  const _DownloadProgressBadge({required this.task});
+
+  final DownloadTask? task;
+
+  @override
+  Widget build(BuildContext context) {
+    return Observer(
+      builder: (context) {
+        final pct = task?.progress.normalized;
+        final theme = Theme.of(context);
+        return Text(
+          pct != null ? 'Загрузка ${(pct * 100).toInt()}%' : 'Загрузка...',
+          style: theme.textTheme.labelSmall?.copyWith(
+            fontSize: 10,
+            color: theme.colorScheme.primary,
+            fontWeight: FontWeight.w600,
+          ),
+        );
+      },
     );
   }
 }

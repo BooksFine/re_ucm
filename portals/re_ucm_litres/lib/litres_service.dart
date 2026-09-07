@@ -53,6 +53,7 @@ class LitresService implements PortalService<LRSettings> {
           true: PortalSettingActionButton(
             actionId: logoutAction,
             title: 'Выйти',
+            isDestructive: true,
             subtitle: settings.userLogin != null
                 ? 'Вы вошли как ${settings.userLogin}'
                 : settings.userId != null

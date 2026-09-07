@@ -22,70 +22,40 @@ class PortalSettingsFrame extends StatefulWidget {
 }
 
 class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
-  final Map<String, ({TextEditingController controller, bool isLoading})>
-  _textFieldsData = {};
-
-  static const double _kFieldHPadding = 12;
-  static const double _kFieldVPaddingCounter = 8;
+  static const double _kFieldHPadding = AppSpacing.md;
+  static const double _kFieldVPaddingCounter = AppSpacing.sm;
   static const double _kFieldVPaddingTile = 10;
 
-  late final PortalSettingsManager _manager = PortalSettingsManager(
-    session: widget.session,
-    onNotify: (message, {kind = AppSnackKind.info}) {
-      if (!mounted) return;
-      AppSnack.show(context, message, kind: kind);
-    },
-  );
+  late PortalSettingsManager _manager;
+
+  @override
+  void initState() {
+    super.initState();
+    _initManager();
+  }
+
+  void _initManager() {
+    _manager = PortalSettingsManager(
+      session: widget.session,
+      onNotify: (message, {kind = AppSnackKind.info}) {
+        if (!mounted) return;
+        AppSnack.show(context, message, kind: kind);
+      },
+    );
+  }
 
   @override
   void didUpdateWidget(covariant PortalSettingsFrame oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!identical(oldWidget.session, widget.session)) {
-      _pruneStaleFieldControllers();
+    if (oldWidget.session != widget.session) {
+      _initManager();
     }
   }
 
   @override
   void dispose() {
     widget.session.resetTempFlags();
-    for (final data in _textFieldsData.values) {
-      data.controller.dispose();
-    }
     super.dispose();
-  }
-
-  void onTextFieldSubmit(PortalSettingTextField field, String value) async {
-    updateFieldData(field, isLoading: true);
-    try {
-      await _manager.onTextFieldSubmit(field, value, null);
-    } finally {
-      if (mounted) updateFieldData(field, isLoading: false);
-    }
-  }
-
-  void updateFieldData(PortalSettingTextField field, {bool? isLoading}) {
-    final data = _getOrInitFieldData(field);
-
-    _textFieldsData[field.actionId] = (
-      controller: data.controller,
-      isLoading: isLoading ?? data.isLoading,
-    );
-
-    if (mounted) setState(() {});
-  }
-
-  ({TextEditingController controller, bool isLoading}) _getOrInitFieldData(
-    PortalSettingTextField field,
-  ) {
-    final existing = _textFieldsData[field.actionId];
-    if (existing != null) {
-      return existing;
-    }
-    final controller = TextEditingController(text: field.value ?? '');
-    return _textFieldsData[field.actionId] = (
-      controller: controller,
-      isLoading: false,
-    );
   }
 
   void onActionButtonTap(PortalSettingActionButton field) {
@@ -100,35 +70,6 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
     await _manager.onWebAuthButtonTap(field, mounted);
   }
 
-  void _pruneStaleFieldControllers() {
-    final alive = <String>{};
-    for (final field in widget.session.schema) {
-      _collectTextFieldIds(field, alive);
-    }
-    final stale = _textFieldsData.keys.where((k) => !alive.contains(k)).toList();
-    for (final key in stale) {
-      _textFieldsData.remove(key)?.controller.dispose();
-    }
-    if (stale.isNotEmpty && mounted) setState(() {});
-  }
-
-  void _collectTextFieldIds(PortalSettingItem field, Set<String> out) {
-    switch (field) {
-      case PortalSettingTextField():
-        out.add(field.actionId);
-      case PortalSettingGroup():
-        for (final child in field.children) {
-          _collectTextFieldIds(child, out);
-        }
-      case PortalSettingStateSwitcher():
-        for (final child in field.states.values) {
-          _collectTextFieldIds(child, out);
-        }
-      case _:
-        break;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Observer(
@@ -141,16 +82,15 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
   }
 
   Widget _textFieldWidget(PortalSettingTextField field) {
-    final fieldData = _getOrInitFieldData(field);
     return PortalSettingsTextField(
+      key: ValueKey(field.actionId),
       title: field.title,
+      initialValue: field.value,
       hint: field.hint ?? 'Введите значение',
-      controller: fieldData.controller,
-      isLoading: fieldData.isLoading,
       onChanged: field.onChanged != null
           ? (v) => field.onChanged!(widget.session.settings, v)
           : null,
-      onSubmit: (v) => onTextFieldSubmit(field, v),
+      onSubmit: (v) => _manager.onTextFieldSubmit(field, v, null),
     );
   }
 
@@ -197,7 +137,7 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
     return AppTile(
       title: field.title,
       subtitle: field.subtitle,
-      isDestructive: field.actionId == 'logout',
+      isDestructive: field.isDestructive || field.actionId == 'logout',
       onTap: () => onActionButtonTap(field),
       contentPadding: const EdgeInsets.symmetric(
         horizontal: _kFieldHPadding,

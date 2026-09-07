@@ -27,6 +27,21 @@ class FailedTasksCard extends StatefulWidget {
 class _FailedTasksCardState extends State<FailedTasksCard> {
   bool _isExpanded = false;
 
+  static String _pluralizeImages(int count) {
+    final rem100 = count % 100;
+    final rem10 = count % 10;
+    if (rem100 >= 11 && rem100 <= 14) {
+      return 'картинок';
+    }
+    if (rem10 == 1) {
+      return 'картинку';
+    }
+    if (rem10 >= 2 && rem10 <= 4) {
+      return 'картинки';
+    }
+    return 'картинок';
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.tasks.isEmpty) return const SizedBox.shrink();
@@ -63,7 +78,7 @@ class _FailedTasksCardState extends State<FailedTasksCard> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Не удалось скачать $count ${count == 1 ? "картинку" : (count < 5 ? "картинки" : "картинок")}',
+                      'Не удалось скачать $count ${_pluralizeImages(count)}',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.error,
                         fontWeight: FontWeight.w600,

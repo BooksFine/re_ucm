@@ -12,7 +12,6 @@ import 'recent_book_badges.dart';
 import 'recent_book_controls.dart';
 import 'recent_book_more_menu.dart';
 import 'recent_book_shared.dart';
-import 'recent_book_utils.dart';
 
 class RecentBookCard extends StatelessWidget {
   const RecentBookCard({super.key, required this.book, this.onDelete});
@@ -25,7 +24,8 @@ class RecentBookCard extends StatelessWidget {
     final isWide = MediaQuery.sizeOf(context).width >= AppBreakpoints.wideCards;
 
     final deps = AppDependencies.of(context);
-    final session = deps.settingsService.sessionByCode(book.portal.code);
+    final session = deps.settingsService.sessionByCodeOrNull(book.portal.code);
+
     return Observer(
       builder: (context) {
         final state = RecentBookItemState.resolve(
@@ -33,6 +33,10 @@ class RecentBookCard extends StatelessWidget {
           deps.downloadsService,
         );
         final effectiveFormat = getEffectiveFormat(book, deps.settingsService);
+        void handleDownload() {
+          startDownload(context, session, effectiveFormat, book.id);
+        }
+
         return RecentBookContainer(
           isDownloading: state.isDownloading,
           child: Row(
@@ -46,21 +50,15 @@ class RecentBookCard extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
-                child: isWide
-                    ? _WideInfo(
-                        book: book,
-                        state: state,
-                        session: session,
-                        effectiveFormat: effectiveFormat,
-                        onDelete: onDelete,
-                      )
-                    : _NarrowInfo(
-                        book: book,
-                        state: state,
-                        session: session,
-                        effectiveFormat: effectiveFormat,
-                        onDelete: onDelete,
-                      ),
+                child: _CardInfo(
+                  book: book,
+                  state: state,
+                  session: session,
+                  effectiveFormat: effectiveFormat,
+                  isWide: isWide,
+                  onDownload: handleDownload,
+                  onDelete: onDelete,
+                ),
               ),
             ],
           ),
@@ -136,7 +134,7 @@ class _ShareButton extends StatelessWidget {
       tooltip: 'Поделиться',
       icon: Icon(Icons.share_outlined, size: 20, color: cs.onSurfaceVariant),
       padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+      constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
       onPressed: () => shareBook(
         context,
         state.task,
@@ -149,137 +147,117 @@ class _ShareButton extends StatelessWidget {
 
 class _DownloadActions extends StatelessWidget {
   const _DownloadActions({
-    required this.book,
     required this.state,
     required this.session,
-    required this.effectiveFormat,
+    required this.onDownload,
     this.readLabel,
   });
 
-  final RecentBook book;
   final RecentBookItemState state;
-  final PortalSession session;
-  final SaveFormat effectiveFormat;
+  final PortalSession? session;
+  final VoidCallback onDownload;
   final String? readLabel;
 
   @override
   Widget build(BuildContext context) {
-    return Observer(
-      builder: (_) {
-        // Перечитываем прогресс точечно, чтобы показать % в full-card.
-        final task = state.task;
-        if (state.isDownloading) {
-          task?.progress;
-        }
-        return Wrap(
-          spacing: AppSpacing.xs,
-          runSpacing: AppSpacing.xs,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            if (state.fileExists)
-              ReadButton(
-                task: task,
-                effectiveFilePath: state.effectiveFilePath,
-                label: readLabel,
-              ),
-            if (state.isDownloading)
-              RecentBookDownloadingRow(task: task)
-            else
-              DownloadButton(
-                onPressed: () {
-                  startDownload(context, session, effectiveFormat, book.id);
-                },
-              ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _WideInfo extends StatelessWidget {
-  const _WideInfo({
-    required this.book,
-    required this.state,
-    required this.session,
-    required this.effectiveFormat,
-    required this.onDelete,
-  });
-
-  final RecentBook book;
-  final RecentBookItemState state;
-  final PortalSession session;
-  final SaveFormat effectiveFormat;
-  final VoidCallback? onDelete;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    if (state.isDownloading) {
+      return RecentBookDownloadingRow(task: state.task);
+    }
+    return Wrap(
+      spacing: AppSpacing.xs,
+      runSpacing: AppSpacing.xs,
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _TitleBlock(book: book),
-              RecentBookBadgesRow(
-                book: book,
-                state: state,
-                downloadedPrefix: 'Скачано',
-              ),
-            ],
+        if (state.fileExists)
+          ReadButton(
+            task: state.task,
+            effectiveFilePath: state.effectiveFilePath,
+            label: readLabel,
           ),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _ShareButton(book: book, state: state),
-                RecentBookMoreMenu(
-                  book: book,
-                  task: state.task,
-                  effectiveFilePath: state.effectiveFilePath,
-                  fileExists: state.fileExists,
-                  onDelete: onDelete,
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            _DownloadActions(
-              book: book,
-              state: state,
-              session: session,
-              effectiveFormat: effectiveFormat,
-            ),
-          ],
+        DownloadButton(
+          onPressed: session == null ? null : onDownload,
         ),
       ],
     );
   }
 }
 
-class _NarrowInfo extends StatelessWidget {
-  const _NarrowInfo({
+class _CardInfo extends StatelessWidget {
+  const _CardInfo({
     required this.book,
     required this.state,
     required this.session,
     required this.effectiveFormat,
+    required this.isWide,
+    required this.onDownload,
     required this.onDelete,
   });
 
   final RecentBook book;
   final RecentBookItemState state;
-  final PortalSession session;
+  final PortalSession? session;
   final SaveFormat effectiveFormat;
+  final bool isWide;
+  final VoidCallback onDownload;
   final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
+    final topActions = Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _ShareButton(book: book, state: state),
+        RecentBookMoreMenu(
+          book: book,
+          task: state.task,
+          effectiveFilePath: state.effectiveFilePath,
+          fileExists: state.fileExists,
+          onDelete: onDelete,
+        ),
+      ],
+    );
+
+    final badges = RecentBookBadgesRow(
+      book: book,
+      state: state,
+      downloadedPrefix: 'Скачано',
+    );
+
+    final downloadActions = _DownloadActions(
+      state: state,
+      session: session,
+      onDownload: onDownload,
+      readLabel: 'Читать',
+    );
+
+    if (isWide) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _TitleBlock(book: book),
+                badges,
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              topActions,
+              const SizedBox(height: 6),
+              downloadActions,
+            ],
+          ),
+        ],
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -288,31 +266,14 @@ class _NarrowInfo extends StatelessWidget {
           children: [
             Expanded(child: _TitleBlock(book: book)),
             const SizedBox(width: AppSpacing.sm),
-            _ShareButton(book: book, state: state),
-            RecentBookMoreMenu(
-              book: book,
-              task: state.task,
-              effectiveFilePath: state.effectiveFilePath,
-              fileExists: state.fileExists,
-              onDelete: onDelete,
-            ),
+            topActions,
           ],
         ),
-        RecentBookBadgesRow(
-          book: book,
-          state: state,
-          downloadedPrefix: 'Скачано',
-        ),
+        badges,
         const SizedBox(height: 10),
         Align(
           alignment: Alignment.centerRight,
-          child: _DownloadActions(
-            book: book,
-            state: state,
-            session: session,
-            effectiveFormat: effectiveFormat,
-            readLabel: 'Читать',
-          ),
+          child: downloadActions,
         ),
       ],
     );

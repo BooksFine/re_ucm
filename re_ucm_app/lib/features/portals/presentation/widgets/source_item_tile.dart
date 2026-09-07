@@ -55,7 +55,7 @@ class SourceItemTile extends StatelessWidget {
         title: portal.name,
         subtitle: portal.domain,
         onTap: onTap,
-        chevron: chevron,
+        borderRadiusGeometry: AppRadii.lgRadius,
         leading: Container(
           width: 46,
           height: 46,

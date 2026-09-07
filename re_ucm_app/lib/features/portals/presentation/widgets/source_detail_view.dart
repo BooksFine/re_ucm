@@ -24,8 +24,9 @@ class SourceDetailView extends StatelessWidget {
   Widget build(BuildContext context) {
     final isWide = MediaQuery.sizeOf(context).width >= AppBreakpoints.mobileNav;
     // Ensure floating bottom NavBar never covers content on mobile
-    final bottomInset =
-        isWide ? 24.0 : MediaQuery.paddingOf(context).bottom + 104;
+    final bottomInset = isWide
+        ? AppSpacing.xxl
+        : MediaQuery.paddingOf(context).bottom + AppSpacing.bottomBarClearance;
 
     return Center(
       child: ConstrainedBox(
@@ -36,12 +37,12 @@ class SourceDetailView extends StatelessWidget {
 
             final topInset = isWide
                 ? MediaQuery.paddingOf(context).top + kToolbarHeight
-                : 12.0;
+                : AppSpacing.md;
 
             return ListView(
               padding: EdgeInsets.only(
-                left: isWide ? 24 : 16,
-                right: isWide ? 24 : 16,
+                left: isWide ? AppSpacing.xxl : AppSpacing.lg,
+                right: isWide ? AppSpacing.xxl : AppSpacing.lg,
                 top: topInset,
                 bottom: bottomInset,
               ),
@@ -53,23 +54,16 @@ class SourceDetailView extends StatelessWidget {
                   isPinned: isPinned,
                   onTogglePin: onTogglePin,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
 
-                // 2. Account & Authorization Card (if portal supports auth)
-                if (portal.supportsAuth) ...[
-                  SourceAccountCard(
+                // 2. Settings & Account Card
+                if (session.schema.isNotEmpty) ...[
+                  SourceSettingsCard(
                     portal: portal,
                     session: session,
                     isAuth: isAuth,
                   ),
-                  const SizedBox(height: 16),
-                ] else if (session.schema.isNotEmpty) ...[
-                  // 3. Settings Card for portals without account auth
-                  SourceSettingsCard(
-                    portal: portal,
-                    session: session,
-                  ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                 ],
               ],
             );

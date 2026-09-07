@@ -1,10 +1,12 @@
-import 'dart:io';
-
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 import '../../downloads/domain/download_task.cg.dart';
 import '../../downloads/domain/downloads_service.cg.dart';
 
+/// Чистый UI ViewModel элемента недавней книги.
+///
+/// Не выполняет синхронного I/O в UI-потоке, опираясь на статус
+/// завершённости [DownloadTask] и сохранённый путь.
 class RecentBookItemState {
   final DownloadTask? task;
   final bool isDownloading;
@@ -22,30 +24,9 @@ class RecentBookItemState {
     required this.downloadedAt,
   });
 
-  static final Map<String, ({bool exists, int checkedAt})> _existsCache = {};
-
-  static bool _cachedExists(String path) {
-    final now = DateTime.now().millisecondsSinceEpoch;
-    final cached = _existsCache[path];
-    if (cached != null && now - cached.checkedAt < 2000) {
-      return cached.exists;
-    }
-    final exists = File(path).existsSync();
-    _existsCache[path] = (exists: exists, checkedAt: now);
-    if (_existsCache.length > 500) {
-      _existsCache.remove(
-        _existsCache.keys.firstWhere(
-          (k) => k != path,
-          orElse: () => path,
-        ),
-      );
-    }
-    return exists;
-  }
-
-  static void invalidateFileCache(String? path) {
-    if (path != null) _existsCache.remove(path);
-  }
+  /// Устаревший метод для обратной совместимости (кэш упразднён).
+  @Deprecated('File cache is no longer used')
+  static void invalidateFileCache(String? path) {}
 
   factory RecentBookItemState.resolve(
     RecentBook book,
@@ -56,8 +37,13 @@ class RecentBookItemState {
     final isDownloading = task?.isActive ?? false;
     final isCompleted = task?.isCompleted ?? false;
     final effectiveFilePath = task?.savedFilePath ?? book.savedFilePath;
-    final fileExists =
-        effectiveFilePath != null && _cachedExists(effectiveFilePath);
+
+    // Книга готова к чтению, если задача завершена успешно, либо у книги
+    // уже есть сохранённый локальный путь из истории (и сейчас не перезагружается).
+    final fileExists = (isCompleted || book.savedFilePath != null) &&
+        effectiveFilePath != null &&
+        !isDownloading;
+
     return RecentBookItemState(
       task: task,
       isDownloading: isDownloading,

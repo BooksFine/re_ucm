@@ -8,14 +8,12 @@ import '../../../core/navigation/nav.dart';
 import '../../../core/ui/centered_flexible_space_bar.dart';
 import '../../../core/ui/tokens.dart';
 import '../../../core/ui/widgets/app_search_bar.dart';
-import '../../../core/ui/widgets/app_section_header.dart';
 import '../../../core/ui/widgets/app_tile.dart';
 import '../../downloads/presentation/widgets/downloads_indicator_button.dart';
 import 'sources_controller.dart';
 import 'sources_pane.dart';
-import 'widgets/animated_collapse_slot.dart';
-import 'widgets/source_item_tile.dart';
 import 'widgets/sources_empty_view.dart';
+import 'widgets/sources_list_view.dart';
 
 class SourcesView {
   const SourcesView({
@@ -99,113 +97,6 @@ class _SourcesPageState extends State<SourcesPage> {
     );
   }
 
-  Widget _buildFilteredPortalList(
-    BuildContext context, {
-    required List<Portal> allPortals,
-    required EdgeInsets padding,
-    required String keyPrefix,
-    required AppTileChevron chevron,
-    required void Function(Portal portal) onTap,
-    bool Function(String code)? isSelected,
-    required EdgeInsetsGeometry sectionHeaderPadding,
-  }) {
-    return Observer(builder: (_) {
-      final view = SourcesView.resolve(_controller, allPortals);
-      if (view.visible.isEmpty) {
-        return const SourcesEmptyView();
-      }
-      final effectivePadding = view.isSearching
-          ? padding.copyWith(top: 12)
-          : padding;
-      return _buildPortalList(
-        context,
-        view: view,
-        padding: effectivePadding,
-        keyPrefix: keyPrefix,
-        chevron: chevron,
-        onTap: onTap,
-        isSelected: isSelected,
-        sectionHeaderPadding: sectionHeaderPadding,
-      );
-    });
-  }
-
-  Widget _buildPortalList(
-    BuildContext context, {
-    required SourcesView view,
-    required EdgeInsets padding,
-    required String keyPrefix,
-    required AppTileChevron chevron,
-    required void Function(Portal portal) onTap,
-    bool Function(String code)? isSelected,
-    required EdgeInsetsGeometry sectionHeaderPadding,
-  }) {
-    final deps = AppDependencies.of(context);
-    final showPinnedSection = !view.isSearching && view.pinned.isNotEmpty;
-
-    Widget tile(
-      Portal portal, {
-      required String keySuffix,
-      required bool isPinned,
-    }) {
-      final session = deps.settingsService.sessionByCode(portal.code);
-      return SourceItemTile(
-        key: ValueKey('${keyPrefix}_${keySuffix}_${portal.code}'),
-        portal: portal,
-        isAuthorized: session.isAuthorized,
-        isPinned: isPinned,
-        chevron: chevron,
-        isSelected: isSelected?.call(portal.code) ?? false,
-        onTap: () => onTap(portal),
-        onTogglePin: () => _controller.togglePin(portal.code),
-      );
-    }
-
-    return Padding(
-      padding: padding,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          AnimatedCollapseSlot(
-            isVisible: showPinnedSection,
-            child: AppSectionHeader(
-              'Закрепленные (${view.pinned.length})',
-              padding: sectionHeaderPadding,
-            ),
-          ),
-          for (final portal in view.pinned)
-            AnimatedCollapseSlot(
-              key: ValueKey('${keyPrefix}_pinned_slot_${portal.code}'),
-              isVisible: !view.isSearching,
-              bottomPadding: 8,
-              child: tile(portal, keySuffix: 'pin', isPinned: true),
-            ),
-          AnimatedCollapseSlot(
-            isVisible: showPinnedSection,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: AppSectionHeader(
-                'Все источники (${view.other.length})',
-                padding: sectionHeaderPadding,
-              ),
-            ),
-          ),
-          for (final portal in view.other)
-            AnimatedCollapseSlot(
-              key: ValueKey('${keyPrefix}_other_slot_${portal.code}'),
-              isVisible: true,
-              bottomPadding: 8,
-              child: tile(
-                portal,
-                keySuffix: 'item',
-                isPinned: view.pins.contains(portal.code),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final allPortals = PortalFactory.portals;
@@ -221,26 +112,6 @@ class _SourcesPageState extends State<SourcesPage> {
             searchBar: _buildSearchBar(allPortals),
             masterScrollController: _masterScrollController,
             controller: _controller,
-            portalListBuilder: ({
-              required BuildContext context,
-              required SourcesView view,
-              required EdgeInsets padding,
-              required String keyPrefix,
-              required AppTileChevron chevron,
-              required void Function(Portal portal) onTap,
-              bool Function(String code)? isSelected,
-              required EdgeInsetsGeometry sectionHeaderPadding,
-            }) =>
-                _buildPortalList(
-              context,
-              view: view,
-              padding: padding,
-              keyPrefix: keyPrefix,
-              chevron: chevron,
-              onTap: onTap,
-              isSelected: isSelected,
-              sectionHeaderPadding: sectionHeaderPadding,
-            ),
           );
         }
 
@@ -250,7 +121,8 @@ class _SourcesPageState extends State<SourcesPage> {
   }
 
   Widget _buildMobileLayout(BuildContext context, List<Portal> allPortals) {
-    final bottomInset = MediaQuery.paddingOf(context).bottom + 96;
+    final bottomInset =
+        MediaQuery.paddingOf(context).bottom + AppSpacing.bottomBarClearance;
 
     return Scaffold(
       body: Center(
@@ -283,24 +155,32 @@ class _SourcesPageState extends State<SourcesPage> {
                 ),
               ),
               SliverToBoxAdapter(
-                child: _buildFilteredPortalList(
-                  context,
-                  allPortals: allPortals,
-                  padding: EdgeInsets.fromLTRB(
-                    AppSpacing.lg,
-                    0,
-                    AppSpacing.lg,
-                    bottomInset,
-                  ),
-                  keyPrefix: 'mob',
-                  chevron: AppTileChevron.show,
-                  onTap: (portal) => Nav.goSourceDetails(portal.code),
-                  sectionHeaderPadding: const EdgeInsets.fromLTRB(
-                    AppSpacing.xs,
-                    14,
-                    AppSpacing.xs,
-                    8,
-                  ),
+                child: Observer(
+                  builder: (_) {
+                    final view = SourcesView.resolve(_controller, allPortals);
+                    if (view.visible.isEmpty) {
+                      return const SourcesEmptyView();
+                    }
+                    return SourcesListView(
+                      view: view,
+                      keyPrefix: 'mob',
+                      padding: EdgeInsets.fromLTRB(
+                        AppSpacing.lg,
+                        view.isSearching ? AppSpacing.md : 0,
+                        AppSpacing.lg,
+                        bottomInset,
+                      ),
+                      sectionHeaderPadding: const EdgeInsets.fromLTRB(
+                        AppSpacing.xs,
+                        14,
+                        AppSpacing.xs,
+                        AppSpacing.sm,
+                      ),
+                      chevron: AppTileChevron.show,
+                      onTap: (portal) => Nav.goSourceDetails(portal.code),
+                      onTogglePin: _controller.togglePin,
+                    );
+                  },
                 ),
               ),
             ],

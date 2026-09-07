@@ -1,3 +1,4 @@
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:m3e_core/m3e_core.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_core/re_ucm_core.dart';
@@ -13,7 +14,7 @@ class DownloadButton extends StatelessWidget {
     this.size = M3EButtonSize.sm,
   });
 
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final bool iconOnly;
   final M3EButtonSize size;
 
@@ -51,56 +52,61 @@ class RecentBookDownloadingRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    final progress = task?.progress.normalized;
-    if (compact) {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: 22,
-            height: 22,
-            child: M3ECircularWavyProgressIndicator(
-              value: progress,
-              size: 22,
-              strokeWidth: 2.2,
-              color: cs.primary,
+    return Observer(
+      builder: (context) {
+        final theme = Theme.of(context);
+        final cs = theme.colorScheme;
+        final progress = task?.progress.normalized;
+        if (compact) {
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 22,
+                height: 22,
+                child: M3ECircularWavyProgressIndicator(
+                  value: progress,
+                  size: 22,
+                  strokeWidth: 2.2,
+                  color: cs.primary,
+                ),
+              ),
+              IconButton(
+                tooltip: 'Отменить',
+                icon: const Icon(Icons.close_rounded, size: 20),
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+                onPressed: () => task?.cancel(),
+              ),
+            ],
+          );
+        }
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: Text(
+                progress != null
+                    ? 'Загрузка ${(progress * 100).toInt()}%'
+                    : 'Загрузка...',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  fontSize: 10,
+                  color: cs.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
-          ),
-          IconButton(
-            tooltip: 'Отменить',
-            icon: const Icon(Icons.close_rounded, size: 20),
-            visualDensity: VisualDensity.compact,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-            onPressed: () => task?.cancel(),
-          ),
-        ],
-      );
-    }
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Flexible(
-          child: Text(
-            progress != null
-                ? 'Загрузка ${(progress * 100).toInt()}%'
-                : 'Загрузка...',
-            style: theme.textTheme.labelSmall?.copyWith(
-              fontSize: 10,
-              color: cs.primary,
-              fontWeight: FontWeight.w600,
+            IconButton(
+              tooltip: 'Отменить',
+              icon: const Icon(Icons.close_rounded, size: 18),
+              visualDensity: VisualDensity.compact,
+              constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+              onPressed: () => task?.cancel(),
             ),
-          ),
-        ),
-        IconButton(
-          tooltip: 'Отменить',
-          icon: const Icon(Icons.close_rounded, size: 18),
-          visualDensity: VisualDensity.compact,
-          onPressed: () => task?.cancel(),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 }
@@ -110,22 +116,26 @@ class ReadButton extends StatelessWidget {
     super.key,
     required this.task,
     required this.effectiveFilePath,
-    this.label,
+    this.iconOnly = false,
+    this.size = M3EButtonSize.sm,
+    this.label = 'Читать',
   });
 
   final DownloadTask? task;
   final String? effectiveFilePath;
+  final bool iconOnly;
+  final M3EButtonSize size;
   final String? label;
 
   @override
   Widget build(BuildContext context) {
     final label = this.label;
-    if (label == null) {
+    if (iconOnly || label == null) {
       return Tooltip(
-        message: 'Читать',
+        message: label ?? 'Читать',
         child: M3EButton(
           style: M3EButtonStyle.tonal,
-          size: M3EButtonSize.sm,
+          size: size,
           shape: M3EButtonShape.round,
           onPressed: () => openBook(
             context,
@@ -138,7 +148,7 @@ class ReadButton extends StatelessWidget {
     }
     return M3EButton.icon(
       style: M3EButtonStyle.tonal,
-      size: M3EButtonSize.sm,
+      size: size,
       shape: M3EButtonShape.round,
       icon: const Icon(Icons.menu_book_rounded),
       label: Text(label),

@@ -10,21 +10,24 @@ class TagEditingController extends TextEditingController {
 
   @override
   set value(TextEditingValue newValue) {
+    var candidateValue = newValue;
+
     // 1. ЛОГИКА УДАЛЕНИЯ (Atomicity)
-    if (newValue.text.length < value.text.length) {
+    if (candidateValue.text.length < value.text.length) {
       // Ищем индекс, с которого началось изменение
       int changeIndex = -1;
-      for (int i = 0; i < newValue.text.length; i++) {
-        if (value.text[i] != newValue.text[i]) {
+      for (int i = 0; i < candidateValue.text.length; i++) {
+        if (value.text[i] != candidateValue.text[i]) {
           changeIndex = i;
           break;
         }
       }
-      if (changeIndex == -1) changeIndex = newValue.text.length;
+      if (changeIndex == -1) changeIndex = candidateValue.text.length;
 
       // Вычисляем границы удаленного фрагмента в старом тексте
       int deleteStart = changeIndex;
-      int deleteEnd = changeIndex + (value.text.length - newValue.text.length);
+      int deleteEnd =
+          changeIndex + (value.text.length - candidateValue.text.length);
       bool rangeExpanded = false;
 
       final matches = tagRegExp.allMatches(value.text);
@@ -46,45 +49,74 @@ class TagEditingController extends TextEditingController {
       // Если мы расширили зону удаления (зацепили кусок тега), применяем новые границы
       if (rangeExpanded) {
         final newText = value.text.replaceRange(deleteStart, deleteEnd, "");
-        super.value = TextEditingValue(
+        final clampedOffset = deleteStart.clamp(0, newText.length);
+        candidateValue = TextEditingValue(
           text: newText,
-          selection: TextSelection.collapsed(offset: deleteStart),
+          selection: TextSelection.collapsed(offset: clampedOffset),
         );
-        return;
       }
     }
 
-    // 2. ЛОГИКА НАВИГАЦИИ (Прыжки через тег)
-    final newSelection = newValue.selection;
-    final oldSelection = value.selection;
+    // 2. ЛОГИКА НАВИГАЦИИ (Прыжки через тег / стабилизация курсора)
+    final sel = candidateValue.selection;
+    if (sel.isValid) {
+      final matches = tagRegExp.allMatches(candidateValue.text);
 
-    if (newSelection.isCollapsed && oldSelection.isValid) {
-      final matches = tagRegExp.allMatches(newValue.text);
-
-      for (final match in matches) {
-        if (newSelection.baseOffset > match.start &&
-            newSelection.baseOffset < match.end) {
-          int newOffset;
-
-          if (newSelection.baseOffset < oldSelection.baseOffset) {
-            newOffset = match.start;
-          } else if (newSelection.baseOffset > oldSelection.baseOffset) {
-            newOffset = match.end;
-          } else {
-            final distToStart = newSelection.baseOffset - match.start;
-            final distToEnd = match.end - newSelection.baseOffset;
-            newOffset = (distToStart < distToEnd) ? match.start : match.end;
+      if (sel.isCollapsed) {
+        final offset = sel.baseOffset;
+        if (offset >= 0 && offset <= candidateValue.text.length) {
+          for (final match in matches) {
+            if (offset > match.start && offset < match.end) {
+              int newOffset;
+              if (value.selection.isValid &&
+                  offset < value.selection.baseOffset) {
+                newOffset = match.start;
+              } else if (value.selection.isValid &&
+                  offset > value.selection.baseOffset) {
+                newOffset = match.end;
+              } else {
+                final distToStart = offset - match.start;
+                final distToEnd = match.end - offset;
+                newOffset = (distToStart < distToEnd) ? match.start : match.end;
+              }
+              newOffset = newOffset.clamp(0, candidateValue.text.length);
+              candidateValue = candidateValue.copyWith(
+                selection: TextSelection.collapsed(offset: newOffset),
+              );
+              break;
+            }
           }
+        }
+      } else {
+        // Выделение диапазона: если граница попадает внутрь тега, расширяем
+        int start = sel.start;
+        int end = sel.end;
+        bool adjusted = false;
 
-          super.value = newValue.copyWith(
-            selection: TextSelection.collapsed(offset: newOffset),
+        for (final match in matches) {
+          if (start > match.start && start < match.end) {
+            start = match.start;
+            adjusted = true;
+          }
+          if (end > match.start && end < match.end) {
+            end = match.end;
+            adjusted = true;
+          }
+        }
+
+        if (adjusted) {
+          final isReversed = sel.extentOffset < sel.baseOffset;
+          candidateValue = candidateValue.copyWith(
+            selection: TextSelection(
+              baseOffset: isReversed ? end : start,
+              extentOffset: isReversed ? start : end,
+            ),
           );
-          return;
         }
       }
     }
 
-    super.value = newValue;
+    super.value = candidateValue;
   }
 
   @override
@@ -169,18 +201,25 @@ class TagEditingController extends TextEditingController {
     final currentText = text;
     final currentSelection = selection;
 
-    final int start = currentSelection.isValid
+    final int rawStart = currentSelection.isValid
         ? currentSelection.start
         : currentText.length;
-    final int end = currentSelection.isValid
+    final int rawEnd = currentSelection.isValid
         ? currentSelection.end
         : currentText.length;
 
+    final int start = rawStart.clamp(0, currentText.length);
+    final int end = rawEnd.clamp(0, currentText.length);
+
+    final int minPos = start <= end ? start : end;
+    final int maxPos = start <= end ? end : start;
+
     // 3. Формируем новый текст
-    final newText = currentText.replaceRange(start, end, formattedTag);
+    final newText = currentText.replaceRange(minPos, maxPos, formattedTag);
 
     // 4. Вычисляем новую позицию курсора (сразу после тега)
-    final int newSelectionIndex = start + formattedTag.length;
+    final int newSelectionIndex =
+        (minPos + formattedTag.length).clamp(0, newText.length);
 
     // 5. Обновляем значение контроллера
     value = TextEditingValue(

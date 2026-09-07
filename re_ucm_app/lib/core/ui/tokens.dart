@@ -50,6 +50,9 @@ abstract final class AppSpacing {
 
   /// 24.0
   static const double xxl = 24.0;
+
+  /// 96.0 — отступ снизу под плавающий навбар на мобильных устройствах.
+  static const double bottomBarClearance = 96.0;
 }
 
 abstract final class AppBreakpoints {

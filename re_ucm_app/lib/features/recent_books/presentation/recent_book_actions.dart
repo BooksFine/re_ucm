@@ -13,7 +13,6 @@ import '../../common/widgets/snack.dart';
 import '../../downloads/domain/download_task.cg.dart';
 import '../../downloads/presentation/download_modal.dart';
 import '../../downloads/presentation/widgets/unauthorized_download_dialog.dart';
-import '../domain/recent_book_item_state.dart';
 
 Future<void> openDownloadedFile(
   BuildContext context,
@@ -21,8 +20,7 @@ Future<void> openDownloadedFile(
 ) async {
   HapticFeedback.lightImpact();
   final file = File(filePath);
-  if (!file.existsSync()) {
-    RecentBookItemState.invalidateFileCache(filePath);
+  if (!await file.exists()) {
     if (context.mounted) {
       AppSnack.show(
         context,
@@ -48,7 +46,7 @@ Future<void> shareBook(
     return;
   }
 
-  if (effectiveFilePath != null && File(effectiveFilePath).existsSync()) {
+  if (effectiveFilePath != null && await File(effectiveFilePath).exists()) {
     final fileName = p.basename(effectiveFilePath);
     final xfile = XFile(effectiveFilePath, name: fileName);
     final text =
@@ -70,10 +68,21 @@ Future<void> shareBook(
 
 Future<void> startDownload(
   BuildContext context,
-  PortalSession session,
+  PortalSession? session,
   SaveFormat format,
   String bookId,
 ) async {
+  if (session == null) {
+    if (context.mounted) {
+      AppSnack.show(
+        context,
+        'Сессия портала не найдена или не настроена',
+        kind: AppSnackKind.error,
+      );
+    }
+    return;
+  }
+
   final deps = AppDependencies.of(context);
   final shouldProceed = await checkAndConfirmUnauthorizedDownload(
     context: context,

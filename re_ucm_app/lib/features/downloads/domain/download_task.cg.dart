@@ -15,11 +15,10 @@ import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 import '../../../core/constants.dart';
 import '../../../core/logger.dart';
-import '../presentation/widgets/book_share_text_builder.dart';
 import 'book_saver.dart';
+import 'book_share_text_builder.dart';
 import 'book_sharer.dart';
 import 'download_opener.dart';
-import 'download_status_viewmodel.dart';
 
 part '../../../.gen/features/downloads/domain/download_task.cg.g.dart';
 
@@ -166,13 +165,6 @@ abstract class DownloadTaskBase with Store {
 
   /// Единая формула прогресса 0..1.
   double? get progressValue => progress.normalized;
-
-  /// Единая view-модель для live/progress/list.
-  DownloadStatusViewModel get viewModel => (
-    title: displayTitle,
-    statusText: displayStatus,
-    progress: progressValue,
-  );
 
   /// Смена формата + персист в настройки + фоновая переконвертация,
   /// если книга уже скачана. Сайд-эффект осознанный (см. имя) —

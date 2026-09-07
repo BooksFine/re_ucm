@@ -30,45 +30,46 @@ class BookCoverImage extends StatelessWidget {
   final IconData placeholderIcon;
   final BorderRadius borderRadius;
 
+  Widget _buildPlaceholder(ColorScheme cs, {IconData? icon}) {
+    return Container(
+      width: width,
+      height: height,
+      color: cs.surfaceContainerHighest,
+      child: icon != null
+          ? Icon(
+              icon,
+              size: iconSize,
+              color: cs.onSurfaceVariant,
+            )
+          : null,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final url = coverUrl;
+    final url = coverUrl?.trim();
+    final hasValidUrl = url != null && url.isNotEmpty;
+
     return ClipRRect(
       borderRadius: borderRadius,
-      child: url != null
+      child: hasValidUrl
           ? CachedNetworkImage(
               imageUrl: url,
               width: width,
               height: height,
               fit: BoxFit.cover,
               placeholder: (context, url) => ShimmerEffect(
-                Container(
-                  width: width,
-                  height: height,
-                  color: cs.surfaceContainerHighest,
-                ),
+                _buildPlaceholder(cs),
               ),
-              errorWidget: (context, url, error) => Container(
-                width: width,
-                height: height,
-                color: cs.surfaceContainerHighest,
-                child: Icon(
-                  errorIcon,
-                  size: iconSize,
-                  color: cs.onSurfaceVariant,
-                ),
+              errorWidget: (context, url, error) => _buildPlaceholder(
+                cs,
+                icon: errorIcon,
               ),
             )
-          : Container(
-              width: width,
-              height: height,
-              color: cs.surfaceContainerHighest,
-              child: Icon(
-                placeholderIcon,
-                size: iconSize,
-                color: cs.onSurfaceVariant,
-              ),
+          : _buildPlaceholder(
+              cs,
+              icon: placeholderIcon,
             ),
     );
   }

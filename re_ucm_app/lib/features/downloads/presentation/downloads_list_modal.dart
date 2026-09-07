@@ -186,7 +186,7 @@ class _TaskSection extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         for (final task in tasks)
-          DownloadListTile(
+          DownloadHistoryListTile(
             key: downloadTileKey(task),
             task: task,
             onTap: () => onTap(task),

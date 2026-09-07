@@ -8,9 +8,9 @@ import '../../core/di.dart';
 import '../../core/logger.dart';
 import '../../core/navigation/router.dart';
 import '../../core/ui/tokens.dart';
+import '../common/utils/book_link_parser.dart';
 import '../common/widgets/snack.dart';
 import '../downloads/presentation/download_modal.dart';
-import '../home/widgets/link_parser.dart';
 
 class ShareReceiverService {
   static StreamSubscription<SharedMedia>? _subscription;

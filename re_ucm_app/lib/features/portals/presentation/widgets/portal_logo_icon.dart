@@ -25,25 +25,16 @@ class PortalLogoIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final isMonochrome = portal.code != 'litres';
     final effectiveColor = (color ?? cs.onSurface).withValues(alpha: opacity);
 
-    Widget svg = SvgPicture(
+    return SvgPicture(
       SvgAssetLoader(
         portal.logo.assetPath,
         packageName: portal.logo.packageName,
       ),
       width: size,
       height: size,
-      colorFilter: isMonochrome
-          ? ColorFilter.mode(effectiveColor, BlendMode.srcIn)
-          : null,
+      colorFilter: ColorFilter.mode(effectiveColor, BlendMode.srcIn),
     );
-
-    if (!isMonochrome && opacity < 1.0) {
-      svg = Opacity(opacity: opacity, child: svg);
-    }
-
-    return svg;
   }
 }

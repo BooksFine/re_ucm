@@ -2,11 +2,20 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../core/ui/centered_flexible_space_bar.dart';
 import '../../core/ui/tokens.dart';
+import '../recent_books/presentation/recent_books_list.dart';
+import '../recent_books/presentation/widgets/recent_books_header.dart';
 import 'widgets/home_action_hub.dart';
-import 'widgets/recent_books_section.dart';
+import 'widgets/link_forwarder_controller.dart';
 
 class HomePagePortrait extends StatefulWidget {
-  const HomePagePortrait({super.key});
+  const HomePagePortrait({
+    super.key,
+    this.forwarderController,
+    this.textController,
+  });
+
+  final LinkForwarderController? forwarderController;
+  final TextEditingController? textController;
 
   @override
   State<HomePagePortrait> createState() => _HomePagePortraitState();
@@ -50,15 +59,17 @@ class _HomePagePortraitState extends State<HomePagePortrait> {
                 ),
 
                 // Action Hub: Smart Link Bar -> Portals -> Live Downloads
-                const SliverToBoxAdapter(
+                SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.only(top: 8, bottom: AppSpacing.sm),
+                    padding: const EdgeInsets.only(top: 8, bottom: AppSpacing.sm),
                     child: HomeActionHub(
                       isWide: false,
-                      contentPadding: EdgeInsets.symmetric(
+                      forwarderController: widget.forwarderController,
+                      textController: widget.textController,
+                      contentPadding: const EdgeInsets.symmetric(
                         horizontal: AppSpacing.lg,
                       ),
-                      headerPadding: EdgeInsets.fromLTRB(
+                      headerPadding: const EdgeInsets.fromLTRB(
                         AppSpacing.lg,
                         0,
                         AppSpacing.lg,
@@ -69,18 +80,26 @@ class _HomePagePortraitState extends State<HomePagePortrait> {
                 ),
 
                 // Recent Books Section (header + list, unboxed)
-                RecentBooksSection(
-                  headerOuterPadding: const EdgeInsets.fromLTRB(
+                const SliverPadding(
+                  padding: EdgeInsets.fromLTRB(
                     AppSpacing.lg,
                     AppSpacing.xl,
                     AppSpacing.lg,
                     AppSpacing.xs,
                   ),
-                  listPadding: EdgeInsets.fromLTRB(
+                  sliver: SliverToBoxAdapter(
+                    child: RecentBooksHeader(),
+                  ),
+                ),
+                SliverPadding(
+                  padding: EdgeInsets.fromLTRB(
                     AppSpacing.lg,
                     AppSpacing.xs,
                     AppSpacing.lg,
                     bottomInset,
+                  ),
+                  sliver: const SliverToBoxAdapter(
+                    child: RecentBooksList(),
                   ),
                 ),
               ],

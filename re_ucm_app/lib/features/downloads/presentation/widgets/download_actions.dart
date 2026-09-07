@@ -1,9 +1,7 @@
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:m3e_core/m3e_core.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:re_ucm_lib/settings/domain/save_format.dart';
 
-import '../../../../core/ui/tokens.dart';
 import '../../../common/widgets/snack.dart';
 import '../../domain/download_task.cg.dart';
 import 'exporting_indicator.dart';
@@ -47,14 +45,11 @@ class DownloadActions extends StatelessWidget {
   }
 
   Widget _buildCompleted(BuildContext context, ThemeData theme) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _FormatSelector(task: task),
-        const SizedBox(height: 12),
-
-        if (task.savedFilePath != null) ...[
+    if (task.savedFilePath != null) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
           // Primary action: Open Book in Reader
           M3EButton.icon(
             style: M3EButtonStyle.filled,
@@ -85,48 +80,48 @@ class DownloadActions extends StatelessWidget {
             ),
             label: const Text('Поделиться'),
           ),
-        ] else ...[
-          // Book downloaded, not yet saved: balanced row of Share and Save
-          Row(
-            children: [
-              Expanded(
-                flex: 1,
-                child: M3EButton.icon(
-                  style: M3EButtonStyle.outlined,
-                  size: M3EButtonSize.md,
-                  onPressed: task.isExporting ? null : task.share,
-                  icon: ExportingIndicator(
-                    isExporting: task.isExporting,
-                    icon: Icons.share_outlined,
-                    size: 18,
-                  ),
-                  label: const Text('Поделиться'),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                flex: 1,
-                child: M3EButton.icon(
-                  style: M3EButtonStyle.filled,
-                  size: M3EButtonSize.md,
-                  onPressed: task.isExporting
-                      ? null
-                      : () => _saveWithFeedback(context, task),
-                  icon: ExportingIndicator(
-                    isExporting: task.isExporting,
-                    icon: Icons.save_alt_rounded,
-                    size: 20,
-                    color: theme.colorScheme.onPrimary,
-                  ),
-                  label: const Text(
-                    'Сохранить',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ),
-            ],
-          ),
         ],
+      );
+    }
+
+    // Book downloaded, not yet saved: balanced row of Share and Save
+    return Row(
+      children: [
+        Expanded(
+          flex: 1,
+          child: M3EButton.icon(
+            style: M3EButtonStyle.outlined,
+            size: M3EButtonSize.md,
+            onPressed: task.isExporting ? null : task.share,
+            icon: ExportingIndicator(
+              isExporting: task.isExporting,
+              icon: Icons.share_outlined,
+              size: 18,
+            ),
+            label: const Text('Поделиться'),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          flex: 1,
+          child: M3EButton.icon(
+            style: M3EButtonStyle.filled,
+            size: M3EButtonSize.md,
+            onPressed: task.isExporting
+                ? null
+                : () => _saveWithFeedback(context, task),
+            icon: ExportingIndicator(
+              isExporting: task.isExporting,
+              icon: Icons.save_alt_rounded,
+              size: 20,
+              color: theme.colorScheme.onPrimary,
+            ),
+            label: const Text(
+              'Сохранить',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -223,69 +218,5 @@ Future<void> _saveWithFeedback(
         'Произошла ошибка при сохранении',
         kind: AppSnackKind.error,
       );
-  }
-}
-
-class _FormatSelector extends StatelessWidget {
-  const _FormatSelector({required this.task});
-
-  final DownloadTask task;
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Формат сохранения:',
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            if (task.isExporting)
-              Text(
-                'Конвертация...',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        SizedBox(
-          width: double.infinity,
-          child: SegmentedButton<SaveFormat>(
-            style: SegmentedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadii.md),
-              ),
-              visualDensity: VisualDensity.compact,
-            ),
-            showSelectedIcon: false,
-            segments: [
-              for (final fmt in SaveFormat.displayValues)
-                ButtonSegment<SaveFormat>(
-                  value: fmt,
-                  label: Text(fmt.label, style: const TextStyle(fontSize: 13)),
-                ),
-            ],
-            selected: {task.saveFormat},
-            onSelectionChanged: task.isExporting
-                ? null
-                : (Set<SaveFormat> newSelection) {
-                    if (newSelection.isNotEmpty) {
-                      task.updateSaveFormat(newSelection.first);
-                    }
-                  },
-          ),
-        ),
-      ],
-    );
   }
 }

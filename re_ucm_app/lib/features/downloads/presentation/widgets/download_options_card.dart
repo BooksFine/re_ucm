@@ -1,5 +1,6 @@
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:re_ucm_lib/settings/domain/save_format.dart';
 
 import '../../../../core/ui/tokens.dart';
 import '../../domain/download_task.cg.dart';
@@ -16,6 +17,7 @@ class DownloadOptionsCard extends StatelessWidget {
     return Observer(
       builder: (_) {
         final showCompletionOption = task.isActive;
+        final showFormatSelector = task.isCompleted;
 
         return Container(
           decoration: BoxDecoration(
@@ -27,41 +29,116 @@ class DownloadOptionsCard extends StatelessWidget {
             ),
           ),
           clipBehavior: Clip.antiAlias,
-          child: AnimatedSize(
-            duration: AppDurations.expand,
-            curve: Curves.easeOutCubic,
-            alignment: Alignment.topCenter,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _OptionRow(
-                  value: task.addToRecent,
-                  onChanged: task.updateAddToRecent,
-                  title: 'Добавить в "Последние"',
-                  subtitle: 'Для быстрой дозагрузки новых глав',
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (showFormatSelector) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+                  child: DownloadFormatSelector(task: task),
                 ),
-                if (showCompletionOption) ...[
-                  Divider(
-                    height: 1,
-                    thickness: 0.6,
-                    indent: 12,
-                    endIndent: 12,
-                    color: theme.colorScheme.outlineVariant.withValues(
-                      alpha: 0.25,
-                    ),
+                Divider(
+                  height: 1,
+                  thickness: 0.6,
+                  indent: 12,
+                  endIndent: 12,
+                  color: theme.colorScheme.outlineVariant.withValues(
+                    alpha: 0.25,
                   ),
-                  _OptionRow(
-                    value: task.showResultOnComplete,
-                    onChanged: task.updateShowResultOnComplete,
-                    title: 'Окно по завершении',
-                    subtitle: 'Показать диалог сохранения после загрузки',
-                  ),
-                ],
+                ),
               ],
-            ),
+              _OptionRow(
+                value: task.addToRecent,
+                onChanged: task.updateAddToRecent,
+                title: 'Добавить в "Последние"',
+                subtitle: 'Для быстрой дозагрузки новых глав',
+              ),
+              if (showCompletionOption) ...[
+                Divider(
+                  height: 1,
+                  thickness: 0.6,
+                  indent: 12,
+                  endIndent: 12,
+                  color: theme.colorScheme.outlineVariant.withValues(
+                    alpha: 0.25,
+                  ),
+                ),
+                _OptionRow(
+                  value: task.showResultOnComplete,
+                  onChanged: task.updateShowResultOnComplete,
+                  title: 'Окно по завершении',
+                  subtitle: 'Показать диалог сохранения после загрузки',
+                ),
+              ],
+            ],
           ),
         );
       },
+    );
+  }
+}
+
+class DownloadFormatSelector extends StatelessWidget {
+  const DownloadFormatSelector({super.key, required this.task});
+
+  final DownloadTask task;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Формат сохранения:',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            if (task.isExporting)
+              Text(
+                'Конвертация...',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        SizedBox(
+          width: double.infinity,
+          child: SegmentedButton<SaveFormat>(
+            style: SegmentedButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadii.md),
+              ),
+              visualDensity: VisualDensity.compact,
+            ),
+            showSelectedIcon: false,
+            segments: [
+              for (final fmt in SaveFormat.displayValues)
+                ButtonSegment<SaveFormat>(
+                  value: fmt,
+                  label: Text(fmt.label, style: const TextStyle(fontSize: 13)),
+                ),
+            ],
+            selected: {task.saveFormat},
+            onSelectionChanged: task.isExporting
+                ? null
+                : (Set<SaveFormat> newSelection) {
+                    if (newSelection.isNotEmpty) {
+                      task.updateSaveFormat(newSelection.first);
+                    }
+                  },
+          ),
+        ),
+      ],
     );
   }
 }

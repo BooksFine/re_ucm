@@ -92,7 +92,7 @@ class RecentBookCompactTile extends StatelessWidget {
                   effectiveFilePath: presenter.effectiveFilePath,
                   fileExists: presenter.fileExists,
                   showOpen: true,
-                  showShare: true,
+                  showShare: presenter.fileExists,
                   onDelete: onDelete,
                 ),
               ],

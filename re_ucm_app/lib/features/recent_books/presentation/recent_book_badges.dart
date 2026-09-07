@@ -1,6 +1,5 @@
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:re_ucm_core/re_ucm_core.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 import '../../../core/ui/tokens.dart';
@@ -98,10 +97,9 @@ class _DownloadProgressBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Observer(
       builder: (context) {
-        final pct = task?.progress.normalized;
         final theme = Theme.of(context);
         return Text(
-          pct != null ? 'Загрузка ${(pct * 100).toInt()}%' : 'Загрузка...',
+          RecentBookItemState.formatProgress(task),
           style: theme.textTheme.labelSmall?.copyWith(
             fontSize: 10,
             color: theme.colorScheme.primary,

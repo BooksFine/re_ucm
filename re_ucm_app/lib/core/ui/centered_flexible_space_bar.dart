@@ -30,6 +30,8 @@ class CenteredFlexibleSpaceBar extends StatefulWidget {
 
 class _CenteredFlexibleSpaceBarState extends State<CenteredFlexibleSpaceBar> {
   ScrollPosition? _position;
+  double? _lastDeltaExtent;
+  double _lastScrollUnderFade = 1.0;
 
   @override
   void didChangeDependencies() {
@@ -50,7 +52,31 @@ class _CenteredFlexibleSpaceBarState extends State<CenteredFlexibleSpaceBar> {
     _position = null;
   }
 
+  double _calculateScrollUnderFade(double deltaExtent) {
+    final double scrollOffset = _position?.hasPixels == true
+        ? _position!.pixels
+        : 0.0;
+    final double overScroll = math.max(0.0, scrollOffset - deltaExtent);
+    return 1.0 -
+        ui.clampDouble(
+          overScroll / _kScrollUnderFadeDistance,
+          0.0,
+          1.0,
+        );
+  }
+
   void _onScroll() {
+    final double? deltaExtent = _lastDeltaExtent;
+    if (deltaExtent == null) {
+      setState(() {});
+      return;
+    }
+
+    final double scrollUnderFade = _calculateScrollUnderFade(deltaExtent);
+    if (scrollUnderFade == _lastScrollUnderFade) {
+      return;
+    }
+    _lastScrollUnderFade = scrollUnderFade;
     setState(() {});
   }
 
@@ -65,6 +91,7 @@ class _CenteredFlexibleSpaceBarState extends State<CenteredFlexibleSpaceBar> {
         }
 
         final double deltaExtent = settings.maxExtent - settings.minExtent;
+        _lastDeltaExtent = deltaExtent;
         final double t = deltaExtent > 0
             ? ui.clampDouble(
                 1.0 -
@@ -79,17 +106,8 @@ class _CenteredFlexibleSpaceBarState extends State<CenteredFlexibleSpaceBar> {
 
         // When collapsed (t = 1.0), as cards scroll further up under the transparent toolbar,
         // fade out over the next 40px of scroll.
-        final double scrollOffset = _position?.hasPixels == true
-            ? _position!.pixels
-            : 0.0;
-        final double overScroll = math.max(0.0, scrollOffset - deltaExtent);
-        final double scrollUnderFade =
-            1.0 -
-            ui.clampDouble(
-              overScroll / _kScrollUnderFadeDistance,
-              0.0,
-              1.0,
-            );
+        final double scrollUnderFade = _calculateScrollUnderFade(deltaExtent);
+        _lastScrollUnderFade = scrollUnderFade;
 
         final double effectiveOpacity = opacity * scrollUnderFade;
 

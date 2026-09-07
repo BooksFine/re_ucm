@@ -5,8 +5,6 @@ import 'package:re_ucm_core/re_ucm_core.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 import '../../common/utils/book_link_parser.dart';
-import '../../downloads/domain/download_task.cg.dart';
-import '../../downloads/domain/downloads_service.cg.dart';
 
 /// Состояние превью ссылки для [LinkForwarder].
 sealed class LinkForwarderState {
@@ -162,28 +160,6 @@ class LinkForwarderController {
       });
       return true;
     }
-  }
-
-  /// Создаёт (или переиспользует) задачу. Возвращает null, если нечего качать.
-  /// Чистая операция: только domain, без старта.
-  /// Старт делает view отдельным вызовом `task.start()`,
-  /// проверку auth и показ модала — тоже view.
-  DownloadTask? buildDownloadTask({
-    required SettingsService settingsService,
-    required DownloadsService downloadsService,
-  }) {
-    final loaded = loadedState;
-    if (loaded == null) return null;
-
-    final session = settingsService.sessionByCode(loaded.portal.code);
-    final format = selectedFormat.value ?? settingsService.saveFormat;
-    final task = downloadsService.getOrCreateTask(
-      session: session,
-      bookId: loaded.bookId,
-      initialMetadata: loaded.metadata,
-    );
-    task.updateSaveFormat(format);
-    return task;
   }
 
   void dispose() {

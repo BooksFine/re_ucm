@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_core/re_ucm_core.dart';
 
 import '../../downloads/domain/download_task.cg.dart';
+import 'models/recent_book_view_state.dart';
 import 'recent_book_actions.dart';
 
 class DownloadButton extends StatelessWidget {
@@ -56,8 +57,8 @@ class RecentBookDownloadingRow extends StatelessWidget {
       builder: (context) {
         final theme = Theme.of(context);
         final cs = theme.colorScheme;
-        final progress = task?.progress.normalized;
         if (compact) {
+          final progress = task?.progress.normalized;
           return Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -87,9 +88,7 @@ class RecentBookDownloadingRow extends StatelessWidget {
           children: [
             Flexible(
               child: Text(
-                progress != null
-                    ? 'Загрузка ${(progress * 100).toInt()}%'
-                    : 'Загрузка...',
+                RecentBookItemState.formatProgress(task),
                 style: theme.textTheme.labelSmall?.copyWith(
                   fontSize: 10,
                   color: cs.primary,

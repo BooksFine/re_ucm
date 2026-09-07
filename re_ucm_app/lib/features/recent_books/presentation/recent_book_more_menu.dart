@@ -52,7 +52,7 @@ class RecentBookMoreMenu extends StatelessWidget {
                     label: 'Читать',
                     icon: Icons.menu_book_rounded,
                   ),
-                if (showShare)
+                if (showShare && fileExists)
                   const M3ESpringPopupItem<String>(
                     value: 'share',
                     label: 'Поделиться',

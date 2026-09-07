@@ -9,82 +9,6 @@ import '../../domain/download_task.cg.dart';
 import '../models/download_status_viewmodel.dart';
 import 'download_task_row.dart';
 
-/// Строка для единого [_buildRows].
-class DownloadRowModel {
-  const DownloadRowModel({
-    required this.title,
-    required this.statusText,
-    this.prefix,
-    this.progress,
-    this.isDownloading = false,
-    this.isCompleted = false,
-    this.isFailed = false,
-  });
-
-  final String title;
-  final String statusText;
-  final Widget? prefix;
-  final double? progress;
-  final bool isDownloading;
-  final bool isCompleted;
-  final bool isFailed;
-}
-
-extension ChapterRowModel on ChapterDownloadTask {
-  DownloadRowModel toRowModel() {
-    return DownloadRowModel(
-      title: title,
-      statusText: switch (status) {
-        ChapterDownloadStatus.downloading => 'Загрузка...',
-        ChapterDownloadStatus.completed => 'Готово',
-        ChapterDownloadStatus.failed => 'Ошибка',
-        ChapterDownloadStatus.pending => 'В очереди',
-      },
-      isDownloading: status == ChapterDownloadStatus.downloading,
-      isCompleted: status == ChapterDownloadStatus.completed,
-      isFailed: status == ChapterDownloadStatus.failed,
-      prefix: Builder(
-        builder: (context) {
-          final theme = Theme.of(context);
-          return Text(
-            '#$index',
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.primary,
-              fontWeight: FontWeight.bold,
-              fontSize: 11,
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-extension ImageRowModel on ImageDownloadTask {
-  DownloadRowModel toRowModel() {
-    final statusText = switch (status) {
-      ImageDownloadStatus.downloading => formatProgressBytes(
-        receivedBytes,
-        totalBytes,
-      ),
-      ImageDownloadStatus.completed => formatProgressBytes(
-        receivedBytes,
-        totalBytes,
-      ),
-      ImageDownloadStatus.failed => 'Ошибка',
-      ImageDownloadStatus.pending => 'В очереди',
-    };
-    return DownloadRowModel(
-      title: id,
-      statusText: statusText,
-      progress: progress,
-      isDownloading: status == ImageDownloadStatus.downloading,
-      isCompleted: status == ImageDownloadStatus.completed,
-      isFailed: status == ImageDownloadStatus.failed,
-    );
-  }
-}
-
 class DownloadProgressCard extends StatelessWidget {
   const DownloadProgressCard({
     super.key,
@@ -103,46 +27,57 @@ class DownloadProgressCard extends StatelessWidget {
         final vm = task.viewModel;
         final progress = task.progress;
 
-        final nonCompletedChapters = <ChapterDownloadTask>[];
-        for (final t in progress.chapterTasks) {
-          if (t.status != ChapterDownloadStatus.completed) {
-            nonCompletedChapters.add(t);
-          }
-        }
+        final isChapterStage =
+            progress.stage == Stages.downloading ||
+            progress.stage == Stages.decrypting ||
+            progress.stage == Stages.parsing;
+        final isImageStage = progress.stage == Stages.imageDownloading;
 
-        final nonCompletedImages = <ImageDownloadTask>[];
-        for (final t in progress.activeTasks) {
-          if (t.status != ImageDownloadStatus.completed) {
-            nonCompletedImages.add(t);
-          }
-        }
+        final nonCompletedChapters = isChapterStage
+            ? [
+                for (final t in progress.chapterTasks)
+                  if (t.status != ChapterDownloadStatus.completed) t,
+              ]
+            : const <ChapterDownloadTask>[];
 
-        final hasChapters =
-            (progress.stage == Stages.downloading ||
-                progress.stage == Stages.decrypting ||
-                progress.stage == Stages.parsing) &&
-            nonCompletedChapters.isNotEmpty;
+        final nonCompletedImages = isImageStage
+            ? [
+                for (final t in progress.activeTasks)
+                  if (t.status != ImageDownloadStatus.completed) t,
+              ]
+            : const <ImageDownloadTask>[];
 
-        final hasImages =
-            progress.stage == Stages.imageDownloading &&
-            nonCompletedImages.isNotEmpty;
-
+        final hasChapters = isChapterStage && nonCompletedChapters.isNotEmpty;
+        final hasImages = isImageStage && nonCompletedImages.isNotEmpty;
         final hasDetails = hasChapters || hasImages;
 
         final statusText = progress.total != null && progress.total! > 0
             ? progress.counterText
             : (progress.message ?? 'Инициализация...');
 
-        final rows = hasChapters
-            ? nonCompletedChapters.map((e) => e.toRowModel()).toList()
-            : nonCompletedImages.map((e) => e.toRowModel()).toList();
-
         final Widget? expandedContent = hasDetails
             ? Padding(
                 padding: const EdgeInsets.fromLTRB(14, 6, 14, 8),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(maxHeight: isWide ? 170 : 130),
-                  child: _buildRows(rows, hasChapters ? 26 : 32),
+                  child: ListView.builder(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    itemExtent: hasChapters ? 26 : 32,
+                    primary: false,
+                    itemCount: hasChapters
+                        ? nonCompletedChapters.length
+                        : nonCompletedImages.length,
+                    itemBuilder: (context, index) {
+                      if (hasChapters) {
+                        return _buildChapterRow(
+                          context,
+                          nonCompletedChapters[index],
+                        );
+                      }
+                      return _buildImageRow(nonCompletedImages[index]);
+                    },
+                  ),
                 ),
               )
             : null;
@@ -171,26 +106,51 @@ class DownloadProgressCard extends StatelessWidget {
     );
   }
 
-  /// Один ListView-builder для глав и картинок.
-  Widget _buildRows(List<DownloadRowModel> rows, double itemExtent) {
-    return ListView.builder(
-      padding: EdgeInsets.zero,
-      shrinkWrap: true,
-      itemExtent: itemExtent,
-      primary: false,
-      itemCount: rows.length,
-      itemBuilder: (context, index) {
-        final row = rows[index];
-        return DownloadTaskRow(
-          title: row.title,
-          statusText: row.statusText,
-          prefix: row.prefix,
-          progress: row.progress,
-          isDownloading: row.isDownloading,
-          isCompleted: row.isCompleted,
-          isFailed: row.isFailed,
-        );
-      },
+  Widget _buildChapterRow(BuildContext context, ChapterDownloadTask task) {
+    final theme = Theme.of(context);
+    final statusText = switch (task.status) {
+      ChapterDownloadStatus.downloading => 'Загрузка...',
+      ChapterDownloadStatus.completed => 'Готово',
+      ChapterDownloadStatus.failed => 'Ошибка',
+      ChapterDownloadStatus.pending => 'В очереди',
+    };
+    return DownloadTaskRow(
+      title: task.title,
+      statusText: statusText,
+      prefix: Text(
+        '#${task.index}',
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: theme.colorScheme.primary,
+          fontWeight: FontWeight.bold,
+          fontSize: 11,
+        ),
+      ),
+      isDownloading: task.status == ChapterDownloadStatus.downloading,
+      isCompleted: task.status == ChapterDownloadStatus.completed,
+      isFailed: task.status == ChapterDownloadStatus.failed,
+    );
+  }
+
+  Widget _buildImageRow(ImageDownloadTask task) {
+    final statusText = switch (task.status) {
+      ImageDownloadStatus.downloading => formatProgressBytes(
+        task.receivedBytes,
+        task.totalBytes,
+      ),
+      ImageDownloadStatus.completed => formatProgressBytes(
+        task.receivedBytes,
+        task.totalBytes,
+      ),
+      ImageDownloadStatus.failed => 'Ошибка',
+      ImageDownloadStatus.pending => 'В очереди',
+    };
+    return DownloadTaskRow(
+      title: task.id,
+      statusText: statusText,
+      progress: task.progress,
+      isDownloading: task.status == ImageDownloadStatus.downloading,
+      isCompleted: task.status == ImageDownloadStatus.completed,
+      isFailed: task.status == ImageDownloadStatus.failed,
     );
   }
 }

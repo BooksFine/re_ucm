@@ -1,3 +1,4 @@
+import 'package:re_ucm_core/re_ucm_core.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 import '../../../downloads/domain/download_task.cg.dart';
@@ -24,9 +25,10 @@ class RecentBookItemState {
     required this.downloadedAt,
   });
 
-  /// Устаревший метод для обратной совместимости (кэш упразднён).
-  @Deprecated('File cache is no longer used')
-  static void invalidateFileCache(String? path) {}
+  static String formatProgress(DownloadTask? task) {
+    final pct = task?.progress.normalized;
+    return pct != null ? 'Загрузка ${(pct * 100).toInt()}%' : 'Загрузка...';
+  }
 
   factory RecentBookItemState.resolve(
     RecentBook book,

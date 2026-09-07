@@ -24,8 +24,7 @@ class DownloadBookHeader extends StatelessWidget {
     final coverUrl = book.cover?.ref.id;
     final authors = book.authorsDisplay;
 
-    final coverWidth = isWide ? 85.0 : 72.0;
-    final coverHeight = isWide ? 122.0 : 104.0;
+    final (coverWidth, coverHeight) = _coverDimensions(isWide);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,8 +141,7 @@ class DownloadBookHeaderSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final coverWidth = isWide ? 85.0 : 72.0;
-    final coverHeight = isWide ? 122.0 : 104.0;
+    final (coverWidth, coverHeight) = _coverDimensions(isWide);
 
     return ShimmerEffect(
       Row(
@@ -205,5 +203,9 @@ class DownloadBookHeaderSkeleton extends StatelessWidget {
     );
   }
 }
+
+(double width, double height) _coverDimensions(bool isWide) =>
+    isWide ? (85.0, 122.0) : (72.0, 104.0);
+
 
 

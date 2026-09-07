@@ -92,18 +92,20 @@ abstract class SettingsControllerBase with Store {
     service.updateParallelChapterDownloads(value);
   }
 
-  bool isPickingDirectory = false;
+  final Observable<bool> _isPickingDirectory = Observable(false);
+
+  bool get isPickingDirectory => _isPickingDirectory.value;
 
   Future<void> pickSaveDirectory() async {
     if (isPickingDirectory) return;
-    isPickingDirectory = true;
+    runInAction(() => _isPickingDirectory.value = true);
     try {
       final result = await FilePicker.getDirectoryPath();
       if (result != null) {
         updateSaveDirectory(result);
       }
     } finally {
-      isPickingDirectory = false;
+      runInAction(() => _isPickingDirectory.value = false);
     }
   }
 

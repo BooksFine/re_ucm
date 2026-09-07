@@ -18,8 +18,8 @@ class SourceDetailPage extends StatefulWidget {
 
 class _SourceDetailPageState extends State<SourceDetailPage> {
   void _togglePin(SettingsService settings, String code) {
-    // setState оставлен: SettingsService не Store, Observer ниже
-    // станет реактивным только после его миграции (TODO).
+    // setState оставлен: SettingsService не Store, поэтому
+    // Observer станет реактивным только после миграции сервиса на Store.
     setState(() => settings.togglePinPortal(code));
   }
 

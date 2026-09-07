@@ -5,7 +5,7 @@ import '../../../../core/di.dart';
 import '../../../../core/ui/tokens.dart';
 import '../../../../core/ui/widgets/app_section_header.dart';
 import '../download_modal.dart';
-import 'download_list_tile.dart';
+import 'live_download_compact_tile.dart';
 
 /// A live, non-blocking on-page card displaying active download tasks.
 ///

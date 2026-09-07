@@ -1,12 +1,10 @@
-import 'dart:math';
-
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
-import 'package:text_balancer/text_balancer.dart';
 
 import '../../../core/di.dart';
 import '../../../core/ui/tokens.dart';
+import '../../common/widgets/snack.dart';
 import '../../settings/presentation/settings_controller.cg.dart';
 import 'animated_recent_book_card.dart';
 
@@ -30,23 +28,12 @@ class _RecentBooksListState extends State<RecentBooksList> {
   }
 
   void showUndoSnackBar(RecentBook book) {
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.clearSnackBars();
-    messenger.showSnackBar(
-      SnackBar(
-        persist: false,
-        width: min(500, MediaQuery.sizeOf(context).width - 32),
-        behavior: SnackBarBehavior.floating,
-        dismissDirection: DismissDirection.horizontal,
-        duration: const Duration(seconds: 3),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadii.lg),
-        ),
-        content: TextBalancer('Удалено «${book.title}»'),
-        action: SnackBarAction(
-          label: 'Отменить',
-          onPressed: () => service.restoreRecentBook(book),
-        ),
+    AppSnack.show(
+      context,
+      'Удалено «${book.title}»',
+      action: SnackBarAction(
+        label: 'Отменить',
+        onPressed: () => service.restoreRecentBook(book),
       ),
     );
   }

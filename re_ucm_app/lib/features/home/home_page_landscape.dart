@@ -50,7 +50,8 @@ class _HomePageLandscapeState extends State<HomePageLandscape> {
   @override
   Widget build(BuildContext context) {
     final topInset = MediaQuery.paddingOf(context).top + kToolbarHeight;
-    final bottomInset = MediaQuery.paddingOf(context).bottom + 32;
+    final bottomInset =
+        MediaQuery.paddingOf(context).bottom + AppSpacing.xxl + AppSpacing.sm;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -95,11 +96,8 @@ class _HomePageLandscapeState extends State<HomePageLandscape> {
                                   isWide: true,
                                   forwarderController: widget.forwarderController,
                                   textController: widget.textController,
-                                  headerPadding: const EdgeInsets.fromLTRB(
-                                    4,
-                                    0,
-                                    4,
-                                    AppSpacing.sm,
+                                  headerPadding: const EdgeInsets.only(
+                                    bottom: AppSpacing.sm,
                                   ),
                                 ),
                               ],

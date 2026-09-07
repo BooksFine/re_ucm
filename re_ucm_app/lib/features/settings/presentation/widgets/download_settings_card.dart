@@ -2,16 +2,21 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
+import '../../../../core/di.dart';
+import '../../../../core/ui/tokens.dart';
 import '../../../../core/ui/widgets/widgets.dart';
 import '../settings_controller.cg.dart';
 
 class DownloadSettingsCard extends StatelessWidget {
-  const DownloadSettingsCard({super.key, required this.controller});
+  const DownloadSettingsCard({super.key, this.controller});
 
-  final SettingsController controller;
+  final SettingsController? controller;
 
   @override
   Widget build(BuildContext context) {
+    final effectiveController =
+        controller ?? AppDependencies.of(context).settingsController;
+
     return AppCard(
       icon: Icons.download_for_offline_rounded,
       titleWidget: AppCardTitle.text('Скачивание'),
@@ -20,7 +25,7 @@ class DownloadSettingsCard extends StatelessWidget {
       ),
       children: [
         const AppSectionHeader('Формат по умолчанию'),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         SizedBox(
           width: double.infinity,
           child: Observer(
@@ -33,39 +38,39 @@ class DownloadSettingsCard extends StatelessWidget {
                     label: Text(fmt.label),
                   ),
               ],
-              selected: {controller.saveFormat},
+              selected: {effectiveController.saveFormat},
               onSelectionChanged: (newSelection) {
                 if (newSelection.isNotEmpty) {
-                  controller.updateSaveFormat(newSelection.first);
+                  effectiveController.updateSaveFormat(newSelection.first);
                 }
               },
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         const Divider(),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         const AppSectionHeader('Одновременные загрузки'),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         Observer(
           builder: (_) => AppCounterRow(
             title: 'Потоков для глав',
             subtitle: 'Одновременных запросов при скачивании текста',
-            value: controller.parallelChapterDownloads,
+            value: effectiveController.parallelChapterDownloads,
             min: 1,
             max: 16,
-            onChanged: controller.updateParallelChapterDownloads,
+            onChanged: effectiveController.updateParallelChapterDownloads,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         Observer(
           builder: (_) => AppCounterRow(
             title: 'Потоков для иллюстраций',
             subtitle: 'Одновременных запросов при скачивании картинок',
-            value: controller.parallelImageDownloads,
+            value: effectiveController.parallelImageDownloads,
             min: 1,
             max: 16,
-            onChanged: controller.updateParallelImageDownloads,
+            onChanged: effectiveController.updateParallelImageDownloads,
           ),
         ),
       ],

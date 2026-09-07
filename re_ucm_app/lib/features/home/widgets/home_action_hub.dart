@@ -23,6 +23,7 @@ class HomeActionHub extends StatelessWidget {
     this.textController,
     this.headerPadding = EdgeInsets.zero,
     this.contentPadding = EdgeInsets.zero,
+    this.portalsPadding,
   });
 
   final bool isWide;
@@ -30,6 +31,7 @@ class HomeActionHub extends StatelessWidget {
   final TextEditingController? textController;
   final EdgeInsetsGeometry headerPadding;
   final EdgeInsetsGeometry contentPadding;
+  final EdgeInsetsGeometry? portalsPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +49,16 @@ class HomeActionHub extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.lg),
         AppSectionHeader('Браузер', padding: headerPadding),
-        PortalsList(onTap: (portal) => Nav.goBrowser(portal.code)),
+        PortalsList(
+          padding: portalsPadding ??
+              (isWide
+                  ? EdgeInsets.zero
+                  : const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                      vertical: 2,
+                    )),
+          onTap: (portal) => Nav.goBrowser(portal.code),
+        ),
         const SizedBox(height: AppSpacing.md),
         Padding(
           padding: contentPadding,

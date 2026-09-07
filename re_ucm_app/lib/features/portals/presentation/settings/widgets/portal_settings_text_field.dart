@@ -3,12 +3,8 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../../../../core/ui/tokens.dart';
 
-/// TODO: свернуть на AppTextField, когда его API позволит кнопку
-/// «Применить» + спиннер в suffixIcon и заголовок сверху. Сейчас у
-/// AppTextField только hint/prefix/suffix без loading-кнопки, поэтому
-/// второй визуал оставлен осознанно (требует расширения core/ui,
-/// которое вне владения).
-
+/// Текстовое поле настроек портала с заголовком и асинхронной кнопкой
+/// применения/сохранения со спиннером.
 class PortalSettingsTextField extends StatefulWidget {
   const PortalSettingsTextField({
     super.key,

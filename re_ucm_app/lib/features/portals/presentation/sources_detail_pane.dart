@@ -6,10 +6,16 @@ import 'sources_page.dart';
 import 'widgets/source_detail_view.dart';
 
 class DetailPane extends StatelessWidget {
-  const DetailPane({super.key, required this.view, required this.onTogglePin});
+  const DetailPane({
+    super.key,
+    required this.view,
+    required this.onTogglePin,
+    this.topInset,
+  });
 
   final SourcesView view;
   final void Function(String code) onTogglePin;
+  final double? topInset;
 
   @override
   Widget build(BuildContext context) {
@@ -81,6 +87,7 @@ class DetailPane extends StatelessWidget {
                   deps.settingsService.sessionByCode(selectedPortal.code),
               isPinned: view.pins.contains(selectedPortal.code),
               onTogglePin: () => onTogglePin(selectedPortal.code),
+              topInset: topInset,
             ),
     );
   }

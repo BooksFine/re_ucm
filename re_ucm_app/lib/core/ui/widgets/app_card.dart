@@ -119,18 +119,16 @@ class AppCard extends StatelessWidget {
                       children: [
                         ?titleWidget,
                         ?subtitleWidget,
+                        if (statusWidget != null) ...[
+                          const SizedBox(height: AppSpacing.xs),
+                          statusWidget!,
+                        ],
                       ],
                     ),
                   ),
                   ?trailing,
                 ],
               ),
-              if (statusWidget != null) ...[
-                Padding(
-                  padding: const EdgeInsets.only(top: AppSpacing.xs),
-                  child: statusWidget!,
-                ),
-              ],
               SizedBox(height: headerSpacing),
             ],
             ...children,

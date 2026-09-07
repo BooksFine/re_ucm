@@ -70,6 +70,7 @@ class MasterPaneHost extends StatelessWidget {
               ),
               Expanded(
                 child: DetailPane(
+                  topInset: topInset,
                   view: view,
                   onTogglePin: controller.togglePin,
                 ),

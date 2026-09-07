@@ -145,10 +145,10 @@ class DownloadBookHeaderSkeleton extends StatelessWidget {
     final coverWidth = isWide ? 85.0 : 72.0;
     final coverHeight = isWide ? 122.0 : 104.0;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ShimmerEffect(
+    return ShimmerEffect(
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Container(
             width: coverWidth,
             height: coverHeight,
@@ -157,13 +157,11 @@ class DownloadBookHeaderSkeleton extends StatelessWidget {
               color: Colors.white,
             ),
           ),
-        ),
-        const SizedBox(width: AppSpacing.lg),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ShimmerEffect(
+          const SizedBox(width: AppSpacing.lg),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Container(
                   width: 55,
                   height: 16,
@@ -172,9 +170,7 @@ class DownloadBookHeaderSkeleton extends StatelessWidget {
                     color: Colors.white,
                   ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              ShimmerEffect(
+                const SizedBox(height: 8),
                 Container(
                   width: double.infinity,
                   height: 18,
@@ -183,9 +179,7 @@ class DownloadBookHeaderSkeleton extends StatelessWidget {
                     color: Colors.white,
                   ),
                 ),
-              ),
-              const SizedBox(height: 6),
-              ShimmerEffect(
+                const SizedBox(height: 6),
                 Container(
                   width: 130,
                   height: 14,
@@ -194,9 +188,7 @@ class DownloadBookHeaderSkeleton extends StatelessWidget {
                     color: Colors.white,
                   ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              ShimmerEffect(
+                const SizedBox(height: 8),
                 Container(
                   width: 85,
                   height: 12,
@@ -205,11 +197,11 @@ class DownloadBookHeaderSkeleton extends StatelessWidget {
                     color: Colors.white,
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

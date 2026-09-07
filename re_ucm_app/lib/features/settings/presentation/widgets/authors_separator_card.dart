@@ -2,23 +2,25 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mobx/mobx.dart';
 
+import '../../../../core/di.dart';
 import '../../../../core/ui/tokens.dart';
 import '../../../../core/ui/widgets/widgets.dart';
 import '../common/settings_input_decoration.dart';
 import '../settings_controller.cg.dart';
 
 class AuthorsSeparatorCard extends StatefulWidget {
-  const AuthorsSeparatorCard({super.key, required this.controller});
+  const AuthorsSeparatorCard({super.key, this.controller});
 
-  final SettingsController controller;
+  final SettingsController? controller;
 
   @override
   State<AuthorsSeparatorCard> createState() => _AuthorsSeparatorCardState();
 }
 
 class _AuthorsSeparatorCardState extends State<AuthorsSeparatorCard> {
+  late SettingsController _effectiveController;
   late final TextEditingController _authorsSeparatorController;
-  late final ReactionDisposer _disposer;
+  ReactionDisposer? _disposer;
 
   static const _presets = [
     (', ', 'Запятая ( , )'),
@@ -28,10 +30,21 @@ class _AuthorsSeparatorCardState extends State<AuthorsSeparatorCard> {
   @override
   void initState() {
     super.initState();
-    _authorsSeparatorController =
-        TextEditingController(text: widget.controller.authorsPathSeparator);
+    _authorsSeparatorController = TextEditingController();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _effectiveController =
+        widget.controller ?? AppDependencies.of(context).settingsController;
+    if (_authorsSeparatorController.text.isEmpty) {
+      _authorsSeparatorController.text =
+          _effectiveController.authorsPathSeparator;
+    }
+    _disposer?.call();
     _disposer = reaction(
-      (_) => widget.controller.authorsPathSeparator,
+      (_) => _effectiveController.authorsPathSeparator,
       (String value) {
         if (_authorsSeparatorController.text != value) {
           _authorsSeparatorController.text = value;
@@ -42,7 +55,7 @@ class _AuthorsSeparatorCardState extends State<AuthorsSeparatorCard> {
 
   @override
   void dispose() {
-    _disposer();
+    _disposer?.call();
     _authorsSeparatorController.dispose();
     super.dispose();
   }
@@ -60,7 +73,7 @@ class _AuthorsSeparatorCardState extends State<AuthorsSeparatorCard> {
       children: [
         Observer(
           builder: (_) {
-            final current = widget.controller.authorsPathSeparator;
+            final current = _effectiveController.authorsPathSeparator;
             return Wrap(
               spacing: 6,
               runSpacing: 6,
@@ -71,7 +84,7 @@ class _AuthorsSeparatorCardState extends State<AuthorsSeparatorCard> {
                       borderRadius: BorderRadius.circular(AppRadii.lg),
                       side: BorderSide(
                         color: theme.colorScheme.outlineVariant.withValues(
-                          alpha: 0.8,
+                          alpha: AppOpacity.strong,
                         ),
                       ),
                     ),
@@ -84,14 +97,14 @@ class _AuthorsSeparatorCardState extends State<AuthorsSeparatorCard> {
                     ),
                     onSelected: (_) {
                       _authorsSeparatorController.text = separator;
-                      widget.controller.updateAuthorsPathSeparator(separator);
+                      _effectiveController.updateAuthorsPathSeparator(separator);
                     },
                   ),
               ],
             );
           },
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         TextField(
           controller: _authorsSeparatorController,
           style: theme.textTheme.bodyMedium?.copyWith(
@@ -101,7 +114,7 @@ class _AuthorsSeparatorCardState extends State<AuthorsSeparatorCard> {
             context,
             labelText: 'Другой разделитель',
           ),
-          onChanged: widget.controller.updateAuthorsPathSeparator,
+          onChanged: _effectiveController.updateAuthorsPathSeparator,
         ),
       ],
     );

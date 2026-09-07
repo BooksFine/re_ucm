@@ -3,7 +3,6 @@ import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 import 'package:text_balancer/text_balancer.dart';
 
-import '../../../core/di.dart';
 import '../../../core/ui/tokens.dart';
 import '../../common/widgets/book_cover_image.dart';
 import '../domain/recent_book_item_state.dart';
@@ -23,22 +22,12 @@ class RecentBookCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isWide = MediaQuery.sizeOf(context).width >= AppBreakpoints.wideCards;
 
-    final deps = AppDependencies.of(context);
-    final session = deps.settingsService.sessionByCodeOrNull(book.portal.code);
-
     return Observer(
       builder: (context) {
-        final state = RecentBookItemState.resolve(
-          book,
-          deps.downloadsService,
-        );
-        final effectiveFormat = getEffectiveFormat(book, deps.settingsService);
-        void handleDownload() {
-          startDownload(context, session, effectiveFormat, book.id);
-        }
+        final presenter = RecentBookPresenter.resolve(context, book);
 
         return RecentBookContainer(
-          isDownloading: state.isDownloading,
+          isDownloading: presenter.state.isDownloading,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -52,11 +41,11 @@ class RecentBookCard extends StatelessWidget {
               Expanded(
                 child: _CardInfo(
                   book: book,
-                  state: state,
-                  session: session,
-                  effectiveFormat: effectiveFormat,
+                  state: presenter.state,
+                  session: presenter.session,
+                  effectiveFormat: presenter.effectiveFormat,
                   isWide: isWide,
-                  onDownload: handleDownload,
+                  onDownload: presenter.onDownload,
                   onDelete: onDelete,
                 ),
               ),
@@ -66,6 +55,7 @@ class RecentBookCard extends StatelessWidget {
       },
     );
   }
+
 }
 
 class _TitleBlock extends StatelessWidget {

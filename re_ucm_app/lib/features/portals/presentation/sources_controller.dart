@@ -18,7 +18,7 @@ List<Portal> otherVisible(List<Portal> visible, Set<String> pins) =>
 /// не является MobX-Store, поэтому прямое чтение
 /// `settings.pinnedPortalCodes` внутри Observer нереактивно.
 /// Прямое чтение станет возможным после миграции SettingsService
-/// на Store (TODO, требует codegen в re_ucm_lib).
+/// на Store с кодогенерацией в re_ucm_lib.
 class SourcesController {
   SourcesController({String? initialCode}) {
     selectedCode = initialCode;

@@ -8,4 +8,3 @@ export 'app_section_header.dart';
 export 'app_text_field.dart';
 export 'app_tile.dart';
 export 'portal_badge.dart';
-export 'portal_logo_container.dart';

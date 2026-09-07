@@ -30,34 +30,9 @@ class _AppSearchBarState extends State<AppSearchBar> {
       widget.controller ?? (_internalController ??= TextEditingController());
 
   @override
-  void initState() {
-    super.initState();
-    _effectiveController.addListener(_onTextChange);
-  }
-
-  @override
-  void didUpdateWidget(AppSearchBar oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.controller != oldWidget.controller) {
-      (oldWidget.controller ?? _internalController)
-          ?.removeListener(_onTextChange);
-      _effectiveController.addListener(_onTextChange);
-    }
-  }
-
-  @override
   void dispose() {
-    // Внешний контроллер принадлежит вызывающему — слушатель снимаем,
-    // dispose делает владелец.
-    _effectiveController.removeListener(_onTextChange);
     _internalController?.dispose();
     super.dispose();
-  }
-
-  void _onTextChange() {
-    if (mounted) {
-      setState(() {});
-    }
   }
 
   @override
@@ -73,17 +48,23 @@ class _AppSearchBarState extends State<AppSearchBar> {
         color: cs.onSurfaceVariant,
         size: 22,
       ),
-      suffixIcon: _effectiveController.text.isNotEmpty
-          ? IconButton(
-              icon: const Icon(Icons.clear_rounded, size: 20),
-              tooltip: 'Очистить',
-              onPressed: () {
-                _effectiveController.clear();
-                widget.onChanged?.call('');
-                widget.onClear?.call();
-              },
-            )
-          : null,
+      suffixIcon: ValueListenableBuilder<TextEditingValue>(
+        valueListenable: _effectiveController,
+        builder: (context, value, _) {
+          if (value.text.isEmpty) {
+            return const SizedBox.shrink();
+          }
+          return IconButton(
+            icon: const Icon(Icons.clear_rounded, size: 20),
+            tooltip: 'Очистить',
+            onPressed: () {
+              _effectiveController.clear();
+              widget.onChanged?.call('');
+              widget.onClear?.call();
+            },
+          );
+        },
+      ),
     );
   }
 }

@@ -2,18 +2,21 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:m3e_core/m3e_core.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../../../core/di.dart';
 import '../../../../core/ui/tokens.dart';
 import '../../../../core/ui/widgets/widgets.dart';
 import '../settings_controller.cg.dart';
 
 class StorageSettingsCard extends StatelessWidget {
-  const StorageSettingsCard({super.key, required this.controller});
+  const StorageSettingsCard({super.key, this.controller});
 
-  final SettingsController controller;
+  final SettingsController? controller;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final effectiveController =
+        controller ?? AppDependencies.of(context).settingsController;
 
     return AppCard(
       icon: Icons.folder_copy_rounded,
@@ -26,16 +29,16 @@ class StorageSettingsCard extends StatelessWidget {
           builder: (_) => AppCheckboxRow(
             title: 'Всегда спрашивать, куда сохранять',
             subtitle: 'Запрашивать папку перед каждым скачиванием',
-            value: controller.saveDirectory == null ||
-                controller.saveDirectory!.isEmpty,
-            enabled: !controller.isPickingDirectory,
-            onChanged: controller.setAlwaysAskDirectory,
+            value: effectiveController.saveDirectory == null ||
+                effectiveController.saveDirectory!.isEmpty,
+            enabled: !effectiveController.isPickingDirectory,
+            onChanged: effectiveController.setAlwaysAskDirectory,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         Observer(
           builder: (_) {
-            final saveDir = controller.saveDirectory;
+            final saveDir = effectiveController.saveDirectory;
             final hasDir = saveDir != null && saveDir.isNotEmpty;
 
             return AnimatedSize(
@@ -47,18 +50,19 @@ class StorageSettingsCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const AppSectionHeader('Основная папка'),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: AppSpacing.sm),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
+                            horizontal: AppSpacing.md,
+                            vertical: AppSpacing.sm,
                           ),
                           decoration: BoxDecoration(
                             color: theme.colorScheme.surfaceContainerLow,
                             borderRadius: BorderRadius.circular(AppRadii.lg),
                             border: Border.all(
                               color: theme.colorScheme.outlineVariant
-                                  .withValues(alpha: 0.8),
+                                  .withValues(alpha: AppOpacity.strong),
+                              width: AppBorderWidth.regular,
                             ),
                           ),
                           child: Row(
@@ -88,9 +92,9 @@ class StorageSettingsCard extends StatelessWidget {
                               ),
                               const SizedBox(width: 8),
                               M3EButton(
-                                onPressed: controller.isPickingDirectory
+                                onPressed: effectiveController.isPickingDirectory
                                     ? null
-                                    : controller.pickSaveDirectory,
+                                    : effectiveController.pickSaveDirectory,
                                 style: M3EButtonStyle.tonal,
                                 size: M3EButtonSize.sm,
                                 decoration: M3EButtonDecoration.styleFrom(
@@ -107,8 +111,8 @@ class StorageSettingsCard extends StatelessWidget {
                           title: 'Сохранять автоматически',
                           subtitle:
                               'Сохранять файл сразу после завершения загрузки',
-                          value: controller.autoSaveOnComplete,
-                          onChanged: controller.updateAutoSaveOnComplete,
+                          value: effectiveController.autoSaveOnComplete,
+                          onChanged: effectiveController.updateAutoSaveOnComplete,
                         ),
                       ],
                     )

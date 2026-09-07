@@ -6,7 +6,7 @@ import '../../../core/di.dart';
 import '../../../core/ui/responsive_modal.dart';
 import '../domain/download_task.cg.dart';
 import 'download_modal.dart';
-import 'widgets/download_list_tile.dart';
+import 'widgets/download_history_list_tile.dart';
 
 Future<void> showDownloadsListModal(BuildContext context) async {
   await showResponsiveAppModal(
@@ -44,6 +44,9 @@ class DownloadsListContent extends StatelessWidget {
         final taskKeys = downloadsService.tasks.keys.toList();
         final activeTasks = downloadsService.activeTasks;
         final completedTasks = downloadsService.completedTasks;
+        final failedTasks = downloadsService.tasks.values
+            .where((t) => t.isFailed || t.status == DownloadTaskStatus.cancelled)
+            .toList();
         final total = downloadsService.totalCount;
 
         if (taskKeys.isEmpty) {
@@ -134,12 +137,24 @@ class DownloadsListContent extends StatelessWidget {
                         showDownloadModalForTask(context, task);
                       },
                     ),
-                  if (activeTasks.isNotEmpty && completedTasks.isNotEmpty)
+                  if (activeTasks.isNotEmpty &&
+                      (completedTasks.isNotEmpty || failedTasks.isNotEmpty))
                     const SizedBox(height: 16),
                   if (completedTasks.isNotEmpty)
                     _TaskSection(
                       title: 'ЗАВЕРШЁННЫЕ (${completedTasks.length})',
                       tasks: completedTasks,
+                      onTap: (task) {
+                        onClose();
+                        showDownloadModalForTask(context, task);
+                      },
+                    ),
+                  if (completedTasks.isNotEmpty && failedTasks.isNotEmpty)
+                    const SizedBox(height: 16),
+                  if (failedTasks.isNotEmpty)
+                    _TaskSection(
+                      title: 'ОШИБКИ И ОТМЕНЫ (${failedTasks.length})',
+                      tasks: failedTasks,
                       onTap: (task) {
                         onClose();
                         showDownloadModalForTask(context, task);

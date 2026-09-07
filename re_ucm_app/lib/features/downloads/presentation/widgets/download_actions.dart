@@ -21,23 +21,21 @@ class DownloadActions extends StatelessWidget {
           duration: const Duration(milliseconds: 200),
           switchInCurve: Curves.easeOutCubic,
           switchOutCurve: Curves.easeInCubic,
-          child: switch ((
-            task.isCompleted,
-            task.isFailed,
-            task.savedFilePath != null,
-          )) {
-            (true, _, bool saved) => KeyedSubtree(
-              key: ValueKey('completed_$saved'),
-              child: _buildCompleted(context, Theme.of(context)),
-            ),
-            (_, true, _) => KeyedSubtree(
-              key: const ValueKey('failed'),
-              child: _buildFailed(context, Theme.of(context)),
-            ),
+          child: switch (task.status) {
+            DownloadTaskStatus.completed => KeyedSubtree(
+                key: ValueKey('completed_${task.savedFilePath != null}'),
+                child: _buildCompleted(context, Theme.of(context)),
+              ),
+            DownloadTaskStatus.failed ||
+            DownloadTaskStatus.cancelled =>
+              KeyedSubtree(
+                key: const ValueKey('failed'),
+                child: _buildFailed(context, Theme.of(context)),
+              ),
             _ => KeyedSubtree(
-              key: const ValueKey('active'),
-              child: _buildActive(context, Theme.of(context)),
-            ),
+                key: const ValueKey('active'),
+                child: _buildActive(context, Theme.of(context)),
+              ),
           },
         );
       },
@@ -133,7 +131,7 @@ class DownloadActions extends StatelessWidget {
           flex: 1,
           child: M3EButton(
             style: M3EButtonStyle.outlined,
-            size: M3EButtonSize.sm,
+            size: M3EButtonSize.md,
             onPressed: onClose,
             child: const Text('Закрыть'),
           ),
@@ -143,7 +141,7 @@ class DownloadActions extends StatelessWidget {
           flex: 2,
           child: M3EButton.icon(
             style: M3EButtonStyle.filled,
-            size: M3EButtonSize.sm,
+            size: M3EButtonSize.md,
             onPressed: task.retry,
             icon: const Icon(Icons.refresh_rounded, size: 18),
             label: const Text(
@@ -156,13 +154,14 @@ class DownloadActions extends StatelessWidget {
     );
   }
 
-  Widget _buildActive(BuildContext context, ThemeData theme) {    return Row(
+  Widget _buildActive(BuildContext context, ThemeData theme) {
+    return Row(
       children: [
         Expanded(
           flex: 1,
           child: M3EButton.icon(
             style: M3EButtonStyle.outlined,
-            size: M3EButtonSize.sm,
+            size: M3EButtonSize.md,
             decoration: M3EButtonDecoration.styleFrom(
               foregroundColor: theme.colorScheme.error,
               side: BorderSide(
@@ -185,7 +184,7 @@ class DownloadActions extends StatelessWidget {
           flex: 2,
           child: M3EButton.icon(
             style: M3EButtonStyle.filled,
-            size: M3EButtonSize.sm,
+            size: M3EButtonSize.md,
             onPressed: onClose,
             icon: const Icon(Icons.arrow_downward_rounded, size: 18),
             label: const Text(

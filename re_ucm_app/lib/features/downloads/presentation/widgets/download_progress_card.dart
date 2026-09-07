@@ -2,11 +2,11 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_core/models/progress.dart';
 
+import '../../../../core/ui/formatters.dart';
 import '../../../../core/ui/widgets/app_card.dart';
 import '../../../../core/ui/widgets/app_progress_card.dart';
 import '../../domain/download_task.cg.dart';
 import '../models/download_status_viewmodel.dart';
-import 'download_progress_format.dart';
 import 'download_task_row.dart';
 
 /// Строка для единого [_buildRows].

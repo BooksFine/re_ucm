@@ -298,7 +298,6 @@ class _LinkInputField extends StatelessWidget {
   }
 }
 
-/// Единая «плашка» превью.
 class LinkPreviewCard extends StatelessWidget {
   const LinkPreviewCard({super.key, required this.child});
 
@@ -313,8 +312,8 @@ class LinkPreviewCard extends StatelessWidget {
         color: cs.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppRadii.card),
         border: Border.all(
-          color: cs.outlineVariant.withValues(alpha: 0.35),
-          width: 0.6,
+          color: cs.outlineVariant.withValues(alpha: AppOpacity.soft),
+          width: AppBorderWidth.thin,
         ),
       ),
       child: child,
@@ -340,18 +339,18 @@ class _LoadedPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final deps = AppDependencies.of(context);
-    return Observer(
-      builder: (_) {
-        final currentFormat =
-            controller.selectedFormat.value ?? deps.settingsService.saveFormat;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            DownloadBookHeader(book: metadata, portal: portal, isWide: isWide),
-            const SizedBox(height: AppSpacing.md),
-            const Divider(height: 1),
-            const SizedBox(height: AppSpacing.sm),
-            LayoutBuilder(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        DownloadBookHeader(book: metadata, portal: portal, isWide: isWide),
+        const SizedBox(height: AppSpacing.md),
+        const Divider(height: 1),
+        const SizedBox(height: AppSpacing.sm),
+        Observer(
+          builder: (_) {
+            final currentFormat =
+                controller.selectedFormat.value ?? deps.settingsService.saveFormat;
+            return LayoutBuilder(
               builder: (context, constraints) {
                 final isNarrow = constraints.maxWidth < 380;
                 final formatSelector = FormatSelector(
@@ -386,10 +385,10 @@ class _LoadedPreview extends StatelessWidget {
                   ],
                 );
               },
-            ),
-          ],
-        );
-      },
+            );
+          },
+        ),
+      ],
     );
   }
 }

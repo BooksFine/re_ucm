@@ -1,8 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_core/models/portal.dart';
 
-import '../../../features/portals/presentation/widgets/portal_logo_icon.dart';
-import '../tokens.dart';
+import '../../../../core/ui/tokens.dart';
+import 'portal_logo_icon.dart';
 
 class PortalLogoContainer extends StatelessWidget {
   const PortalLogoContainer({

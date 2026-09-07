@@ -2,7 +2,10 @@ import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
+import '../../../core/di.dart';
 import '../../../core/ui/tokens.dart';
+import '../domain/recent_book_item_state.dart';
+import 'recent_book_actions.dart';
 
 class RecentBookContainer extends StatelessWidget {
   const RecentBookContainer({
@@ -30,9 +33,9 @@ class RecentBookContainer extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadii.card),
         border: Border.all(
           color: isDownloading
-              ? cs.primary.withValues(alpha: 0.4)
-              : cs.outlineVariant.withValues(alpha: 0.35),
-          width: isDownloading ? 1.2 : 0.6,
+              ? cs.primary.withValues(alpha: AppOpacity.muted)
+              : cs.outlineVariant.withValues(alpha: AppOpacity.soft),
+          width: isDownloading ? AppBorderWidth.regular : AppBorderWidth.thin,
         ),
       ),
       clipBehavior: Clip.antiAlias,
@@ -79,3 +82,43 @@ String? formatSeriesLine(RecentBook book) {
   if (name == null) return null;
   return '$name #${book.seriesNumber ?? 1}';
 }
+
+class RecentBookPresenter {
+  const RecentBookPresenter({
+    required this.state,
+    required this.session,
+    required this.effectiveFormat,
+    required this.seriesLine,
+    required this.onDownload,
+  });
+
+  final RecentBookItemState state;
+  final PortalSession? session;
+  final SaveFormat effectiveFormat;
+  final String? seriesLine;
+  final VoidCallback onDownload;
+
+  static RecentBookPresenter resolve(
+    BuildContext context,
+    RecentBook book,
+  ) {
+    final deps = AppDependencies.of(context);
+    final session = deps.settingsService.sessionByCodeOrNull(book.portal.code);
+    final state = RecentBookItemState.resolve(book, deps.downloadsService);
+    final effectiveFormat = getEffectiveFormat(book, deps.settingsService);
+    final seriesLine = formatSeriesLine(book);
+
+    void handleDownload() {
+      startDownload(context, session, effectiveFormat, book.id);
+    }
+
+    return RecentBookPresenter(
+      state: state,
+      session: session,
+      effectiveFormat: effectiveFormat,
+      seriesLine: seriesLine,
+      onDownload: handleDownload,
+    );
+  }
+}
+

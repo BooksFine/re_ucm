@@ -33,13 +33,17 @@ class _AnimatedRecentBookCardState extends State<AnimatedRecentBookCard>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(duration: Durations.medium2, vsync: this);
+    _controller = AnimationController(
+      value: 1.0,
+      duration: Durations.medium2,
+      vsync: this,
+    );
     _sizeAnimation = CurvedAnimation(
       parent: _controller,
       curve: Curves.easeInOut,
     );
-    _controller.forward();
   }
+
 
   @override
   void dispose() {

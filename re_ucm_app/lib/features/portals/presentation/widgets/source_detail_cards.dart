@@ -10,6 +10,7 @@ import '../../../common/utils/external_launcher.dart';
 import '../settings/portal_settings_frame.dart';
 import 'portal_badges.dart';
 import 'portal_domain_extension.dart';
+import 'portal_logo_container.dart';
 
 class SourceHeroCard extends StatelessWidget {
   const SourceHeroCard({

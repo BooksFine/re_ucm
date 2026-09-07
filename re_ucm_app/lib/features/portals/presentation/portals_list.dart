@@ -13,6 +13,7 @@ class PortalsList extends StatelessWidget {
     this.onTap,
     this.authIndication,
     this.isAuthorizedResolver,
+    this.padding,
   });
 
   /// Фолбэк витрины при пустых пинах (бывший магический take(4)).
@@ -21,6 +22,7 @@ class PortalsList extends StatelessWidget {
   final Function(Portal portal)? onTap;
   final bool? authIndication;
   final bool Function(Portal portal)? isAuthorizedResolver;
+  final EdgeInsetsGeometry? padding;
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +44,11 @@ class PortalsList extends StatelessWidget {
     return SizedBox(
       height: 124,
       child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 2),
+        padding: padding ??
+            const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: 2,
+            ),
         scrollDirection: Axis.horizontal,
         shrinkWrap: true,
         itemCount: itemCount,

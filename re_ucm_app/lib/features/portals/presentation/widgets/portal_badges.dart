@@ -55,8 +55,7 @@ class PortalAuthBadge extends StatelessWidget {
 }
 
 /// Общий scale+fade transition для переключения пина.
-/// Раньше был скопирован в AppBar, tile и hero-кнопку.
-/// TODO: переезд в common/widgets — common вне владения, пока локально.
+/// Используется в AppBar, tile и hero-кнопке.
 class PortalPinScaleTransition extends StatelessWidget {
   const PortalPinScaleTransition({
     super.key,

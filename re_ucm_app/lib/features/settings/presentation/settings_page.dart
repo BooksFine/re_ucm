@@ -1,8 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 
-import '../../../core/di.dart';
 import '../../../core/navigation/nav.dart';
 import '../../../core/ui/centered_flexible_space_bar.dart';
+import '../../../core/ui/tokens.dart';
 import 'widgets/about_app_card.dart';
 import 'widgets/authors_separator_card.dart';
 import 'widgets/download_settings_card.dart';
@@ -32,28 +32,29 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = AppDependencies.of(context).settingsController;
     final screenWidth = MediaQuery.sizeOf(context).width;
-    final isDesktopNav = screenWidth >= 600;
+    final isDesktopNav = screenWidth >= AppBreakpoints.mobileNav;
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isTwoColumn = constraints.maxWidth >= 780;
-        final bottomInset =
-            MediaQuery.paddingOf(context).bottom +
-            (!widget.isEmbedded || isDesktopNav ? 24 : 96);
+        final isTwoColumn =
+            constraints.maxWidth >= AppBreakpoints.sourcesSplit;
+        final bottomInset = MediaQuery.paddingOf(context).bottom +
+            (!widget.isEmbedded || isDesktopNav
+                ? AppSpacing.xxl
+                : AppSpacing.bottomBarClearance);
 
-        final leftCards = [
-          StorageSettingsCard(controller: controller),
-          const SizedBox(height: 16),
-          DownloadSettingsCard(controller: controller),
+        const leftCards = [
+          StorageSettingsCard(),
+          SizedBox(height: AppSpacing.lg),
+          DownloadSettingsCard(),
         ];
-        final rightCards = [
-          PathTemplatesCard(controller: controller),
-          const SizedBox(height: 16),
-          AuthorsSeparatorCard(controller: controller),
-          const SizedBox(height: 16),
-          const AboutAppCard(),
+        const rightCards = [
+          PathTemplatesCard(),
+          SizedBox(height: AppSpacing.lg),
+          AuthorsSeparatorCard(),
+          SizedBox(height: AppSpacing.lg),
+          AboutAppCard(),
         ];
 
         // ── Wide / landscape layout ──────────────────────────────────────
@@ -79,8 +80,8 @@ class _SettingsPageState extends State<SettingsPage> {
                   child: SingleChildScrollView(
                     controller: _scrollController,
                     padding: EdgeInsets.only(
-                      left: 16,
-                      right: 16,
+                      left: AppSpacing.lg,
+                      right: AppSpacing.lg,
                       top: MediaQuery.paddingOf(context).top + kToolbarHeight,
                       bottom: bottomInset,
                     ),
@@ -94,7 +95,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             children: leftCards,
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: AppSpacing.lg),
                         Expanded(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
@@ -115,7 +116,7 @@ class _SettingsPageState extends State<SettingsPage> {
         return Scaffold(
           body: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 680),
+              constraints: const BoxConstraints(maxWidth: 720),
               child: Scrollbar(
                 controller: _scrollController,
                 child: CustomScrollView(
@@ -139,15 +140,15 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                     SliverPadding(
                       padding: EdgeInsets.only(
-                        left: 16,
-                        right: 16,
-                        top: 8,
+                        left: AppSpacing.lg,
+                        right: AppSpacing.lg,
+                        top: AppSpacing.sm,
                         bottom: bottomInset,
                       ),
                       sliver: SliverList.list(
                         children: [
                           ...leftCards,
-                          const SizedBox(height: 16),
+                          const SizedBox(height: AppSpacing.lg),
                           ...rightCards,
                         ],
                       ),

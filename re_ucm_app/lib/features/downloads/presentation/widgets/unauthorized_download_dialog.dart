@@ -33,7 +33,6 @@ Future<bool> checkAndConfirmUnauthorizedDownload({
     barrierDismissible: true,
     builder: (dialogCtx) => _UnauthorizedDownloadDialog(
       session: session,
-      onClose: () => Navigator.of(dialogCtx).pop(false),
       onDontAskAgainChanged: (v) => dontAskAgain = v,
     ),
   );
@@ -55,12 +54,10 @@ Future<bool> checkAndConfirmUnauthorizedDownload({
 class _UnauthorizedDownloadDialog extends StatefulWidget {
   const _UnauthorizedDownloadDialog({
     required this.session,
-    required this.onClose,
     required this.onDontAskAgainChanged,
   });
 
   final PortalSession session;
-  final VoidCallback onClose;
   final ValueChanged<bool> onDontAskAgainChanged;
 
   @override

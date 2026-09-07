@@ -32,9 +32,10 @@ class _HomePagePortraitState extends State<HomePagePortrait> {
 
   @override
   Widget build(BuildContext context) {
-    final hasBottomBar = MediaQuery.sizeOf(context).width < 600;
-    final bottomInset =
-        MediaQuery.paddingOf(context).bottom + (hasBottomBar ? 104 : 24);
+    final hasBottomBar =
+        MediaQuery.sizeOf(context).width < AppBreakpoints.mobileNav;
+    final bottomInset = MediaQuery.paddingOf(context).bottom +
+        (hasBottomBar ? AppSpacing.bottomBarClearance : AppSpacing.xxl);
 
     return Scaffold(
       body: GestureDetector(

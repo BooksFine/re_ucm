@@ -13,12 +13,14 @@ class SourceDetailView extends StatelessWidget {
     required this.session,
     required this.isPinned,
     required this.onTogglePin,
+    this.topInset,
   });
 
   final Portal portal;
   final PortalSession session;
   final bool isPinned;
   final VoidCallback onTogglePin;
+  final double? topInset;
 
   @override
   Widget build(BuildContext context) {
@@ -35,15 +37,11 @@ class SourceDetailView extends StatelessWidget {
           builder: (_) {
             final isAuth = session.isAuthorized;
 
-            final topInset = isWide
-                ? MediaQuery.paddingOf(context).top + kToolbarHeight
-                : AppSpacing.md;
-
             return ListView(
               padding: EdgeInsets.only(
                 left: isWide ? AppSpacing.xxl : AppSpacing.lg,
                 right: isWide ? AppSpacing.xxl : AppSpacing.lg,
-                top: topInset,
+                top: topInset ?? AppSpacing.md,
                 bottom: bottomInset,
               ),
               children: [

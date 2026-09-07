@@ -6,7 +6,7 @@ import '../../../core/di.dart';
 import '../../../core/ui/responsive_modal.dart';
 import '../domain/download_task.cg.dart';
 import 'download_modal.dart';
-import 'widgets/download_history_list_tile.dart';
+import 'widgets/download_task_tile.dart';
 
 Future<void> showDownloadsListModal(BuildContext context) async {
   await showResponsiveAppModal(
@@ -201,7 +201,7 @@ class _TaskSection extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         for (final task in tasks)
-          DownloadHistoryListTile(
+          DownloadTaskTile.history(
             key: downloadTileKey(task),
             task: task,
             onTap: () => onTap(task),

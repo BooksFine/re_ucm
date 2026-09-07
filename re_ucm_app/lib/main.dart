@@ -73,7 +73,7 @@ class _MainAppState extends State<MainApp> {
         title: appName,
         darkTheme: darkTheme,
         theme: lightTheme,
-        themeMode: ThemeMode.system,
+        themeMode: ThemeMode.dark,
         routerConfig: router,
         debugShowCheckedModeBanner: false,
       ),

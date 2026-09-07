@@ -14,45 +14,6 @@ import 'sources_controller.dart';
 import 'sources_pane.dart';
 import 'widgets/sources_empty_view.dart';
 import 'widgets/sources_list_view.dart';
-
-class SourcesView {
-  const SourcesView({
-    required this.visible,
-    required this.pinned,
-    required this.other,
-    required this.validCode,
-    required this.isSearching,
-    required this.pins,
-  });
-
-  final List<Portal> visible;
-  final List<Portal> pinned;
-  final List<Portal> other;
-  final String? validCode;
-  final bool isSearching;
-  final Set<String> pins;
-
-  factory SourcesView.resolve(
-    SourcesController controller,
-    List<Portal> allPortals,
-  ) {
-    final visible = controller.filterPortals(allPortals);
-    final isSearching = controller.searchQuery.trim().isNotEmpty;
-    final pins = controller.pinnedCodes.toSet();
-    final pinned =
-        isSearching ? const <Portal>[] : pinnedVisible(visible, pins);
-    final other = isSearching ? visible : otherVisible(visible, pins);
-    return SourcesView(
-      visible: visible,
-      pinned: pinned,
-      other: other,
-      validCode: controller.validSelectedCode(visible),
-      isSearching: isSearching,
-      pins: pins,
-    );
-  }
-}
-
 class SourcesPage extends StatefulWidget {
   const SourcesPage({super.key});
 

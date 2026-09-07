@@ -2,7 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 import '../../../core/di.dart';
-import 'sources_page.dart';
+import 'sources_controller.dart';
 import 'widgets/source_detail_view.dart';
 
 class DetailPane extends StatelessWidget {

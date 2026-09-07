@@ -6,7 +6,6 @@ import '../../../core/ui/tokens.dart';
 import '../../../core/ui/widgets/app_tile.dart';
 import 'sources_controller.dart';
 import 'sources_detail_pane.dart';
-import 'sources_page.dart';
 import 'widgets/sources_empty_view.dart';
 import 'widgets/sources_list_view.dart';
 

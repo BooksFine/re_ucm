@@ -5,7 +5,7 @@ import '../../../../core/di.dart';
 import '../../../../core/ui/tokens.dart';
 import '../../../../core/ui/widgets/app_section_header.dart';
 import '../../../../core/ui/widgets/app_tile.dart';
-import '../sources_page.dart';
+import '../sources_controller.dart';
 import 'animated_collapse_slot.dart';
 import 'source_item_tile.dart';
 

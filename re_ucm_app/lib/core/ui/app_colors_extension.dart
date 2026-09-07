@@ -12,26 +12,22 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
   const AppColorsExtension({
     required this.success,
     required this.onSuccess,
-    required this.subtleBorder,
     required this.statusOffline,
   });
 
   final Color success;
   final Color onSuccess;
-  final Color subtleBorder;
   final Color statusOffline;
 
   static const dark = AppColorsExtension(
     success: Color(0xFF4CAF50),
     onSuccess: Colors.white,
-    subtleBorder: Color(0x4D8C9199),
     statusOffline: Color(0x998C9199),
   );
 
   static const light = AppColorsExtension(
     success: Color(0xFF2E7D32),
     onSuccess: Colors.white,
-    subtleBorder: Color(0x4D72777F),
     statusOffline: Color(0x9972777F),
   );
 
@@ -39,13 +35,11 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
   AppColorsExtension copyWith({
     Color? success,
     Color? onSuccess,
-    Color? subtleBorder,
     Color? statusOffline,
   }) {
     return AppColorsExtension(
       success: success ?? this.success,
       onSuccess: onSuccess ?? this.onSuccess,
-      subtleBorder: subtleBorder ?? this.subtleBorder,
       statusOffline: statusOffline ?? this.statusOffline,
     );
   }
@@ -58,7 +52,6 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
     return AppColorsExtension(
       success: Color.lerp(success, other.success, t)!,
       onSuccess: Color.lerp(onSuccess, other.onSuccess, t)!,
-      subtleBorder: Color.lerp(subtleBorder, other.subtleBorder, t)!,
       statusOffline: Color.lerp(statusOffline, other.statusOffline, t)!,
     );
   }

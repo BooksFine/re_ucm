@@ -6,7 +6,6 @@ import 'package:re_ucm_lib/re_ucm_lib.dart';
 import '../../../core/ui/tokens.dart';
 import '../../../core/ui/widgets/portal_badge.dart';
 import '../../downloads/domain/download_task.cg.dart';
-import '../domain/recent_book_item_state.dart';
 import 'recent_book_shared.dart';
 
 class DownloadedBadge extends StatelessWidget {

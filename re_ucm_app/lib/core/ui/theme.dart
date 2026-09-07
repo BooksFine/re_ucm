@@ -9,8 +9,8 @@ final _darkColorScheme = M3EColorScheme.dark(
   variant: M3EColorVariant.vibrant,
 ).copyWith(
   primary: const Color(0xFFE88300),
-  onPrimary: Colors.white,
-  onPrimaryContainer: Colors.white,
+  onPrimary: const Color(0xFF381E00),
+  onPrimaryContainer: const Color(0xFFFFDCC1),
   scrim: Colors.transparent,
 );
 

@@ -178,4 +178,8 @@ class UpdateController {
       _progress.value = 0.0;
     });
   }
+
+  void dispose() {
+    _cancelToken?.cancel();
+  }
 }

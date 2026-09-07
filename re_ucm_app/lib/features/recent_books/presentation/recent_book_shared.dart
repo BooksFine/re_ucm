@@ -4,8 +4,11 @@ import 'package:re_ucm_lib/re_ucm_lib.dart';
 
 import '../../../core/di.dart';
 import '../../../core/ui/tokens.dart';
-import '../domain/recent_book_item_state.dart';
+import '../../downloads/domain/download_task.cg.dart';
+import 'models/recent_book_view_state.dart';
 import 'recent_book_actions.dart';
+
+export 'models/recent_book_view_state.dart';
 
 class RecentBookContainer extends StatelessWidget {
   const RecentBookContainer({
@@ -97,6 +100,14 @@ class RecentBookPresenter {
   final SaveFormat effectiveFormat;
   final String? seriesLine;
   final VoidCallback onDownload;
+
+  DownloadTask? get task => state.task;
+  bool get isDownloading => state.isDownloading;
+  bool get isCompleted => state.isCompleted;
+  String? get effectiveFilePath => state.effectiveFilePath;
+  bool get fileExists => state.fileExists;
+  DateTime? get downloadedAt => state.downloadedAt;
+  bool get canDownload => session != null;
 
   static RecentBookPresenter resolve(
     BuildContext context,

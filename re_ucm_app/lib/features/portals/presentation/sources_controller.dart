@@ -10,6 +10,45 @@ List<Portal> pinnedVisible(List<Portal> visible, Set<String> pins) =>
 List<Portal> otherVisible(List<Portal> visible, Set<String> pins) =>
     [for (final p in visible) if (!pins.contains(p.code)) p];
 
+/// Неизменяемый срез данных для отображения источников в UI.
+class SourcesView {
+  const SourcesView({
+    required this.visible,
+    required this.pinned,
+    required this.other,
+    required this.validCode,
+    required this.isSearching,
+    required this.pins,
+  });
+
+  final List<Portal> visible;
+  final List<Portal> pinned;
+  final List<Portal> other;
+  final String? validCode;
+  final bool isSearching;
+  final Set<String> pins;
+
+  factory SourcesView.resolve(
+    SourcesController controller,
+    List<Portal> allPortals,
+  ) {
+    final visible = controller.filterPortals(allPortals);
+    final isSearching = controller.searchQuery.trim().isNotEmpty;
+    final pins = controller.pinnedCodes.toSet();
+    final pinned =
+        isSearching ? const <Portal>[] : pinnedVisible(visible, pins);
+    final other = isSearching ? visible : otherVisible(visible, pins);
+    return SourcesView(
+      visible: visible,
+      pinned: pinned,
+      other: other,
+      validCode: controller.validSelectedCode(visible),
+      isSearching: isSearching,
+      pins: pins,
+    );
+  }
+}
+
 /// View-model страницы источников. Держит только UI-состояние
 /// (выбор, поиск, пины); персистентность пинов — внутри через
 /// [SettingsService], колбэк из page больше не нужен.

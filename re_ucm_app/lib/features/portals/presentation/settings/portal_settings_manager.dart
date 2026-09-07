@@ -59,24 +59,23 @@ class PortalSettingsManager {
     safeUpdate(() => field.onTap(session.settings));
   }
 
-  Future<void> onWebAuthButtonTap(
+  Future<bool> onWebAuthButtonTap(
     PortalSettingWebAuthButton field,
-    bool mounted,
   ) async {
     final result = await Nav.pushWebAuth(field);
     final cookie = result as String?;
     if (cookie == null || cookie.isEmpty) {
-      if (!mounted) return;
       onNotify('Авторизация отменена', kind: AppSnackKind.info);
-      return;
+      return false;
     }
     final success = await safeUpdate(
       () => field.onCookieObtained(session.settings, cookie),
     );
-    if (!mounted || !success) return;
+    if (!success) return false;
     onNotify(
       'Вы успешно авторизовались',
       kind: AppSnackKind.success,
     );
+    return true;
   }
 }

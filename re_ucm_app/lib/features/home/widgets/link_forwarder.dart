@@ -8,14 +8,12 @@ import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_core/re_ucm_core.dart';
 
 import '../../../core/di.dart';
-import '../../../core/navigation/nav.dart';
 import '../../../core/ui/tokens.dart';
 import '../../../core/ui/widgets/app_text_field.dart';
 import '../../common/utils/book_link_parser.dart';
 import '../../common/widgets/app_button.dart';
-import '../../downloads/presentation/download_modal.dart';
+import '../../downloads/presentation/utils/download_starter.dart';
 import '../../downloads/presentation/widgets/download_book_header.dart';
-import '../../downloads/presentation/widgets/unauthorized_download_dialog.dart';
 import 'format_selector.dart';
 import 'link_forwarder_controller.dart';
 
@@ -123,27 +121,21 @@ class _LinkForwarderState extends State<LinkForwarder> {
   Future<void> _startDownload() async {
     final deps = AppDependencies.of(context);
     final portal = _controller.loadedPortal;
-    if (portal == null) return;
+    final bookId = _controller.loadedBookId;
+    if (portal == null || bookId == null) return;
     final session = deps.settingsService.sessionByCode(portal.code);
+    final format =
+        _controller.selectedFormat.value ?? deps.settingsService.saveFormat;
 
-    final shouldProceed = await checkAndConfirmUnauthorizedDownload(
+    final task = await DownloadStarter.startWithConfirmation(
       context: context,
       session: session,
-      settingsService: deps.settingsService,
-      onLogin: () => Nav.goSourceDetails(portal.code),
-    );
-    if (!shouldProceed || !mounted) return;
-
-    final task = _controller.buildDownloadTask(
-      settingsService: deps.settingsService,
-      downloadsService: deps.downloadsService,
+      bookId: bookId,
+      format: format,
+      initialMetadata: _controller.loadedMetadata,
     );
     if (task == null || !mounted) return;
-    // Старт — отдельно от pure-сборки таска.
-    unawaited(task.start());
-    if (mounted) {
-      await showDownloadModalForTask(context, task);
-    }
+
     // Очищаем только после модала, а не до подтверждения.
     if (mounted) {
       _textController.clear();

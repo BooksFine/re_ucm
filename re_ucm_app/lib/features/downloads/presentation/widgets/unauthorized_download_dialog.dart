@@ -4,8 +4,18 @@ import 'package:material_ui/material_ui.dart';
 import 'package:re_ucm_core/re_ucm_core.dart';
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
-import '../../../../core/navigation/nav.dart';
 import '../../../../core/ui/tokens.dart';
+
+/// Результат подтверждения неавторизованного скачивания.
+class UnauthorizedConfirmResult {
+  const UnauthorizedConfirmResult({
+    required this.shouldDownload,
+    required this.dontAskAgain,
+  });
+
+  final bool shouldDownload;
+  final bool dontAskAgain;
+}
 
 /// Показывает диалог-предупреждение, если пользователь не авторизован.
 ///
@@ -25,26 +35,22 @@ Future<bool> checkAndConfirmUnauthorizedDownload({
     return true;
   }
 
-  final targetContext = Nav.contextOrNull ?? context;
-
-  bool? dontAskAgain;
-  final result = await showDialog<bool>(
-    context: targetContext,
+  final result = await showDialog<UnauthorizedConfirmResult>(
+    context: context,
     barrierDismissible: true,
     builder: (dialogCtx) => _UnauthorizedDownloadDialog(
       session: session,
-      onDontAskAgainChanged: (v) => dontAskAgain = v,
     ),
   );
 
   if (result == null) return false;
   // «Больше не спрашивать» персистим только при confirm (Скачать),
   // а не при «Войти»/dismiss.
-  if (result && dontAskAgain == true) {
+  if (result.shouldDownload && result.dontAskAgain) {
     settingsService.updateWarnUnauthorizedDownloads(false);
   }
 
-  if (result) return true;
+  if (result.shouldDownload) return true;
 
   // Пользователь нажал «Войти»: отдаём решение наружу.
   onLogin();
@@ -54,11 +60,9 @@ Future<bool> checkAndConfirmUnauthorizedDownload({
 class _UnauthorizedDownloadDialog extends StatefulWidget {
   const _UnauthorizedDownloadDialog({
     required this.session,
-    required this.onDontAskAgainChanged,
   });
 
   final PortalSession session;
-  final ValueChanged<bool> onDontAskAgainChanged;
 
   @override
   State<_UnauthorizedDownloadDialog> createState() =>
@@ -74,7 +78,6 @@ class _UnauthorizedDownloadDialogState
     setState(() {
       _dontAskAgain = !_dontAskAgain;
     });
-    widget.onDontAskAgainChanged(_dontAskAgain);
   }
 
   /// Единый обработчик чекбокса — только [_toggleDontAskAgain].
@@ -165,7 +168,12 @@ class _UnauthorizedDownloadDialogState
                     size: M3EButtonSize.sm,
                     onPressed: () {
                       HapticFeedback.lightImpact();
-                      Navigator.of(context).pop(true);
+                      Navigator.of(context).pop(
+                        UnauthorizedConfirmResult(
+                          shouldDownload: true,
+                          dontAskAgain: _dontAskAgain,
+                        ),
+                      );
                     },
                     child: const Text('Скачать'),
                   ),
@@ -175,7 +183,12 @@ class _UnauthorizedDownloadDialogState
                     size: M3EButtonSize.sm,
                     onPressed: () {
                       HapticFeedback.lightImpact();
-                      Navigator.of(context).pop(false);
+                      Navigator.of(context).pop(
+                        UnauthorizedConfirmResult(
+                          shouldDownload: false,
+                          dontAskAgain: _dontAskAgain,
+                        ),
+                      );
                     },
                     child: const Text('Войти'),
                   ),

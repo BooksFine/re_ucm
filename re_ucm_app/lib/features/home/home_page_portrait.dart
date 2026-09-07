@@ -2,8 +2,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../core/ui/centered_flexible_space_bar.dart';
 import '../../core/ui/tokens.dart';
-import '../recent_books/presentation/recent_books_list.dart';
-import '../recent_books/presentation/widgets/recent_books_header.dart';
+import '../recent_books/presentation/widgets/recent_books_slivers.dart';
 import 'widgets/home_action_hub.dart';
 import 'widgets/link_forwarder_controller.dart';
 
@@ -81,26 +80,18 @@ class _HomePagePortraitState extends State<HomePagePortrait> {
                 ),
 
                 // Recent Books Section (header + list, unboxed)
-                const SliverPadding(
-                  padding: EdgeInsets.fromLTRB(
+                ...buildRecentBooksSlivers(
+                  headerPadding: const EdgeInsets.fromLTRB(
                     AppSpacing.lg,
                     AppSpacing.xl,
                     AppSpacing.lg,
                     AppSpacing.xs,
                   ),
-                  sliver: SliverToBoxAdapter(
-                    child: RecentBooksHeader(),
-                  ),
-                ),
-                SliverPadding(
-                  padding: EdgeInsets.fromLTRB(
+                  listPadding: EdgeInsets.fromLTRB(
                     AppSpacing.lg,
                     AppSpacing.xs,
                     AppSpacing.lg,
                     bottomInset,
-                  ),
-                  sliver: const SliverToBoxAdapter(
-                    child: RecentBooksList(),
                   ),
                 ),
               ],

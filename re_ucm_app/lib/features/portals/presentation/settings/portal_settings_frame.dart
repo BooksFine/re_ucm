@@ -67,7 +67,8 @@ class _PortalSettingsFrameState extends State<PortalSettingsFrame> {
   }
 
   void onWebAuthButtonTap(PortalSettingWebAuthButton field) async {
-    await _manager.onWebAuthButtonTap(field, mounted);
+    await _manager.onWebAuthButtonTap(field);
+    if (!mounted) return;
   }
 
   @override

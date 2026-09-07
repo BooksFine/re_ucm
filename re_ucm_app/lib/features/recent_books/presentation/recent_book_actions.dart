@@ -7,12 +7,9 @@ import 'package:path/path.dart' as p;
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../../../core/di.dart';
-import '../../../core/navigation/nav.dart';
 import '../../common/widgets/snack.dart';
 import '../../downloads/domain/download_task.cg.dart';
-import '../../downloads/presentation/download_modal.dart';
-import '../../downloads/presentation/widgets/unauthorized_download_dialog.dart';
+import '../../downloads/presentation/utils/download_starter.dart';
 
 Future<void> openDownloadedFile(
   BuildContext context,
@@ -83,25 +80,12 @@ Future<void> startDownload(
     return;
   }
 
-  final deps = AppDependencies.of(context);
-  final shouldProceed = await checkAndConfirmUnauthorizedDownload(
+  await DownloadStarter.startWithConfirmation(
     context: context,
     session: session,
-    settingsService: deps.settingsService,
-    onLogin: () => Nav.goSourceDetails(session.portal.code),
-  );
-  if (!shouldProceed || !context.mounted) return;
-
-  final downloadsService = deps.downloadsService;
-  final task = downloadsService.getOrCreateTask(
-    session: session,
     bookId: bookId,
+    format: format,
   );
-  task.updateSaveFormat(format);
-  if (!task.isActive) {
-    task.start();
-  }
-  showDownloadModalForTask(context, task);
 }
 
 Future<void> openBook(

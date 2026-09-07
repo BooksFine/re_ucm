@@ -2,62 +2,62 @@ import 'package:m3e_core/m3e_core.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../../core/ui/app_colors_extension.dart';
-import '../../domain/download_task.cg.dart';
 
 class DownloadTaskRow extends StatelessWidget {
   const DownloadTaskRow({
     super.key,
-    required this.status,
     required this.title,
-    this.prefix,
     required this.statusText,
+    this.prefix,
     this.progress,
+    this.isDownloading = false,
+    this.isCompleted = false,
+    this.isFailed = false,
   });
 
-  final DownloadTaskStatus status;
   final String title;
-  final Widget? prefix;
   final String statusText;
+  final Widget? prefix;
   final double? progress;
+  final bool isDownloading;
+  final bool isCompleted;
+  final bool isFailed;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final Widget statusIcon = switch (status) {
-      DownloadTaskStatus.completed => Icon(
-        Icons.check_circle_rounded,
-        size: 15,
-        color: context.appColors.success,
-      ),
-      DownloadTaskStatus.failed => Icon(
-        Icons.error_rounded,
-        size: 15,
-        color: theme.colorScheme.error,
-      ),
-      DownloadTaskStatus.downloading => SizedBox(
-        width: 13,
-        height: 13,
-        child: M3ECircularWavyProgressIndicator(
-          size: 13,
-          strokeWidth: 1.5,
-          color: theme.colorScheme.primary,
-        ),
-      ),
-      DownloadTaskStatus.idle => Icon(
-        Icons.schedule_rounded,
-        size: 14,
-        color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-      ),
-      _ => Icon(
-        Icons.schedule_rounded,
-        size: 14,
-        color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-      ),
-    };
+    final Widget statusIcon = isCompleted
+        ? Icon(
+            Icons.check_circle_rounded,
+            size: 15,
+            color: context.appColors.success,
+          )
+        : isFailed
+            ? Icon(
+                Icons.error_rounded,
+                size: 15,
+                color: theme.colorScheme.error,
+              )
+            : isDownloading
+                ? SizedBox(
+                    width: 13,
+                    height: 13,
+                    child: M3ECircularWavyProgressIndicator(
+                      size: 13,
+                      strokeWidth: 1.5,
+                      color: theme.colorScheme.primary,
+                    ),
+                  )
+                : Icon(
+                    Icons.schedule_rounded,
+                    size: 14,
+                    color: theme.colorScheme.onSurfaceVariant.withValues(
+                      alpha: 0.5,
+                    ),
+                  );
 
-    final hasProgress =
-        status == DownloadTaskStatus.downloading && progress != null;
+    final hasProgress = isDownloading && progress != null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -77,7 +77,7 @@ class DownloadTaskRow extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodySmall?.copyWith(
                     fontSize: 12,
-                    fontWeight: status == DownloadTaskStatus.downloading
+                    fontWeight: isDownloading
                         ? FontWeight.w600
                         : FontWeight.normal,
                   ),
@@ -87,11 +87,11 @@ class DownloadTaskRow extends StatelessWidget {
               Text(
                 statusText,
                 style: theme.textTheme.labelSmall?.copyWith(
-                  color: status == DownloadTaskStatus.downloading
+                  color: isDownloading
                       ? theme.colorScheme.primary
                       : theme.colorScheme.onSurfaceVariant,
                   fontSize: 11,
-                  fontWeight: status == DownloadTaskStatus.downloading
+                  fontWeight: isDownloading
                       ? FontWeight.w600
                       : FontWeight.normal,
                 ),

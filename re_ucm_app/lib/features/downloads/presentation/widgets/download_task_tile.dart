@@ -31,6 +31,20 @@ class DownloadTaskTile extends StatelessWidget {
     this.trailing,
   });
 
+  const DownloadTaskTile.live({
+    super.key,
+    required this.task,
+    this.onTap,
+  })  : trailingType = DownloadTileTrailingType.cancel,
+        trailing = null;
+
+  const DownloadTaskTile.history({
+    super.key,
+    required this.task,
+    this.onTap,
+  })  : trailingType = DownloadTileTrailingType.chevron,
+        trailing = null;
+
   final DownloadTask task;
   final VoidCallback? onTap;
   final DownloadTileTrailingType trailingType;
@@ -51,7 +65,6 @@ class DownloadTaskTile extends StatelessWidget {
         final isCompleted = task.isCompleted;
         final isFailed = task.isFailed;
         final isCancelled = task.status == DownloadTaskStatus.cancelled;
-        final tot = task.progress.total ?? 0;
 
         final cardColor = isActive
             ? cs.primaryContainer.withValues(alpha: AppOpacity.soft)
@@ -113,30 +126,14 @@ class DownloadTaskTile extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         if (isActive) ...[
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  vm.statusText,
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: cs.primary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              if (tot > 0 && vm.progress != null) ...[
-                                const SizedBox(width: AppSpacing.xs),
-                                Text(
-                                  '${(vm.progress! * 100).toInt()}%',
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: cs.primary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ],
+                          Text(
+                            vm.statusText,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: cs.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 4),
                           M3ELinearWavyProgressIndicator(

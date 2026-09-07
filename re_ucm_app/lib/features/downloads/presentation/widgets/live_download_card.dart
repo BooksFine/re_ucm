@@ -5,7 +5,7 @@ import '../../../../core/di.dart';
 import '../../../../core/ui/tokens.dart';
 import '../../../../core/ui/widgets/app_section_header.dart';
 import '../download_modal.dart';
-import 'live_download_compact_tile.dart';
+import 'download_task_tile.dart';
 
 /// A live, non-blocking on-page card displaying active download tasks.
 ///
@@ -44,9 +44,9 @@ class LiveDownloadCard extends StatelessWidget {
                         'Идет скачивание (${activeTasks.length})',
                         padding: EdgeInsets.fromLTRB(4, 0, 4, AppSpacing.sm),
                       ),
-                      // Task cards — компактный LiveDownloadCompactTile.
+                      // Task cards — компактный DownloadTaskTile.live.
                       for (final task in activeTasks)
-                        LiveDownloadCompactTile(
+                        DownloadTaskTile.live(
                           key: downloadTileKey(task),
                           task: task,
                           onTap: () =>

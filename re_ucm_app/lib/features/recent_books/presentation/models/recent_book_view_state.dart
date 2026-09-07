@@ -1,7 +1,7 @@
 import 'package:re_ucm_lib/re_ucm_lib.dart';
 
-import '../../downloads/domain/download_task.cg.dart';
-import '../../downloads/domain/downloads_service.cg.dart';
+import '../../../downloads/domain/download_task.cg.dart';
+import '../../../downloads/domain/downloads_service.cg.dart';
 
 /// Чистый UI ViewModel элемента недавней книги.
 ///
@@ -54,3 +54,6 @@ class RecentBookItemState {
     );
   }
 }
+
+/// Алиас типа [RecentBookItemState] для слоя презентации.
+typedef RecentBookViewState = RecentBookItemState;

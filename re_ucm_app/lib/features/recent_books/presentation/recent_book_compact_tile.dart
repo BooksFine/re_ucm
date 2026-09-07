@@ -24,12 +24,10 @@ class RecentBookCompactTile extends StatelessWidget {
     return Observer(
       builder: (context) {
         final presenter = RecentBookPresenter.resolve(context, book);
-        final state = presenter.state;
-        final task = state.task;
         final seriesLine = presenter.seriesLine;
 
         return RecentBookContainer(
-          isDownloading: state.isDownloading,
+          isDownloading: presenter.isDownloading,
           margin: const EdgeInsets.symmetric(vertical: 3),
           padding: const EdgeInsets.all(10),
           child: Row(
@@ -73,26 +71,26 @@ class RecentBookCompactTile extends StatelessWidget {
                     const SizedBox(height: 6),
                     RecentBookBadgesRow(
                       book: book,
-                      state: state,
+                      state: presenter.state,
                       showDownloadProgress: true,
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 8),
-              if (state.isDownloading)
-                RecentBookDownloadingRow(task: task, compact: true)
+              if (presenter.isDownloading)
+                RecentBookDownloadingRow(task: presenter.task, compact: true)
               else ...[
                 DownloadButton(
                   iconOnly: !isWide,
                   size: M3EButtonSize.xs,
-                  onPressed: presenter.session == null ? null : presenter.onDownload,
+                  onPressed: presenter.canDownload ? presenter.onDownload : null,
                 ),
                 RecentBookMoreMenu(
                   book: book,
-                  task: task,
-                  effectiveFilePath: state.effectiveFilePath,
-                  fileExists: state.fileExists,
+                  task: presenter.task,
+                  effectiveFilePath: presenter.effectiveFilePath,
+                  fileExists: presenter.fileExists,
                   showOpen: true,
                   showShare: true,
                   onDelete: onDelete,

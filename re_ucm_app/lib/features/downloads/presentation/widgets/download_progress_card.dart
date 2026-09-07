@@ -12,29 +12,27 @@ import 'download_task_row.dart';
 /// Строка для единого [_buildRows].
 class DownloadRowModel {
   const DownloadRowModel({
-    required this.status,
     required this.title,
     required this.statusText,
     this.prefix,
     this.progress,
+    this.isDownloading = false,
+    this.isCompleted = false,
+    this.isFailed = false,
   });
 
-  final DownloadTaskStatus status;
   final String title;
   final String statusText;
   final Widget? prefix;
   final double? progress;
+  final bool isDownloading;
+  final bool isCompleted;
+  final bool isFailed;
 }
 
 extension ChapterRowModel on ChapterDownloadTask {
   DownloadRowModel toRowModel() {
     return DownloadRowModel(
-      status: switch (status) {
-        ChapterDownloadStatus.downloading => DownloadTaskStatus.downloading,
-        ChapterDownloadStatus.completed => DownloadTaskStatus.completed,
-        ChapterDownloadStatus.failed => DownloadTaskStatus.failed,
-        ChapterDownloadStatus.pending => DownloadTaskStatus.idle,
-      },
       title: title,
       statusText: switch (status) {
         ChapterDownloadStatus.downloading => 'Загрузка...',
@@ -42,6 +40,9 @@ extension ChapterRowModel on ChapterDownloadTask {
         ChapterDownloadStatus.failed => 'Ошибка',
         ChapterDownloadStatus.pending => 'В очереди',
       },
+      isDownloading: status == ChapterDownloadStatus.downloading,
+      isCompleted: status == ChapterDownloadStatus.completed,
+      isFailed: status == ChapterDownloadStatus.failed,
       prefix: Builder(
         builder: (context) {
           final theme = Theme.of(context);
@@ -74,15 +75,12 @@ extension ImageRowModel on ImageDownloadTask {
       ImageDownloadStatus.pending => 'В очереди',
     };
     return DownloadRowModel(
-      status: switch (status) {
-        ImageDownloadStatus.downloading => DownloadTaskStatus.downloading,
-        ImageDownloadStatus.completed => DownloadTaskStatus.completed,
-        ImageDownloadStatus.failed => DownloadTaskStatus.failed,
-        ImageDownloadStatus.pending => DownloadTaskStatus.idle,
-      },
       title: id,
       statusText: statusText,
       progress: progress,
+      isDownloading: status == ImageDownloadStatus.downloading,
+      isCompleted: status == ImageDownloadStatus.completed,
+      isFailed: status == ImageDownloadStatus.failed,
     );
   }
 }
@@ -184,11 +182,13 @@ class DownloadProgressCard extends StatelessWidget {
       itemBuilder: (context, index) {
         final row = rows[index];
         return DownloadTaskRow(
-          status: row.status,
-          prefix: row.prefix,
           title: row.title,
           statusText: row.statusText,
+          prefix: row.prefix,
           progress: row.progress,
+          isDownloading: row.isDownloading,
+          isCompleted: row.isCompleted,
+          isFailed: row.isFailed,
         );
       },
     );
